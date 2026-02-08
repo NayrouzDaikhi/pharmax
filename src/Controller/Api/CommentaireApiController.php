@@ -111,4 +111,37 @@ class CommentaireApiController extends AbstractController
             ]
         ]);
     }
-}
+
+    #[Route('/commentaires/delete-multiple', name: 'api_delete_multiple_commentaires', methods: ['POST'])]
+    public function deleteMultiple(
+        Request $request,
+        CommentaireRepository $commentaireRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!isset($data['ids']) || !is_array($data['ids'])) {
+            return $this->json(['success' => false, 'message' => 'Invalid data'], 400);
+        }
+        
+        $ids = array_map('intval', $data['ids']);
+        $deletedCount = 0;
+        
+        foreach ($ids as $id) {
+            $commentaire = $commentaireRepository->find($id);
+            if ($commentaire) {
+                $entityManager->remove($commentaire);
+                $deletedCount++;
+            }
+        }
+        
+        if ($deletedCount > 0) {
+            $entityManager->flush();
+        }
+        
+        return $this->json([
+            'success' => true,
+            'message' => $deletedCount . ' comment(s) deleted successfully',
+            'deleted_count' => $deletedCount
+        ]);
+    }}
