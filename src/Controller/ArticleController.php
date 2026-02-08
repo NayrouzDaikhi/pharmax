@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentaireRepository;
+use App\Repository\CommentaireArchiveRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ArticleController extends AbstractController
 {
     #[Route(name: 'app_article_index', methods: ['GET'])]
-    public function index(Request $request, ArticleRepository $articleRepository, CommentaireRepository $commentaireRepository): Response
+    public function index(Request $request, ArticleRepository $articleRepository, CommentaireRepository $commentaireRepository, CommentaireArchiveRepository $archiveRepository): Response
     {
         $searchQuery = $request->query->get('search', '');
         $sortBy = $request->query->get('sort_by', 'date');
@@ -117,6 +118,7 @@ final class ArticleController extends AbstractController
         return $this->render('article/index.html.twig', [
             'articles' => $articles,
             'commentaires' => $commentaires,
+            'archived_commentaires' => $archiveRepository->findAll(),
             'totalArticles' => $totalArticles,
             'totalCommentaires' => $totalCommentaires,
             'statsByStatus' => $statsByStatus,
