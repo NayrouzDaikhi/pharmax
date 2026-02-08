@@ -17,64 +17,148 @@
         <i class="bx bx-plus"></i> {{'New Comment'|trans}}
     </a>
 </div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="true">
+            <i class="bx bx-comment"></i> {{'Active Comments'|trans}} ({{ commentaires|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="archive-tab" data-bs-toggle="tab" data-bs-target="#archive" type="button" role="tab" aria-controls="archive" aria-selected="false">
+            <i class="bx bx-archive"></i> {{'Archived Comments'|trans}} 
+            {% if archived_commentaires|length > 0 %}
+                <span class="badge bg-danger">{{ archived_commentaires|length }}</span>
+            {% endif %}
+        </button>
+    </li>
+</ul>
 {% endblock %}
 
 {% block body %}
-<div class="card">
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>{{'ID'|trans}}</th>
-                    <th>{{'Article'|trans}}</th>
-                    <th>{{'Content'|trans}}</th>
-                    <th>{{'Published'|trans}}</th>
-                    <th>{{'Status'|trans}}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if commentaires is not empty %}
-                    {% for commentaire in commentaires %}
-                    <tr class="table-row-clickable comment-row" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" data-article-id="{{ commentaire.article.id }}" role="button">
-                        <td>
-                            <code class="text-info">#{{ commentaire.id }}</code>
-                        </td>
-                        <td>
-                            <span class="badge badge-light">{{ commentaire.article.titre }}</span>
-                        </td>
-                        <td>
-                            <p class="text-muted mb-0">
-                                {% if commentaire.contenu|length > 50 %}
-                                    {{ commentaire.contenu|slice(0, 50) }}...
-                                {% else %}
-                                    {{ commentaire.contenu }}
-                                {% endif %}
-                            </p>
-                        </td>
-                        <td>
-                            <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
-                        </td>
-                        <td>
-                            {% if commentaire.statut == 'approuvé' %}
-                                <span class="badge badge-success">{{'Approved'|trans}}</span>
-                            {% elseif commentaire.statut == 'en attente' %}
-                                <span class="badge badge-warning">{{'Pending'|trans}}</span>
-                            {% else %}
-                                <span class="badge badge-secondary">{{ commentaire.statut }}</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center py-5">
-                            <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
-                            <p class="text-muted mt-2">{{'No comments found.'|trans}} <a href="{{ path('app_commentaire_new') }}">{{'Create one'|trans}}</a></p>
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+<div class="tab-content" id="commentTabContent">
+    <!-- ACTIVE COMMENTS TAB -->
+    <div class="tab-pane fade show active" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'Article'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Published'|trans}}</th>
+                            <th>{{'Status'|trans}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if commentaires is not empty %}
+                            {% for commentaire in commentaires %}
+                            <tr class="table-row-clickable comment-row" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" data-article-id="{{ commentaire.article.id }}" role="button">
+                                <td>
+                                    <code class="text-info">#{{ commentaire.id }}</code>
+                                </td>
+                                <td>
+                                    <span class="badge badge-light">{{ commentaire.article.titre }}</span>
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if commentaire.contenu|length > 50 %}
+                                            {{ commentaire.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ commentaire.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    {% if commentaire.statut == 'VALIDE' %}
+                                        <span class="badge badge-success">{{'Approved'|trans}}</span>
+                                    {% elseif commentaire.statut == 'en attente' %}
+                                        <span class="badge badge-warning">{{'Pending'|trans}}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ commentaire.statut }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No comments found.'|trans}} <a href="{{ path('app_commentaire_new') }}">{{'Create one'|trans}}</a></p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARCHIVED COMMENTS TAB -->
+    <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'User'|trans}}</th>
+                            <th>{{'Article'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Blocked Date'|trans}}</th>
+                            <th>{{'Reason'|trans}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if archived_commentaires is not empty %}
+                            {% for archive in archived_commentaires %}
+                            <tr>
+                                <td>
+                                    <code class="text-danger">#{{ archive.id }}</code>
+                                </td>
+                                <td>
+                                    <small>{{ archive.userName ?? 'Anonymous' }}</small>
+                                    {% if archive.userEmail %}
+                                        <br><small class="text-muted">{{ archive.userEmail }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-light">{{ archive.article.titre }}</span>
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if archive.contenu|length > 50 %}
+                                            {{ archive.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ archive.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ archive.archivedAt ? archive.archivedAt|date('d M Y H:i') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-warning text-dark">{{ archive.reason }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bx bx-check-circle" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No archived comments.'|trans}}</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
