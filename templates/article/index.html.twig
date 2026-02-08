@@ -231,9 +231,9 @@
                                     <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
                                 </td>
                                 <td>
-                                    {% if commentaire.statut == 'VALIDE' %}
+                                    {% if commentaire.statut|lower == 'valide' %}
                                         <span class="badge badge-success">{{'Approved'|trans}}</span>
-                                    {% elseif commentaire.statut == 'EN_ATTENTE' %}
+                                    {% elseif commentaire.statut|lower == 'en_attente' %}
                                         <span class="badge badge-warning">{{'Pending'|trans}}</span>
                                     {% else %}
                                         <span class="badge badge-secondary">{{ commentaire.statut }}</span>

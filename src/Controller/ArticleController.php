@@ -67,7 +67,7 @@ final class ArticleController extends AbstractController
         $commentaires = $allCommentaires;
         if (!empty($commentFilter)) {
             $commentaires = array_filter($commentaires, function($commentaire) use ($commentFilter) {
-                return $commentaire->getStatut() === $commentFilter;
+                return strtolower($commentaire->getStatut()) === $commentFilter;
             });
         }
         
@@ -96,8 +96,8 @@ final class ArticleController extends AbstractController
         }
         
         foreach ($allCommentaires as $commentaire) {
-            // Count by status
-            $status = $commentaire->getStatut();
+            // Count by status (case-insensitive)
+            $status = strtolower($commentaire->getStatut());
             if (isset($statsByStatus[$status])) {
                 $statsByStatus[$status]++;
             }
@@ -115,15 +115,12 @@ final class ArticleController extends AbstractController
         // Sort dates
         ksort($commentsByDate);
         
-        $archivedCommentaires = $archiveRepository->findAll();
-        
         return $this->render('article/index.html.twig', [
             'articles' => $articles,
             'commentaires' => $commentaires,
-            'archived_commentaires' => $archivedCommentaires,
+            'archived_commentaires' => $archiveRepository->findAll(),
             'totalArticles' => $totalArticles,
             'totalCommentaires' => $totalCommentaires,
-            'totalArchived' => count($archivedCommentaires),
             'statsByStatus' => $statsByStatus,
             'commentsByDate' => $commentsByDate,
             'mostCommentedArticleId' => $mostCommentedArticleId,

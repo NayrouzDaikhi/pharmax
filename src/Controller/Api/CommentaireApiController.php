@@ -85,7 +85,7 @@ class CommentaireApiController extends AbstractController
     #[Route('/statistics', name: 'api_statistics', methods: ['GET'])]
     public function getStatistics(CommentaireRepository $commentaireRepository): JsonResponse
     {
-        // Get all comments and calculate statistics
+        // Get all comments and calculate statistics (case-insensitive)
         $allCommentaires = $commentaireRepository->findAll();
         
         $statsByStatus = [
@@ -95,7 +95,7 @@ class CommentaireApiController extends AbstractController
         ];
         
         foreach ($allCommentaires as $commentaire) {
-            $status = $commentaire->getStatut();
+            $status = strtolower($commentaire->getStatut());
             if (isset($statsByStatus[$status])) {
                 $statsByStatus[$status]++;
             }
