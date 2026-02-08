@@ -50,12 +50,12 @@
 </div>
 
 <!-- Statistics Section -->
-<div class="row mb-4" id="statistics-section">
+<div class="row mb-4">
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-title text-muted mb-3">Nombre total d'articles</h6>
-                <h2 class="text-primary mb-0" id="stat-total-articles">{{ totalArticles }}</h2>
+                <h2 class="text-primary mb-0">{{ totalArticles }}</h2>
             </div>
         </div>
     </div>
@@ -63,7 +63,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-title text-muted mb-3">Nombre total de commentaires</h6>
-                <h2 class="text-info mb-0" id="stat-total-commentaires">{{ totalCommentaires }}</h2>
+                <h2 class="text-info mb-0">{{ totalCommentaires }}</h2>
             </div>
         </div>
     </div>
@@ -71,10 +71,10 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-title text-muted mb-3">Commentaires en attente</h6>
-                <h2 class="text-warning mb-0" id="stat-en-attente">{{ statsByStatus['en_attente'] }}</h2>
+                <h2 class="text-warning mb-0">{{ statsByStatus['en_attente'] }}</h2>
                 <small class="text-muted d-block mt-2">
-                    Approuvés: <span class="text-success" id="stat-valide">{{ statsByStatus['valide'] }}</span> | 
-                    Bloqués: <span class="text-danger" id="stat-bloque">{{ statsByStatus['bloque'] }}</span>
+                    Approuvés: <span class="text-success">{{ statsByStatus['valide'] }}</span> | 
+                    Bloqués: <span class="text-danger">{{ statsByStatus['bloque'] }}</span>
                 </small>
             </div>
         </div>
@@ -82,9 +82,15 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h6 class="card-title text-muted mb-3">Commentaires validés</h6>
-                <h2 class="text-success mb-0" id="stat-archived">{{ totalArchived|default(0) }}</h2>
-                <small class="text-muted d-block mt-2">Commentaires bloqués</small>
+                <h6 class="card-title text-muted mb-3">Derniers commentaires</h6>
+                {% if commentsByDate|length > 0 %}
+                    {% set lastDate = commentsByDate|keys|last %}
+                    <h2 class="text-success mb-0">{{ commentsByDate[lastDate] }}</h2>
+                    <small class="text-muted d-block mt-2">{{ lastDate|date('d/m/Y') }}</small>
+                {% else %}
+                    <h2 class="text-secondary mb-0">-</h2>
+                    <small class="text-muted d-block mt-2">Aucun</small>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -340,16 +346,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    let commentStatusChart = null;
+    
+    // Initialize chart
+    function initializeChart(statusData) {
         const ctx = document.getElementById('commentStatusChart');
         if (ctx) {
-            const statusData = {
-                approved: {{ statsByStatus['valide'] }},
-                pending: {{ statsByStatus['en_attente'] }},
-                blocked: {{ statsByStatus['bloque'] }}
-            };
-
-            new Chart(ctx, {
+            // Destroy existing chart if it exists
+            if (commentStatusChart) {
+                commentStatusChart.destroy();
+            }
+            
+            commentStatusChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: [
@@ -393,27 +401,40 @@
                 }
             });
         }
-    });
-
-    // Update statistics every 3 seconds
-    function updateStatistics() {
-        fetch('/api/stats')
-            .then(response => response.json())
-            .then(data => {
-                // Update statistics
-                document.getElementById('stat-total-articles').textContent = data.totalArticles;
-                document.getElementById('stat-total-commentaires').textContent = data.totalCommentaires;
-                document.getElementById('stat-en-attente').textContent = data.statsByStatus['en_attente'];
-                document.getElementById('stat-valide').textContent = data.statsByStatus['valide'];
-                document.getElementById('stat-bloque').textContent = data.statsByStatus['bloque'];
-                document.getElementById('stat-archived').textContent = data.totalArchived;
-            })
-            .catch(error => console.error('Error updating statistics:', error));
     }
-
-    // Update statistics on page load and then periodically
-    updateStatistics();
-    setInterval(updateStatistics, 3000); // Update every 3 seconds
+    
+    // Fetch and update statistics
+    async function updateStatistics() {
+        try {
+            const response = await fetch('/api/statistics');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    initializeChart({
+                        approved: data.statistics.approved,
+                        pending: data.statistics.pending,
+                        blocked: data.statistics.blocked
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching statistics:', error);
+        }
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusData = {
+            approved: {{ statsByStatus['valide'] }},
+            pending: {{ statsByStatus['en_attente'] }},
+            blocked: {{ statsByStatus['bloque'] }}
+        };
+        
+        initializeChart(statusData);
+        
+        // Refresh statistics every 5 seconds
+        setInterval(updateStatistics, 5000);
+    });
 </script>
 {% endblock %}
 
