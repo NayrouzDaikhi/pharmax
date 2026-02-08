@@ -189,6 +189,11 @@ document.getElementById('commentForm').addEventListener('submit', async (e) => {
                 <div>${data.message}</div>
             `;
             
+            // Update article statistics chart if available
+            if (typeof window.updateArticleStatistics === 'function') {
+                window.updateArticleStatistics();
+            }
+            
             // Reload page after 2 seconds to show new comment
             setTimeout(() => {
                 location.reload();
@@ -204,6 +209,11 @@ document.getElementById('commentForm').addEventListener('submit', async (e) => {
                 </div>
                 <div>${data.warning || data.message}</div>
             `;
+            
+            // Update article statistics chart if available
+            if (typeof window.updateArticleStatistics === 'function') {
+                window.updateArticleStatistics();
+            }
         }
     } catch (error) {
         console.error('Error:', error);

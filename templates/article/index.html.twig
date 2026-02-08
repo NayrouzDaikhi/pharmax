@@ -497,6 +497,9 @@
         }
     }
     
+    // Expose globally so other pages can update the chart
+    window.updateArticleStatistics = updateStatistics;
+    
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         const statusData = {
@@ -506,9 +509,6 @@
         };
         
         initializeChart(statusData);
-        
-        // Refresh statistics every 5 seconds
-        setInterval(updateStatistics, 5000);
     });
 </script>
 {% endblock %}
