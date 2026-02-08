@@ -1,0 +1,48 @@
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">{{'Comment Information'|trans}}</h5>
+    </div>
+    <div class="card-body">
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            {% if form.vars.errors|length > 0 %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bx bx-error-circle me-2"></i>
+                    <strong>{{'Please fix the errors below:'|trans}}</strong>
+                    {{ form_errors(form) }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            <div class="mb-4">
+                {{ form_label(form.contenu, 'Comment Content'|trans) }}
+                {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': 8, 'placeholder': ('Write your comment here...'|trans)}}) }}
+                {% if form.contenu.vars.errors %}
+                    <div class="invalid-feedback d-block">
+                        <i class="bx bx-error-circle me-1"></i>{{ form_errors(form.contenu) }}
+                    </div>
+                {% endif %}
+                <small class="form-text">{{'Provide detailed feedback or comments.'|trans}}</small>
+            </div>
+
+            <div class="mb-4">
+                {{ form_label(form.statut, 'Status'|trans) }}
+                {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+                {% if form.statut.vars.errors %}
+                    <div class="invalid-feedback d-block">
+                        <i class="bx bx-error-circle me-1"></i>{{ form_errors(form.statut) }}
+                    </div>
+                {% endif %}
+                <small class="form-text">{{'Set the approval status for this comment.'|trans}}</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-save me-2"></i>{{ button_label|default('Create Comment'|trans) }}
+                </button>
+                <a href="{{ path('app_commentaire_index') }}" class="btn btn-secondary">
+                    <i class="bx bx-x me-2"></i>{{'Cancel'|trans}}
+                </a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>

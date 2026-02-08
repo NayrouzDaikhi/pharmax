@@ -1,0 +1,189 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block content %}
+<!-- Search Section -->
+<div class="search-section">
+    <form method="get" action="{{ path('app_blog_index') }}">
+        <input type="text" name="search" placeholder="{{'Search articles...'|trans}}" value="{{ searchQuery }}">
+        <button type="submit">
+            <i class="fas fa-search"></i> {{'Search'|trans}}
+        </button>
+        {% if searchQuery %}
+            <a href="{{ path('app_blog_index') }}" class="btn-clear">
+                <i class="fas fa-times"></i> {{'Clear'|trans}}
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+{% if articles is not empty %}
+    <!-- Posts Grid -->
+    <div class="posts-grid" id="articles-container" style="transition: opacity 0.3s ease, transform 0.3s ease;">
+        {% include 'blog/_articles_list.html.twig' %}
+    </div>
+
+    <!-- Pagination -->
+    {% if totalPages > 1 %}
+    <div class="pagination-container">
+        <nav class="pagination">
+            <!-- Previous Button -->
+            {% if currentPage > 1 %}
+                <a href="#" class="pagination-btn pagination-prev" onclick="loadPage({{ currentPage - 1 }}); return false;">
+                    <i class="fas fa-chevron-left"></i> {{'Previous'|trans}}
+                </a>
+            {% else %}
+                <span class="pagination-btn pagination-prev disabled">
+                    <i class="fas fa-chevron-left"></i> {{'Previous'|trans}}
+                </span>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            <div class="pagination-pages">
+                {% for page in 1..totalPages %}
+                    {% if page == currentPage %}
+                        <span class="pagination-page active">{{ page }}</span>
+                    {% elseif page >= currentPage - 1 and page <= currentPage + 1 or page == 1 or page == totalPages %}
+                        <a href="#" class="pagination-page" onclick="loadPage({{ page }}); return false;">
+                            {{ page }}
+                        </a>
+                    {% elseif page == currentPage - 2 or page == currentPage + 2 %}
+                        <span class="pagination-ellipsis">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Next Button -->
+            {% if currentPage < totalPages %}
+                <a href="#" class="pagination-btn pagination-next" onclick="loadPage({{ currentPage + 1 }}); return false;">
+                    {{'Next'|trans}} <i class="fas fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="pagination-btn pagination-next disabled">
+                    {{'Next'|trans}} <i class="fas fa-chevron-right"></i>
+                </span>
+            {% endif %}
+        </nav>
+        
+        <div class="pagination-info">
+            {{'Showing'|trans}} <strong>{{ (currentPage - 1) * itemsPerPage + 1 }}</strong> {{'to'|trans}} <strong>{{ min(currentPage * itemsPerPage, totalArticles) }}</strong> {{'of'|trans}} <strong>{{ totalArticles }}</strong> {{'articles'|trans}}
+        </div>
+    </div>
+    {% endif %}
+{% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>{{'No articles found.'|trans}}</p>
+    </div>
+{% endif %}
+
+<script>
+    const searchQuery = '{{ searchQuery }}';
+    const articlesContainer = document.getElementById('articles-container');
+
+    function loadPage(page) {
+        const url = `{{ path('app_blog_index') }}?page=${page}${searchQuery ? '&search=' + encodeURIComponent(searchQuery) : ''}`;
+        
+        fetch(url, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Fade out animation
+            articlesContainer.style.opacity = '0';
+            articlesContainer.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                // Update HTML
+                articlesContainer.innerHTML = data.html;
+                
+                // Fade in animation
+                articlesContainer.style.opacity = '1';
+                articlesContainer.style.transform = 'translateY(0)';
+                
+                // Scroll to articles smoothly
+                articlesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Update pagination buttons
+                updatePaginationUI(data.currentPage, data.totalPages, data.totalArticles);
+                
+                // Update URL without reload
+                window.history.pushState({page: data.currentPage}, '', url);
+            }, 300);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Fallback to page reload
+            window.location.href = url;
+        });
+    }
+
+    function updatePaginationUI(currentPage, totalPages, totalArticles) {
+        const pagination = document.querySelector('.pagination-container');
+        
+        // Reconstruct pagination HTML
+        let paginationHTML = `
+            <nav class="pagination">
+        `;
+        
+        // Previous button
+        if (currentPage > 1) {
+            paginationHTML += `
+                <a href="#" class="pagination-btn pagination-prev" onclick="loadPage(${currentPage - 1}); return false;">
+                    <i class="fas fa-chevron-left"></i> {{'Previous'|trans}}
+                </a>
+            `;
+        } else {
+            paginationHTML += `
+                <span class="pagination-btn pagination-prev disabled">
+                    <i class="fas fa-chevron-left"></i> {{'Previous'|trans}}
+                </span>
+            `;
+        }
+        
+        // Page numbers
+        paginationHTML += `<div class="pagination-pages">`;
+        for (let page = 1; page <= totalPages; page++) {
+            if (page === currentPage) {
+                paginationHTML += `<span class="pagination-page active">${page}</span>`;
+            } else if (page >= currentPage - 1 && page <= currentPage + 1 || page === 1 || page === totalPages) {
+                paginationHTML += `<a href="#" class="pagination-page" onclick="loadPage(${page}); return false;">${page}</a>`;
+            } else if (page === currentPage - 2 || page === currentPage + 2) {
+                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+            }
+        }
+        paginationHTML += `</div>`;
+        
+        // Next button
+        if (currentPage < totalPages) {
+            paginationHTML += `
+                <a href="#" class="pagination-btn pagination-next" onclick="loadPage(${currentPage + 1}); return false;">
+                    {{'Next'|trans}} <i class="fas fa-chevron-right"></i>
+                </a>
+            `;
+        } else {
+            paginationHTML += `
+                <span class="pagination-btn pagination-next disabled">
+                    {{'Next'|trans}} <i class="fas fa-chevron-right"></i>
+                </span>
+            `;
+        }
+        
+        paginationHTML += `</nav>`;
+        
+        // Info text
+        const itemsPerPage = 3;
+        const startItem = (currentPage - 1) * itemsPerPage + 1;
+        const endItem = Math.min(currentPage * itemsPerPage, totalArticles);
+        paginationHTML += `
+            <div class="pagination-info">
+                {{'Showing'|trans}} <strong>${startItem}</strong> {{'to'|trans}} <strong>${endItem}</strong> {{'of'|trans}} <strong>${totalArticles}</strong> {{'articles'|trans}}
+            </div>
+        `;
+        
+        pagination.innerHTML = paginationHTML;
+    }
+</script>
+{% endblock %}

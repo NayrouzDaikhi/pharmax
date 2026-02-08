@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="{{ asset('sneat/assets/') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>{% block title %}{{'Pharmax Dashboard'|trans}}{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('sneat/assets/img/favicon/favicon.ico') }}" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/fonts/boxicons.css') }}" />
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/core.css') }}" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/theme-default.css') }}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="{{ asset('sneat/assets/css/demo.css') }}" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
+
+    <!-- Helpers -->
+    <script src="{{ asset('sneat/assets/vendor/js/helpers.js') }}"></script>
+
+    <!-- Config -->
+    <script src="{{ asset('sneat/assets/js/config.js') }}"></script>
+    
+    <!-- Custom Active Menu Styling -->
+    <style>
+        .menu-link.active {
+            background-color: #7367f0 !important;
+            color: #fff !important;
+            border-left-color: #7367f0 !important;
+        }
+        
+        .menu-link.active i,
+        .menu-link.active div {
+            color: #fff !important;
+        }
+        
+        .menu-link.active:hover {
+            background-color: #6558e0 !important;
+        }
+        
+        /* App Brand Logo Styling */
+        .app-brand {
+            padding: 20px 0 !important;
+            min-height: 140px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .app-brand-logo {
+            max-width: 150px !important;
+            max-height: 120px !important;
+        }
+        
+        .app-brand-logo img {
+            max-height: 110px !important;
+            width: auto !important;
+        }
+        
+        .table-row-clickable {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .table-row-clickable:hover {
+            background-color: rgba(0, 0, 0, 0.02) !important;
+        }
+        
+        .table-highlighted {
+            background-color: rgba(255, 193, 7, 0.15) !important;
+            border-left: 4px solid #ffc107 !important;
+        }
+        
+        .table-highlighted:hover {
+            background-color: rgba(255, 193, 7, 0.25) !important;
+        }
+        
+        /* Ensure table text is always black */
+        .table {
+            color: #000 !important;
+        }
+        
+        .table td,
+        .table th {
+            color: #000 !important;
+        }
+        
+        .table tbody tr {
+            color: #000 !important;
+        }
+        
+        .table tbody tr td {
+            color: #000 !important;
+        }
+        
+        .badge {
+            color: #000 !important;
+        }
+    </style>
+    
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
+        <div class="layout-container">
+            <!-- Menu -->
+            <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+                <div class="app-brand demo">
+                    <a href="{{ path('app_blog_index') }}" class="app-brand-link">
+                        <span class="app-brand-logo demo">
+                            <img src="{{ asset('images/logo pharmax.png') }}" alt="Pharmax Logo" style="height: 110px; width: auto; object-fit: contain;">
+                        </span>
+                    </a>
+
+                    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
+                        <i class="bx bx-chevron-left bx-sm align-middle"></i>
+                    </a>
+                </div>
+
+                <div class="menu-inner-shadow"></div>
+
+                <ul class="menu-inner py-1">
+                    <!-- Dashboard -->
+                    <li class="menu-item">
+                        <a href="{{ path('app_article_index') }}" class="menu-link {% if 'article' in app.request.pathInfo %}active{% endif %}">
+                            <i class="menu-icon tf-icons bx bx-file"></i>
+                            <div data-i18n="Articles">{{('Articles'|trans)}}</div>
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+            <!-- / Menu -->
+
+            <!-- Layout page -->
+            <div class="layout-page">
+                <!-- Navbar -->
+                <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                    <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
+                        <a class="nav-item nav-link px-0 me-xl-4" href="javascript:void(0)">
+                            <i class="bx bx-menu bx-sm"></i>
+                        </a>
+                    </div>
+
+                    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                        <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            <!-- User -->
+                            <li class="nav-item navbar-dropdown dropdown-user dropdown">
+                                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-online">
+                                        <i class="bx bx-user-circle bx-lg"></i>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="#">
+                                            <div class="d-flex">
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-semibold d-block">Administrator</span>
+                                                    <small class="text-muted">Pharmax</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <!-- / Navbar -->
+
+                <!-- Content wrapper -->
+                <div class="content-wrapper">
+                    <!-- Content -->
+                    <div class="container-xxl flex-grow-1 container-p-y">
+                        <!-- Page Header -->
+                        {% block page_header %}{% endblock %}
+
+                        <!-- Flash Messages -->
+                        {% if app.session.flashbag.peekAll %}
+                            {% for label, messages in app.session.flashbag.all %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                                        <strong><i class="bx bx-check"></i></strong> {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Page Content -->
+                        {% block body %}{% endblock %}
+                    </div>
+                    <!-- / Content -->
+
+                    <!-- Footer -->
+                    <footer class="content-footer footer bg-footer-theme">
+                        <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                            <div class="mb-2 mb-md-0">
+                                © {{ "now"|date('Y') }} <a href="#" target="_blank" class="footer-link fw-bolder">{{('Pharmax'|trans)}}</a>
+                            </div>
+                        </div>
+                    </footer>
+                    <!-- / Footer -->
+
+                    <div class="content-backdrop fade"></div>
+                </div>
+                <!-- Content wrapper -->
+            </div>
+            <!-- / Layout page -->
+        </div>
+
+        <!-- Overlay -->
+        <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+    <!-- / Layout wrapper -->
+
+    <!-- Core JS -->
+    <script src="{{ asset('sneat/assets/vendor/libs/jquery/jquery.js') }}"></script>
+    <script src="{{ asset('sneat/assets/vendor/libs/popper/popper.js') }}"></script>
+    <script src="{{ asset('sneat/assets/vendor/js/bootstrap.js') }}"></script>
+    <script src="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+    <script src="{{ asset('sneat/assets/vendor/js/menu.js') }}"></script>
+
+    <!-- Main JS -->
+    <script src="{{ asset('sneat/assets/js/main.js') }}"></script>
+
+    <!-- Custom JS -->
+    <script>
+        // Generate consistent pastel color from article ID
+        function getPastelColor(id) {
+            const colors = [
+                '#FFE5E5', '#FFE8CC', '#FFFCC4', '#E5F5E3', '#E3F2FD', '#F3E5F5',
+                '#FCE4EC', '#F1F8E9', '#E0F2F1', '#FFF3E0', '#F5E6FF', '#E8F5E9',
+                '#FFEBEE', '#FFF9C4', '#E1F5FE', '#F1F8E9', '#FCE4EC', '#EDE7F6'
+            ];
+            return colors[id % colors.length];
+        }
+        
+        // Apply colors to comment rows
+        document.querySelectorAll('.comment-row').forEach(function(row) {
+            const articleId = row.getAttribute('data-article-id');
+            const color = getPastelColor(articleId);
+            row.style.backgroundColor = color;
+        });
+        
+        // Confirm delete actions
+        document.querySelectorAll('[data-confirm-delete]').forEach(function(element) {
+            element.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+        
+        // Clickable table rows
+        document.querySelectorAll('.table-row-clickable').forEach(function(row) {
+            row.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = this.getAttribute('data-href');
+            });
+        });
+    </script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

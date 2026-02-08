@@ -1,0 +1,321 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}{{'Articles - Pharmax'|trans}}{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">{{'Articles Management'|trans}}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">{{'Dashboard'|trans}}</a></li>
+                <li class="breadcrumb-item active">{{'Articles'|trans}}</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_article_new') }}" class="btn btn-primary">
+        <i class="bx bx-plus"></i> {{'New Article'|trans}}
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Search Section -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ path('app_article_index') }}" class="d-flex gap-2 align-items-end flex-wrap">
+            <div class="flex-grow-1">
+                <input type="text" name="search" class="form-control" placeholder="{{'Search articles...'|trans}}" value="{{ searchQuery }}">
+            </div>
+            <div>
+                <select name="sort_order" class="form-select">
+                    <option value="desc" {% if sortOrder == 'desc' %}selected{% endif %}>
+                        {{'Newest First'|trans}}
+                    </option>
+                    <option value="asc" {% if sortOrder == 'asc' %}selected{% endif %}>
+                        {{'Oldest First'|trans}}
+                    </option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bx bx-search"></i> {{'Search'|trans}}
+            </button>
+            {% if searchQuery %}
+                <a href="{{ path('app_article_index') }}" class="btn btn-secondary">
+                    <i class="bx bx-x"></i> {{'Clear'|trans}}
+                </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Nombre total d'articles</h6>
+                <h2 class="text-primary mb-0">{{ totalArticles }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Nombre total de commentaires</h6>
+                <h2 class="text-info mb-0">{{ totalCommentaires }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Commentaires en attente</h6>
+                <h2 class="text-warning mb-0">{{ statsByStatus['en_attente'] }}</h2>
+                <small class="text-muted d-block mt-2">
+                    Approuvés: <span class="text-success">{{ statsByStatus['valide'] }}</span> | 
+                    Bloqués: <span class="text-danger">{{ statsByStatus['bloque'] }}</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Derniers commentaires</h6>
+                {% if commentsByDate|length > 0 %}
+                    {% set lastDate = commentsByDate|keys|last %}
+                    <h2 class="text-success mb-0">{{ commentsByDate[lastDate] }}</h2>
+                    <small class="text-muted d-block mt-2">{{ lastDate|date('d/m/Y') }}</small>
+                {% else %}
+                    <h2 class="text-secondary mb-0">-</h2>
+                    <small class="text-muted d-block mt-2">Aucun</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>{{'Title'|trans}}</th>
+                    <th>{{'Image'|trans}}</th>
+                    <th>{{'Comments count'|trans}}</th>
+                    <th>{{'Created'|trans}}</th>
+                    <th>{{'Modified'|trans}}</th>
+                    <th>{{'Actions'|trans}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if articles is not empty %}
+                    {% for article in articles %}
+                    <tr class="table-row-clickable {% if article.id == mostCommentedArticleId %}table-highlighted{% endif %}" data-href="{{ path('app_article_show', {'id': article.id}) }}" role="button">
+                        <td>
+                            <strong>{{ article.titre }}</strong>
+                            {% if article.id == mostCommentedArticleId %}<i class="bx bx-star ms-2" style="color: #ffc107;"></i>{% endif %}
+                        </td>
+                        <td>
+                            {% if article.image %}
+                                <img src="{{ asset('uploads/images/' ~ article.image) }}" alt="{{ article.titre }}" style="max-height: 40px; border-radius: 4px;">
+                            {% else %}
+                                <span class="badge badge-secondary">{{'No Image'|trans}}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ article.commentaires|length }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ article.dateCreation ? article.dateCreation|date('d M Y') : 'N/A' }}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ article.dateModification ? article.dateModification|date('d M Y') : '-' }}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ path('app_article_edit', {'id': article.id}) }}" class="btn btn-sm btn-warning" title="{{'Edit'|trans}}">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <a href="{{ path('app_article_delete', {'id': article.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this article?'|trans}}');">
+                                    <i class="bx bx-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                            <p class="text-muted mt-2">{{'No articles found.'|trans}} <a href="{{ path('app_article_new') }}">{{'Create one'|trans}}</a></p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Comments Table -->
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{'Comments Management'|trans}}</h5>
+        <form method="get" action="{{ path('app_article_index') }}" class="d-flex gap-2" style="margin-bottom: 0;">
+            <input type="hidden" name="search" value="{{ searchQuery }}">
+            <input type="hidden" name="sort_order" value="{{ sortOrder }}">
+            <select name="comment_filter" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit();">
+                <option value="">{{'All Comments'|trans}}</option>
+                <option value="valide" {% if commentFilter == 'valide' %}selected{% endif %}>{{'Approved'|trans}}</option>
+                <option value="en_attente" {% if commentFilter == 'en_attente' %}selected{% endif %}>{{'Pending'|trans}}</option>
+                <option value="bloque" {% if commentFilter == 'bloque' %}selected{% endif %}>{{'Blocked'|trans}}</option>
+            </select>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>{{'ID'|trans}}</th>
+                    <th>{{'Article'|trans}}</th>
+                    <th>{{'Content'|trans}}</th>
+                    <th>{{'Published'|trans}}</th>
+                    <th>{{'Status'|trans}}</th>
+                    <th>{{'Actions'|trans}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if commentaires is not empty %}
+                    {% for commentaire in commentaires %}
+                    <tr class="table-row-clickable comment-row" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" data-article-id="{{ commentaire.article.id }}" role="button">
+                        <td>
+                            <code class="text-info">#{{ commentaire.id }}</code>
+                        </td>
+                        <td>
+                            <span class="badge badge-light">{{ commentaire.article.titre }}</span>
+                        </td>
+                        <td>
+                            <p class="text-muted mb-0">
+                                {% if commentaire.contenu|length > 50 %}
+                                    {{ commentaire.contenu|slice(0, 50) }}...
+                                {% else %}
+                                    {{ commentaire.contenu }}
+                                {% endif %}
+                            </p>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
+                        </td>
+                        <td>
+                            {% if commentaire.statut == 'approuvé' %}
+                                <span class="badge badge-success">{{'Approved'|trans}}</span>
+                            {% elseif commentaire.statut == 'en attente' %}
+                                <span class="badge badge-warning">{{'Pending'|trans}}</span>
+                            {% else %}
+                                <span class="badge badge-secondary">{{ commentaire.statut }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" class="btn btn-sm btn-warning" title="{{'Edit'|trans}}">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <a href="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this comment?'|trans}}');">
+                                    <i class="bx bx-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                            <p class="text-muted mt-2">{{'No comments found.'|trans}}</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chart Section -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{'Comment Status Distribution'|trans}}</h5>
+            </div>
+            <div class="card-body">
+                <div class="position-relative" style="height: 300px;">
+                    <canvas id="commentStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('commentStatusChart');
+        if (ctx) {
+            const statusData = {
+                approved: {{ statsByStatus['valide'] }},
+                pending: {{ statsByStatus['en_attente'] }},
+                blocked: {{ statsByStatus['bloque'] }}
+            };
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        '{{'Approved'|trans}}',
+                        '{{'Pending'|trans}}',
+                        '{{'Blocked'|trans}}'
+                    ],
+                    datasets: [{
+                        data: [
+                            statusData.approved,
+                            statusData.pending,
+                            statusData.blocked
+                        ],
+                        backgroundColor: [
+                            '#28a745',  // Green for Approved
+                            '#ffc107',  // Yellow for Pending
+                            '#dc3545'   // Red for Blocked
+                        ],
+                        borderColor: [
+                            '#20c997',
+                            '#fd7e14',
+                            '#e74c3c'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{'Pharmax Blog'|trans}}{% endblock %}</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f8f8f8;
+            color: #656565;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: #5ea96b;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        a:hover {
+            color: #4a8b5c;
+            text-shadow: 0 0 5px rgba(94,169,107,0.3);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header */
+        #header-wrap {
+            position: relative;
+            margin: 0;
+        }
+
+        .header-header {
+            background-color: #ffffff;
+            width: 100%;
+            height: auto;
+            min-height: 140px;
+            position: relative;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .header-header .container {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 140px;
+        }
+
+        .header-logo {
+            position: relative;
+            float: left;
+            width: auto;
+            max-width: 250px;
+            max-height: 120px;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-logo a {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-logo a i {
+            color: #5ea96b;
+            font-size: 28px;
+        }
+
+        .header-right {
+            position: relative;
+            float: right;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .top-bar-social {
+            position: relative;
+            float: left;
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-bar-social a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            color: #2c3e50;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .top-bar-social a:hover {
+            color: #5ea96b;
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        /* Management Button */
+        .btn-manage-articles {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #5ea96b;
+            color: white;
+            padding: 8px 18px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: background-color 0.17s ease;
+            border-radius: 0;
+        }
+
+        .btn-manage-articles:hover {
+            background-color: #4a8b5c;
+        }
+
+        /* Navigation Menu */
+        .header-menu {
+            position: relative;
+            width: 100%;
+            height: 42px;
+            background-color: #4a7c9e;
+            z-index: 10;
+            font-size: 13px;
+            margin: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-menu .container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        #main-menu {
+            position: relative;
+            height: 42px;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            width: 100%;
+        }
+
+        #main-menu li {
+            float: left;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+
+        #main-menu a {
+            position: relative;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 42px;
+            display: inline-block;
+            margin: 0;
+            padding: 0 20px;
+            letter-spacing: 0.3px;
+            text-transform: capitalize;
+            text-decoration: none;
+            transition: color 0.3s ease, background-color 0.3s ease;
+        }
+
+        #main-menu a:hover {
+            color: #5ea96b;
+            background-color: rgba(94,169,107,0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin: 40px 0;
+        }
+
+        /* Search Section */
+        .search-section {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .search-section form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-section input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 0;
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .search-section input:focus {
+            outline: none;
+            border-color: #5ea96b;
+            box-shadow: 0 0 0 3px rgba(94,169,107,0.1);
+        }
+
+        .search-section button {
+            padding: 12px 25px;
+            background-color: #5ea96b;
+            color: white;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .search-section button:hover {
+            background-color: #4a8b5c;
+            box-shadow: 0 4px 12px rgba(94,169,107,0.3);
+            transform: translateY(-2px);
+        }
+
+        .search-section a.btn-clear {
+            padding: 12px 25px;
+            background-color: #999;
+            color: white;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .search-section a.btn-clear:hover {
+            background-color: #777;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Posts Grid */
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        /* Post Item */
+        .post-item {
+            background-color: #ffffff;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .post-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(94,169,107,0.2);
+        }
+
+        .post-image-wrap {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            background-color: #e0e0e0;
+        }
+
+        .post-image-link {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .post-image-wrap:hover .post-image {
+            transform: scale(1.08);
+        }
+
+        .post-image-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #7cb599, #5ea96b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 50px;
+        }
+
+        .post-content {
+            padding: 20px;
+        }
+
+        .post-category {
+            display: inline-block;
+            background-color: #5ea96b;
+            color: white;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 12px;
+        }
+
+        .post-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            line-height: 1.3;
+            min-height: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .post-title a {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .post-title a:hover {
+            color: #5ea96b;
+            text-shadow: 0 0 8px rgba(94,169,107,0.3);
+        }
+
+        .post-excerpt {
+            font-size: 13px;
+            color: #656565;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            max-height: 65px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 12px;
+            margin-top: 15px;
+        }
+
+        .post-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .post-meta-item i {
+            color: #5ea96b;
+        }
+
+        /* Empty State */
+        .empty-state {
+            background-color: #ffffff;
+            padding: 60px 20px;
+            text-align: center;
+            border-radius: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: #999;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #4a7c9e;
+            color: #f1ffff;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        footer h5 {
+            color: #5ea96b;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        footer p {
+            margin-bottom: 10px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .footer-social a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background-color: rgba(255,255,255,0.1);
+            color: #5ea96b;
+            border-radius: 0;
+            transition: all 0.3s ease;
+        }
+
+        .footer-social a:hover {
+            background-color: #5ea96b;
+            color: #ffffff;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(94,169,107,0.4);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .pagination-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 16px;
+            background-color: #ffffff;
+            color: #5ea96b;
+            border: 2px solid #5ea96b;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .pagination-btn:hover:not(.disabled) {
+            background-color: #5ea96b;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(94,169,107,0.3);
+        }
+
+        .pagination-btn.disabled {
+            color: #ccc;
+            border-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination-pages {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .pagination-page {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 8px;
+            background-color: #ffffff;
+            color: #5ea96b;
+            border: 2px solid #ddd;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .pagination-page:hover {
+            border-color: #5ea96b;
+            background-color: #f0f8f5;
+            transform: translateY(-2px);
+        }
+
+        .pagination-page.active {
+            background-color: #5ea96b;
+            color: #ffffff;
+            border-color: #5ea96b;
+            box-shadow: 0 4px 12px rgba(94,169,107,0.3);
+        }
+
+        .pagination-ellipsis {
+            color: #999;
+            font-weight: 600;
+            padding: 0 5px;
+        }
+
+        .pagination-info {
+            color: #656565;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .pagination-info strong {
+            color: #5ea96b;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .pagination-container {
+                margin: 30px 0;
+            }
+
+            .pagination {
+                gap: 8px;
+            }
+
+            .pagination-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .pagination-page {
+                min-width: 35px;
+                height: 35px;
+                font-size: 13px;
+            }
+
+            .pagination-info {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pagination {
+                gap: 5px;
+            }
+
+            .pagination-btn {
+                padding: 8px 10px;
+                font-size: 12px;
+                gap: 3px;
+            }
+
+            .pagination-page {
+                min-width: 32px;
+                height: 32px;
+                font-size: 12px;
+                padding: 0 4px;
+            }
+
+            .pagination-info {
+                font-size: 12px;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .posts-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+
+            #main-menu a {
+                padding: 0 15px;
+                font-size: 12px;
+            }
+
+            .header-right {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-section form {
+                flex-direction: column;
+            }
+
+            .search-section input,
+            .search-section button {
+                width: 100%;
+            }
+
+            #main-menu a {
+                padding: 0 10px;
+                font-size: 11px;
+            }
+        }
+
+        /* Carousel Hero */
+        .carousel-hero {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            overflow: hidden;
+            background-color: #2c3e50;
+            margin: 0 0 40px 0;
+        }
+
+        .carousel-slides {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+
+
+        /* Carousel Navigation */
+        .carousel-nav {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 5;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.7);
+            transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
+            background-color: #5ea96b;
+            width: 16px;
+            height: 16px;
+            border-color: #5ea96b;
+            box-shadow: 0 0 8px rgba(94,169,107,0.6);
+        }
+
+        .carousel-dot:hover {
+            background-color: rgba(255,255,255,0.8);
+            transform: scale(1.2);
+        }
+
+        /* Carousel Arrow Buttons */
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(94,169,107,0.7);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .carousel-arrow:hover {
+            background-color: #5ea96b;
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 4px 12px rgba(94,169,107,0.5);
+        }
+
+        .carousel-arrow.prev {
+            left: 20px;
+        }
+
+        .carousel-arrow.next {
+            right: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .carousel-hero {
+                height: 320px;
+            }
+
+            .slide-content h2 {
+                font-size: 20px;
+            }
+
+            .carousel-arrow {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .carousel-hero {
+                height: 220px;
+                margin-bottom: 20px;
+            }
+
+            .slide-content {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+            }
+
+            .slide-content h2 {
+                font-size: 16px;
+                margin-bottom: 0;
+            }
+
+            .carousel-arrow {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+
+            .carousel-arrow.prev {
+                left: 10px;
+            }
+
+            .carousel-arrow.next {
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header-wrap">
+        <div class="header-header">
+            <div class="container">
+                <div class="header-logo">
+                    <a href="{{ path('app_blog_index') }}">
+                        <img src="{{ asset('images/logo pharmax.png') }}" alt="Pharmax Logo" style="height: 110px; width: auto; object-fit: contain;">
+                    </a>
+                </div>
+                <div class="header-right">
+                    <div class="top-bar-social">
+                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="mailto:contact@pharmax.com" title="Email"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="header-menu">
+            <div class="container">
+                <nav>
+                    <ul id="main-menu">
+                        <li><a href="{{ path('app_blog_index') }}"><i class="fas fa-home"></i> {{'Home'|trans}}</a></li>
+                        <li><a href="{{ path('app_blog_index') }}"><i class="fas fa-newspaper"></i> {{'Blog'|trans}}</a></li>
+                        <li><a href="{{ path('app_blog_index') }}"><i class="fas fa-list"></i> {{'Categories'|trans}}</a></li>
+                        <li><a href="{{ path('app_blog_index') }}"><i class="fas fa-tag"></i> {{'Tags'|trans}}</a></li>
+                        <li><a href="mailto:contact@pharmax.com"><i class="fas fa-envelope"></i> {{'Contact'|trans}}</a></li>
+                        <li style="margin-left: auto;"><a href="{{ path('app_article_index') }}"><i class="fas fa-cog"></i> {{'Admin'|trans}}</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carousel Hero -->
+    <div class="carousel-hero">
+        <div class="carousel-slides">
+            <div class="slide active">
+                <img src="{{ asset('images/1-Medical-Software-Development-Business-Transforming-the-Healthcare-Industry.jpg') }}" alt="Medical Software">
+            </div>
+            <div class="slide">
+                <img src="{{ asset('images/136920.jpg') }}" alt="Healthcare Solutions">
+            </div>
+            <div class="slide">
+                <img src="{{ asset('images/R.jfif') }}" alt="Pharmax Innovation">
+            </div>
+            <div class="slide">
+                <img src="{{ asset('images/wp2655122.jpg') }}" alt="Healthcare Technology">
+            </div>
+        </div>
+        
+        <button class="carousel-arrow prev" onclick="prevSlide()">&#10094;</button>
+        <button class="carousel-arrow next" onclick="nextSlide()">&#10095;</button>
+        
+        <div class="carousel-nav">
+            <span class="carousel-dot active" onclick="currentSlide(0)"></span>
+            <span class="carousel-dot" onclick="currentSlide(1)"></span>
+            <span class="carousel-dot" onclick="currentSlide(2)"></span>
+            <span class="carousel-dot" onclick="currentSlide(3)"></span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 30px;">
+                <div>
+                    <h5>
+                        <img src="{{ asset('images/logo pharmax.png') }}" alt="Pharmax Logo" style="height: 80px; width: auto; object-fit: contain;">
+                    </h5>
+                    <p>{{'Article Management System'|trans}}</p>
+                    <p style="font-size: 12px; color: #999;">A powerful content management system for managing articles and engaging with your audience.</p>
+                </div>
+                <div>
+                    <h5>{{'Quick Links'|trans}}</h5>
+                    <p><a href="{{ path('app_blog_index') }}">{{'Home'|trans}}</a></p>
+                    <p><a href="mailto:contact@pharmax.com">{{'Contact'|trans}}</a></p>
+                    <p><a href="{{ path('app_article_index') }}">{{'Admin'|trans}}</a></p>
+                </div>
+                <div>
+                    <h5>{{'Follow Us'|trans}}</h5>
+                    <div class="footer-social">
+                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Pharmax - {{'Article Management System'|trans}}. {{'All rights reserved'|trans}}.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Carousel JavaScript -->
+    <script>
+        let currentSlideIndex = 0;
+        let autoplayInterval;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.carousel-dot');
+            
+            if (n >= slides.length) {
+                currentSlideIndex = 0;
+            }
+            if (n < 0) {
+                currentSlideIndex = slides.length - 1;
+            }
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            slides[currentSlideIndex].classList.add('active');
+            dots[currentSlideIndex].classList.add('active');
+        }
+
+        function nextSlide() {
+            currentSlideIndex++;
+            if (currentSlideIndex >= document.querySelectorAll('.slide').length) {
+                currentSlideIndex = 0;
+            }
+            showSlide(currentSlideIndex);
+            resetAutoplay();
+        }
+
+        function prevSlide() {
+            currentSlideIndex--;
+            if (currentSlideIndex < 0) {
+                currentSlideIndex = document.querySelectorAll('.slide').length - 1;
+            }
+            showSlide(currentSlideIndex);
+            resetAutoplay();
+        }
+
+        function currentSlide(n) {
+            currentSlideIndex = n;
+            showSlide(currentSlideIndex);
+            resetAutoplay();
+        }
+
+        function autoplay() {
+            currentSlideIndex++;
+            if (currentSlideIndex >= document.querySelectorAll('.slide').length) {
+                currentSlideIndex = 0;
+            }
+            showSlide(currentSlideIndex);
+        }
+
+        function resetAutoplay() {
+            clearInterval(autoplayInterval);
+            autoplayInterval = setInterval(autoplay, 5000);
+        }
+
+        // Initialize carousel
+        showSlide(0);
+        autoplayInterval = setInterval(autoplay, 5000);
+    </script>
+</body>
+</html>

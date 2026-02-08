@@ -1,0 +1,131 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 280px; gap: 30px;">
+    <!-- Article Content -->
+    <article style="background-color: #ffffff; padding: 30px;">
+        <!-- Article Image -->
+        {% if article.image %}
+            <div style="margin-bottom: 30px; overflow: hidden;">
+                <img src="{{ asset('uploads/images/' ~ article.image) }}" alt="{{ article.titre }}" style="width: 100%; height: auto; display: block;">
+            </div>
+        {% endif %}
+        
+        <!-- Article Title -->
+        <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 15px; line-height: 1.2; color: #2c3e50;">
+            {{ article.titre }}
+        </h1>
+        
+        <!-- Article Meta -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #5ea96b; padding-bottom: 20px; margin-bottom: 30px; font-size: 13px; color: #999;">
+            <div style="display: flex; gap: 20px;">
+                <span><i class="fas fa-user" style="color: #5ea96b;"></i> Admin</span>
+                <span><i class="fas fa-calendar" style="color: #5ea96b;"></i> {{ article.dateCreation|date('d M Y') }}</span>
+                <span><i class="fas fa-comments" style="color: #5ea96b;"></i> {{ article.commentaires|length }} {{'Comments'|trans}}</span>
+            </div>
+            <a href="{{ path('app_blog_index') }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; transition: all 0.3s ease; display: inline-block;" onmouseover="this.style.color = '#4a8b5c'; this.style.transform = 'translateX(5px)'; this.style.textShadow = '0 0 8px rgba(94,169,107,0.3)';" onmouseout="this.style.color = '#5ea96b'; this.style.transform = 'translateX(0)'; this.style.textShadow = 'none';">
+                <i class="fas fa-arrow-left"></i> {{'Back'|trans}}
+            </a>
+        </div>
+        
+        <!-- Article Content -->
+        <div style="font-size: 15px; line-height: 1.8; color: #656565; word-wrap: break-word; margin-bottom: 30px;">
+            {{ article.contenu|nl2br }}
+        </div>
+        
+        <!-- Article Categories -->
+        <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0f0f0;">
+            <span style="color: #5ea96b; font-weight: 700;">Categories:</span>
+            <span style="display: inline-block; background-color: #5ea96b; color: white; padding: 5px 12px; margin-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">
+                Blog
+            </span>
+        </div>
+    </article>
+    
+    <!-- Sidebar -->
+    <aside>
+        <!-- About Card -->
+        <div style="background-color: #ffffff; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+            <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+                {{'About Author'|trans}}
+            </h4>
+            <p style="color: #656565; font-size: 13px; line-height: 1.6; margin: 0;">
+                Pharmax Content Management System for managing articles and comments with a beautiful blog interface.
+            </p>
+        </div>
+        
+        <!-- Recent Articles Card -->
+        <div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+            <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+                {{'Recent Articles'|trans}}
+            </h4>
+            <div>
+                <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+                    <a href="{{ path('app_blog_show', {'id': article.id}) }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; font-size: 13px;">
+                        {{ article.titre }}
+                    </a>
+                    <div style="font-size: 11px; color: #999; margin-top: 5px;">
+                        {{ article.dateCreation|date('d M Y') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- Comments Section -->
+<section style="background-color: #ffffff; padding: 30px; margin-top: 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    <h3 style="color: #2c3e50; font-size: 22px; font-weight: 700; margin-bottom: 30px; border-bottom: 3px solid #5ea96b; padding-bottom: 15px;">
+        <i class="fas fa-comments" style="color: #5ea96b;"></i> {{'Comments'|trans}} ({{ article.commentaires|length }})
+    </h3>
+    
+    {% if article.commentaires|length > 0 %}
+        <div style="margin-bottom: 40px;">
+            {% for comment in article.commentaires %}
+                <div style="padding: 20px; border-left: 4px solid #5ea96b; background-color: #f9f9f9; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <strong style="color: #2c3e50; font-size: 14px;">Admin</strong>
+                            <span style="font-size: 12px; color: #999; margin-left: 15px;">
+                                {{ comment.datePublication|date('d M Y H:i') }}
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{{ path('app_commentaire_edit', {'id': comment.id}) }}" style="display: inline-flex; align-items: center; gap: 5px; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#4a8b5c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor='#5ea96b'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                <i class="fas fa-edit"></i> {{'Edit'|trans}}
+                            </a>
+                            <form action="{{ path('app_commentaire_delete', {'id': comment.id}) }}" method="POST" style="display: inline;" onsubmit="return confirm('{{'Delete this comment?'|trans}}');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                <button type="submit" style="display: inline-flex; align-items: center; gap: 5px; background-color: #8b7b6f; color: white; padding: 6px 12px; border: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor = '#6f6559'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.3)';" onmouseout="this.style.backgroundColor = '#8b7b6f'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                    <i class="fas fa-trash"></i> {{'Delete'|trans}}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div style="color: #656565; line-height: 1.6; margin-bottom: 12px; font-size: 13px;">
+                        {{ comment.contenu }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: #999; text-align: center; padding: 40px 0; font-size: 14px;">
+            {{'No comments found.'|trans}}
+        </p>
+    {% endif %}
+    
+    <!-- Add Comment Form -->
+    <div style="border-top: 2px solid #f0f0f0; padding-top: 30px; margin-top: 30px;">
+        <h4 style="color: #2c3e50; font-size: 16px; font-weight: 700; margin-bottom: 20px;">
+            <i class="fas fa-plus-circle" style="color: #5ea96b;"></i> {{'Add your comment'|trans}}
+        </h4>
+        <form action="{{ path('app_blog_comment_create', {'id': article.id}) }}" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
+            <textarea name="contenu" required placeholder="{{'Enter your comment...'|trans}}" style="width: 100%; padding: 15px; border: 2px solid #ddd; font-size: 14px; font-family: 'Lato', sans-serif; line-height: 1.5; min-height: 120px; resize: vertical; transition: all 0.3s ease;" onblur="this.style.borderColor = '#ddd'; this.style.boxShadow = 'none';" onfocus="this.style.borderColor = '#5ea96b'; this.style.boxShadow = '0 0 0 3px rgba(94,169,107,0.1)';"></textarea>
+            
+            <button type="submit" style="background-color: #5ea96b; color: white; padding: 12px 30px; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease; max-width: 200px;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 4px 12px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)'; this.style.boxShadow = 'none';">
+                <i class="fas fa-paper-plane"></i> {{'Post comment'|trans}}
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,59 @@
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">{{'Article Information'|trans}}</h5>
+    </div>
+    <div class="card-body">
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            {% if form.vars.errors|length > 0 %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bx bx-error-circle me-2"></i>
+                    <strong>{{'Please fix the errors below:'|trans}}</strong>
+                    {{ form_errors(form) }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            <div class="mb-4">
+                {{ form_label(form.titre, 'Article Title'|trans) }}
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': ('Enter article title'|trans)}}) }}
+                {% if form.titre.vars.errors %}
+                    <div class="invalid-feedback d-block">
+                        <i class="bx bx-error-circle me-1"></i>{{ form_errors(form.titre) }}
+                    </div>
+                {% endif %}
+                <small class="form-text">{{'The title of your article will be displayed prominently.'|trans}}</small>
+            </div>
+
+            <div class="mb-4">
+                {{ form_label(form.contenu, 'Content'|trans) }}
+                {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': 8, 'placeholder': ('Write your article content here...'|trans)}}) }}
+                {% if form.contenu.vars.errors %}
+                    <div class="invalid-feedback d-block">
+                        <i class="bx bx-error-circle me-1"></i>{{ form_errors(form.contenu) }}
+                    </div>
+                {% endif %}
+                <small class="form-text">{{'Provide detailed content for your article.'|trans}}</small>
+            </div>
+
+            <div class="mb-4">
+                {{ form_label(form.image, 'Featured Image'|trans) }}
+                {{ form_widget(form.image, {'attr': {'class': 'form-control'}}) }}
+                {% if form.image.vars.errors %}
+                    <div class="invalid-feedback d-block">
+                        <i class="bx bx-error-circle me-1"></i>{{ form_errors(form.image) }}
+                    </div>
+                {% endif %}
+                <small class="form-text">{{'Upload a featured image for your article (JPG, PNG, max 2MB).'|trans}}</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-save me-2"></i>{{ button_label|default('Create Article'|trans) }}
+                </button>
+                <a href="{{ path('app_article_index') }}" class="btn btn-secondary">
+                    <i class="bx bx-x me-2"></i>{{'Cancel'|trans}}
+                </a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
