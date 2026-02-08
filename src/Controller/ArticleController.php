@@ -115,12 +115,15 @@ final class ArticleController extends AbstractController
         // Sort dates
         ksort($commentsByDate);
         
+        $archivedCommentaires = $archiveRepository->findAll();
+        
         return $this->render('article/index.html.twig', [
             'articles' => $articles,
             'commentaires' => $commentaires,
-            'archived_commentaires' => $archiveRepository->findAll(),
+            'archived_commentaires' => $archivedCommentaires,
             'totalArticles' => $totalArticles,
             'totalCommentaires' => $totalCommentaires,
+            'totalArchived' => count($archivedCommentaires),
             'statsByStatus' => $statsByStatus,
             'commentsByDate' => $commentsByDate,
             'mostCommentedArticleId' => $mostCommentedArticleId,
