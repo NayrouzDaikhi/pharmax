@@ -81,32 +81,39 @@
     
     {% if article.commentaires|length > 0 %}
         <div style="margin-bottom: 40px;">
-            {% for comment in article.commentaires %}
-                <div style="padding: 20px; border-left: 4px solid #5ea96b; background-color: #f9f9f9; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div>
-                            <strong style="color: #2c3e50; font-size: 14px;">Admin</strong>
-                            <span style="font-size: 12px; color: #999; margin-left: 15px;">
-                                {{ comment.datePublication|date('d M Y H:i') }}
-                            </span>
+            {% set validComments = article.commentaires|filter(c => c.statut == 'VALIDE') %}
+            {% if validComments|length > 0 %}
+                {% for comment in validComments %}
+                    <div style="padding: 20px; border-left: 4px solid #5ea96b; background-color: #f9f9f9; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <strong style="color: #2c3e50; font-size: 14px;">Admin</strong>
+                                <span style="font-size: 12px; color: #999; margin-left: 15px;">
+                                    {{ comment.datePublication|date('d M Y H:i') }}
+                                </span>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ path('app_commentaire_edit', {'id': comment.id}) }}" style="display: inline-flex; align-items: center; gap: 5px; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#4a8b5c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor='#5ea96b'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                    <i class="fas fa-edit"></i> {{'Edit'|trans}}
+                                </a>
+                                <form action="{{ path('app_commentaire_delete', {'id': comment.id}) }}" method="POST" style="display: inline;" onsubmit="return confirm('{{'Delete this comment?'|trans}}');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                    <button type="submit" style="display: inline-flex; align-items: center; gap: 5px; background-color: #8b7b6f; color: white; padding: 6px 12px; border: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor = '#6f6559'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.3)';" onmouseout="this.style.backgroundColor = '#8b7b6f'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                        <i class="fas fa-trash"></i> {{'Delete'|trans}}
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            <a href="{{ path('app_commentaire_edit', {'id': comment.id}) }}" style="display: inline-flex; align-items: center; gap: 5px; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#4a8b5c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor='#5ea96b'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                <i class="fas fa-edit"></i> {{'Edit'|trans}}
-                            </a>
-                            <form action="{{ path('app_commentaire_delete', {'id': comment.id}) }}" method="POST" style="display: inline;" onsubmit="return confirm('{{'Delete this comment?'|trans}}');">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
-                                <button type="submit" style="display: inline-flex; align-items: center; gap: 5px; background-color: #8b7b6f; color: white; padding: 6px 12px; border: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor = '#6f6559'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.3)';" onmouseout="this.style.backgroundColor = '#8b7b6f'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                    <i class="fas fa-trash"></i> {{'Delete'|trans}}
-                                </button>
-                            </form>
+                        <div style="color: #656565; line-height: 1.6; margin-bottom: 12px; font-size: 13px;">
+                            {{ comment.contenu }}
                         </div>
                     </div>
-                    <div style="color: #656565; line-height: 1.6; margin-bottom: 12px; font-size: 13px;">
-                        {{ comment.contenu }}
-                    </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p style="color: #999; text-align: center; padding: 40px 0; font-size: 14px;">
+                    {{'No comments found.'|trans}}
+                </p>
+            {% endif %}
         </div>
     {% else %}
         <p style="color: #999; text-align: center; padding: 40px 0; font-size: 14px;">
@@ -119,13 +126,102 @@
         <h4 style="color: #2c3e50; font-size: 16px; font-weight: 700; margin-bottom: 20px;">
             <i class="fas fa-plus-circle" style="color: #5ea96b;"></i> {{'Add your comment'|trans}}
         </h4>
-        <form action="{{ path('app_blog_comment_create', {'id': article.id}) }}" method="POST" style="display: flex; flex-direction: column; gap: 15px;">
-            <textarea name="contenu" required placeholder="{{'Enter your comment...'|trans}}" style="width: 100%; padding: 15px; border: 2px solid #ddd; font-size: 14px; font-family: 'Lato', sans-serif; line-height: 1.5; min-height: 120px; resize: vertical; transition: all 0.3s ease;" onblur="this.style.borderColor = '#ddd'; this.style.boxShadow = 'none';" onfocus="this.style.borderColor = '#5ea96b'; this.style.boxShadow = '0 0 0 3px rgba(94,169,107,0.1)';"></textarea>
+        
+        <!-- Response Message Area -->
+        <div id="commentResponse" style="display: none; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-size: 14px;"></div>
+        
+        <form id="commentForm" style="display: flex; flex-direction: column; gap: 15px;">
+            <textarea id="commentContent" name="contenu" required placeholder="{{'Enter your comment...'|trans}}" style="width: 100%; padding: 15px; border: 2px solid #ddd; font-size: 14px; font-family: 'Lato', sans-serif; line-height: 1.5; min-height: 120px; resize: vertical; transition: all 0.3s ease;" onblur="this.style.borderColor = '#ddd'; this.style.boxShadow = 'none';" onfocus="this.style.borderColor = '#5ea96b'; this.style.boxShadow = '0 0 0 3px rgba(94,169,107,0.1)';"></textarea>
             
-            <button type="submit" style="background-color: #5ea96b; color: white; padding: 12px 30px; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease; max-width: 200px;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 4px 12px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)'; this.style.boxShadow = 'none';">
+            <button type="submit" id="submitBtn" style="background-color: #5ea96b; color: white; padding: 12px 30px; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease; max-width: 200px;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 4px 12px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)'; this.style.boxShadow = 'none';">
                 <i class="fas fa-paper-plane"></i> {{'Post comment'|trans}}
             </button>
         </form>
     </div>
 </section>
-{% endblock %}
+
+<script>
+document.getElementById('commentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const contentTextarea = document.getElementById('commentContent');
+    const responseDiv = document.getElementById('commentResponse');
+    const submitBtn = document.getElementById('submitBtn');
+    const articleId = {{ article.id }};
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    submitBtn.textContent = '⏳ Posting...';
+    responseDiv.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/commentaires', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contenu: contentTextarea.value,
+                article_id: articleId,
+                user_name: 'Customer',
+                user_email: null
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Reset form
+        contentTextarea.value = '';
+        
+        // Display response
+        responseDiv.style.display = 'block';
+        
+        if (response.ok && data.success) {
+            // ✅ Comment posted successfully
+            responseDiv.style.backgroundColor = '#d4edda';
+            responseDiv.style.borderLeft = '4px solid #28a745';
+            responseDiv.style.color = '#155724';
+            responseDiv.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 5px;">
+                    <i class="fas fa-check-circle"></i> Success!
+                </div>
+                <div>${data.message}</div>
+            `;
+            
+            // Reload page after 2 seconds to show new comment
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else if (!response.ok || !data.success) {
+            // ❌ Comment blocked
+            responseDiv.style.backgroundColor = '#f8d7da';
+            responseDiv.style.borderLeft = '4px solid #dc3545';
+            responseDiv.style.color = '#721c24';
+            responseDiv.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 5px;">
+                    <i class="fas fa-exclamation-circle"></i> Comment Not Posted
+                </div>
+                <div>${data.warning || data.message}</div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        responseDiv.style.display = 'block';
+        responseDiv.style.backgroundColor = '#f8d7da';
+        responseDiv.style.borderLeft = '4px solid #dc3545';
+        responseDiv.style.color = '#721c24';
+        responseDiv.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 5px;">
+                <i class="fas fa-exclamation-circle"></i> Error
+            </div>
+            <div>An error occurred while posting your comment. Please try again.</div>
+        `;
+    } finally {
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> {{'Post comment'|trans}}';
+    }
+});
+</script>
