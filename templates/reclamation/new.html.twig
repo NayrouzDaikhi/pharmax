@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvelle Reclamation{% endblock %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-12">
+            <h4 class="py-3 mb-4">Nouvelle Reclamation</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">Formulaire de Reclamation</h5>
+                </div>
+                <div class="card-body">
+                    {% if errors is not empty %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h6 class="alert-heading mb-2">Erreurs de validation</h6>
+                            <ul class="mb-0">
+                                {% for field, message in errors %}
+                                    <li>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="titre" class="form-label">
+                                Titre <span class="text-danger">*</span>
+                                <small class="text-muted float-end" id="titre-count">0 / 255</small>
+                            </label>
+                            <input type="text" class="form-control {% if errors.titre %}is-invalid{% endif %}" id="titre" name="titre" value="{{ reclamation.titre }}" maxlength="255">
+                            {% if errors.titre %}
+                                <div class="invalid-feedback" style="display: block;">
+                                    {{ errors.titre }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Minimum 3 caractères, maximum 255.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                Description <span class="text-danger">*</span>
+                                <small class="text-muted float-end" id="description-count">0 / 5000</small>
+                            </label>
+                            <textarea class="form-control {% if errors.description %}is-invalid{% endif %}" id="description" name="description" rows="5" maxlength="5000">{{ reclamation.description }}</textarea>
+                            {% if errors.description %}
+                                <div class="invalid-feedback" style="display: block;">
+                                    {{ errors.description }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Minimum 10 caractères, maximum 5000.</small>
+                        </div>
+
+                        {# statut is managed automatically; users cannot set it #}
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ path('reclamation_index') }}" class="btn btn-secondary">Annuler</a>
+                            <button type="submit" class="btn btn-primary">Créer</button>
+                        </div>
+                    </form>
+
+                    <script>
+                        // Compteur de caractères côté client (informationnel seulement)
+                        const titreInput = document.getElementById('titre');
+                        const titreCount = document.getElementById('titre-count');
+                        const descriptionInput = document.getElementById('description');
+                        const descriptionCount = document.getElementById('description-count');
+
+                        titreInput.addEventListener('input', function() {
+                            titreCount.textContent = this.value.length + ' / 255';
+                        });
+
+                        descriptionInput.addEventListener('input', function() {
+                            descriptionCount.textContent = this.value.length + ' / 5000';
+                        });
+
+                        // Initialiser les compteurs
+                        titreCount.textContent = titreInput.value.length + ' / 255';
+                        descriptionCount.textContent = descriptionInput.value.length + ' / 5000';
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

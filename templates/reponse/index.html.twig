@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reponses{% endblock %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-12">
+            <h4 class="py-3 mb-4">Reponses</h4>
+        </div>
+    </div>
+
+    {% if reponses %}
+    <div class="card">
+        <div class="table-responsive text-nowrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Contenu</th>
+                        <th>Reclamation</th>
+                        <th>Date Reponse</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                    {% for reponse in reponses %}
+                    <tr>
+                        <td><strong>{{ reponse.id }}</strong></td>
+                        {% set _content = reponse.contenu %}
+                        <td>{{ _content|length > 50 ? _content|slice(0, 50) ~ '...' : _content }}</td>
+                        <td><a href="{{ path('reclamation_show', {'id': reponse.reclamation.id}) }}">{{ reponse.reclamation.titre }}</a></td>
+                        <td>{{ reponse.dateReponse|date('d/m/Y H:i') }}</td>
+                        <td>
+                            <a href="{{ path('reponse_edit', {'id': reponse.id}) }}" class="btn btn-sm btn-warning">Editer</a>
+                            <form method="POST" action="{{ path('reponse_delete', {'id': reponse.id}) }}" style="display:inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr?')">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Aucune reponse trouvée.</div>
+    {% endif %}
+</div>
+{% endblock %}
