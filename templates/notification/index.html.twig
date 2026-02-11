@@ -13,6 +13,38 @@
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Produits arrivant à expiration (30 jours)</h3>
+            {% if expiringProducts is empty %}
+                <div class="alert alert-secondary">Aucun produit n'arrive à expiration dans les 30 prochains jours.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Date d'expiration</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in expiringProducts %}
+                                <tr>
+                                    <td>{{ p.id }}</td>
+                                    <td>{{ p.nom }}</td>
+                                    <td>{{ p.dateExpiration ? p.dateExpiration|date('d/m/Y') : '—' }}</td>
+                                    <td>{% if p.statut %}<span class="badge bg-success">Valable</span>{% else %}<span class="badge bg-warning">Hors stock</span>{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
     {% if notifications is empty %}
         <div class="alert alert-info">
             ✅ Aucune notification pour le moment. Tous vos produits sont à jour!
