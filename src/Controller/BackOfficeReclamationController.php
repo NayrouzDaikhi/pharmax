@@ -55,9 +55,22 @@ class BackOfficeReclamationController extends AbstractController
             'date' => $date,
         ];
 
+        // statistiques générales
+        $repo = $this->em->getRepository(Reclamation::class);
+        $totalCount = $repo->count([]);
+        $countEnAttente = $repo->count(['statut' => 'En attente']);
+        $countEnCours = $repo->count(['statut' => 'En cours']);
+        $countResolu = $repo->count(['statut' => 'Resolu']);
+
         return $this->render('backend/reclamation/index.html.twig', [
             'reclamations' => $reclamations,
             'filters' => $filters,
+            'stats' => [
+                'total' => $totalCount,
+                'en_attente' => $countEnAttente,
+                'en_cours' => $countEnCours,
+                'resolu' => $countResolu,
+            ],
         ]);
     }
 

@@ -10,6 +10,103 @@
         </div>
     </div>
 
+    <div class="row mb-4">
+        <!-- Réclamations Total -->
+        <div class="col-md-3 col-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-primary">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-file-find fs-1 text-primary"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">Réclamations Totales</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.total|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- En Attente -->
+        <div class="col-md-3 col-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-warning">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-time-five fs-1 text-warning"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">En Attente</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.en_attente|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- En Cours -->
+        <div class="col-md-3 col-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-info">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-loader-circle fs-1 text-info"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">En Cours</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.en_cours|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Résolu -->
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-success">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-check-circle fs-1 text-success"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">Résolu</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.resolu|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .stat-card {
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .stat-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card-primary .stat-icon {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        .stat-card-warning .stat-icon {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+
+        .stat-card-info .stat-icon {
+            background-color: rgba(23, 162, 184, 0.1);
+        }
+
+        .stat-card-success .stat-icon {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        .stat-card h2 {
+            font-size: 2rem;
+            line-height: 1.2;
+        }
+    </style>
+
     <div class="card mb-4">
         <div class="card-body">
          
