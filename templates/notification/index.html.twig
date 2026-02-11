@@ -1,0 +1,81 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Notifications d'Expiration{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>🔔 Notifications d'Expiration de Produits</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-danger">{{ unreadCount }} non lue(s)</span>
+        </div>
+    </div>
+
+    {% if notifications is empty %}
+        <div class="alert alert-info">
+            ✅ Aucune notification pour le moment. Tous vos produits sont à jour!
+        </div>
+    {% else %}
+        <div class="row">
+            {% for notification in notifications %}
+                <div class="col-md-12 mb-3">
+                    <div class="card {% if notification.isRead %}bg-light{% else %}border-danger{% endif %}">
+                        <div class="card-header {% if notification.isRead %}bg-light{% else %}bg-danger{% endif %} text-{% if notification.isRead %}dark{% else %}white{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title mb-0">
+                                        {% if not notification.isRead %}
+                                            🔴 Notification Non Lue
+                                        {% else %}
+                                            ✅ Notification Lue
+                                        {% endif %}
+                                    </h5>
+                                    <small class="text-muted">{{ notification.createdAt|date('d/m/Y H:i:s') }}</small>
+                                </div>
+                                {% if not notification.isRead %}
+                                    <form method="POST" action="{{ path('notification_mark_as_read', {id: notification.id}) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-light">
+                                            Marquer comme lue
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <pre class="mb-0" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; font-size: 0.9em;">{{ notification.message }}</pre>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <small class="text-muted">ID: {{ notification.id }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .card-header {
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+    
+    pre {
+        color: #333;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+{% endblock %}
