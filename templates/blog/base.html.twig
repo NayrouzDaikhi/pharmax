@@ -501,6 +501,81 @@
             margin-top: 30px;
         }
 
+        /* Post Actions */
+        .post-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background-color: #f5f5f5;
+            color: #5ea96b;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-action:hover {
+            background-color: #e8f5e9;
+            border-color: #5ea96b;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(94,169,107,0.2);
+        }
+
+        .btn-action.active {
+            background-color: #5ea96b;
+            color: #ffffff;
+            border-color: #5ea96b;
+        }
+
+        .btn-action.active:hover {
+            background-color: #4a8b5c;
+        }
+
+        .btn-like.active i {
+            color: #ff6b6b;
+            animation: heartBeat 0.3s ease;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(1.1); }
+        }
+
+        .like-count {
+            min-width: 20px;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .read-later-text {
+            display: inline;
+        }
+
+        @media (max-width: 480px) {
+            .read-later-text {
+                display: none;
+            }
+
+            .btn-action {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+        }
+
         /* Pagination */
         .pagination-container {
             margin: 40px 0;
@@ -1013,6 +1088,117 @@
         // Initialize carousel
         showSlide(0);
         autoplayInterval = setInterval(autoplay, 5000);
+    </script>
+
+    <!-- Like and Read Later Management -->
+    <script>
+        // Initialize likes and read-later status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const likeButtons = document.querySelectorAll('.btn-like');
+            const readLaterButtons = document.querySelectorAll('.btn-read-later');
+
+            likeButtons.forEach(btn => {
+                const articleId = btn.dataset.articleId;
+                // Get likes from button's data or fetch from server
+                const likeCount = btn.getAttribute('data-likes') || '0';
+                btn.querySelector('.like-count').textContent = likeCount;
+            });
+
+            readLaterButtons.forEach(btn => {
+                const articleId = btn.dataset.articleId;
+                const readLater = getReadLater();
+                if (readLater.includes(parseInt(articleId))) {
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        function getLikes() {
+            const stored = localStorage.getItem('pharmax-likes');
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        function saveLikes(likes) {
+            localStorage.setItem('pharmax-likes', JSON.stringify(likes));
+        }
+
+        function getReadLater() {
+            const stored = localStorage.getItem('pharmax-read-later');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function saveReadLater(readLater) {
+            localStorage.setItem('pharmax-read-later', JSON.stringify(readLater));
+        }
+
+        function toggleLike(articleId, button) {
+            const isLiked = button.classList.contains('active');
+            const endpoint = isLiked ? `/blog/${articleId}/unlike` : `/blog/${articleId}/like`;
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (isLiked) {
+                        button.classList.remove('active');
+                        button.querySelector('.like-count').textContent = data.likes;
+                    } else {
+                        button.classList.add('active');
+                        button.querySelector('.like-count').textContent = data.likes;
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function toggleReadLater(articleId, button) {
+            const readLater = getReadLater();
+            const index = readLater.indexOf(parseInt(articleId));
+            
+            if (index > -1) {
+                readLater.splice(index, 1);
+                button.classList.remove('active');
+            } else {
+                readLater.push(parseInt(articleId));
+                button.classList.add('active');
+            }
+            
+            saveReadLater(readLater);
+        }
+
+        // Also update likes in pagination
+        function updateLikesDisplay() {
+            const likeButtons = document.querySelectorAll('.btn-like');
+            const likes = getLikes();
+
+            likeButtons.forEach(btn => {
+                const articleId = btn.dataset.articleId;
+                if (likes[articleId]) {
+                    btn.classList.add('active');
+                    btn.querySelector('.like-count').textContent = likes[articleId];
+                } else {
+                    btn.classList.remove('active');
+                    btn.querySelector('.like-count').textContent = '0';
+                }
+            });
+
+            const readLaterButtons = document.querySelectorAll('.btn-read-later');
+            const readLater = getReadLater();
+
+            readLaterButtons.forEach(btn => {
+                const articleId = btn.dataset.articleId;
+                if (readLater.includes(parseInt(articleId))) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
     </script>
 </body>
 </html>

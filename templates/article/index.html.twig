@@ -28,15 +28,18 @@
                 <input type="text" name="search" class="form-control" placeholder="{{'Search articles...'|trans}}" value="{{ searchQuery }}">
             </div>
             <div>
-                <select name="sort_order" class="form-select">
-                    <option value="desc" {% if sortOrder == 'desc' %}selected{% endif %}>
+                <select name="sort_order" class="form-select" onchange="document.getElementById('sortBy').value='date'; this.form.submit();">
+                    <option value="" disabled selected>{{'Sort by Date'|trans}}</option>
+                    <option value="desc" {% if sortOrder == 'desc' and sortBy == 'date' %}selected{% endif %}>
                         {{'Newest First'|trans}}
                     </option>
-                    <option value="asc" {% if sortOrder == 'asc' %}selected{% endif %}>
+                    <option value="asc" {% if sortOrder == 'asc' and sortBy == 'date' %}selected{% endif %}>
                         {{'Oldest First'|trans}}
                     </option>
                 </select>
             </div>
+            <input type="hidden" name="sort_by" id="sortBy" value="{{ sortBy }}">
+            <input type="hidden" name="sort_order" id="sortOrder" value="{{ sortOrder }}">
             <button type="submit" class="btn btn-primary">
                 <i class="bx bx-search"></i> {{'Search'|trans}}
             </button>
@@ -50,12 +53,12 @@
 </div>
 
 <!-- Statistics Section -->
-<div class="row mb-4">
+<div class="row mb-4" id="statisticsSection">
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-title text-muted mb-3">Nombre total d'articles</h6>
-                <h2 class="text-primary mb-0">{{ totalArticles }}</h2>
+                <h2 id="totalArticlesCount" class="text-primary mb-0">{{ totalArticles }}</h2>
             </div>
         </div>
     </div>
@@ -63,7 +66,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-title text-muted mb-3">Nombre total de commentaires</h6>
-                <h2 class="text-info mb-0">{{ totalCommentaires }}</h2>
+                <h2 id="totalCommentsCount" class="text-info mb-0">{{ totalCommentaires }}</h2>
             </div>
         </div>
     </div>
@@ -71,10 +74,10 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-title text-muted mb-3">Commentaires en attente</h6>
-                <h2 class="text-warning mb-0">{{ statsByStatus['en_attente'] }}</h2>
+                <h2 id="pendingCommentsCount" class="text-warning mb-0">{{ statsByStatus['en_attente'] }}</h2>
                 <small class="text-muted d-block mt-2">
-                    Approuvés: <span class="text-success">{{ statsByStatus['valide'] }}</span> | 
-                    Bloqués: <span class="text-danger">{{ statsByStatus['bloque'] }}</span>
+                    Approuvés: <span id="approvedCommentsCount" class="text-success">{{ statsByStatus['valide'] }}</span> | 
+                    Bloqués: <span id="blockedCommentsCount" class="text-danger">{{ statsByStatus['bloque'] }}</span>
                 </small>
             </div>
         </div>
@@ -83,40 +86,85 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-title text-muted mb-3">Derniers commentaires</h6>
-                {% if commentsByDate|length > 0 %}
-                    {% set lastDate = commentsByDate|keys|last %}
-                    <h2 class="text-success mb-0">{{ commentsByDate[lastDate] }}</h2>
-                    <small class="text-muted d-block mt-2">{{ lastDate|date('d/m/Y') }}</small>
-                {% else %}
-                    <h2 class="text-secondary mb-0">-</h2>
-                    <small class="text-muted d-block mt-2">Aucun</small>
-                {% endif %}
+                <div id="lastCommentsCard">
+                    {% if commentsByDate|length > 0 %}
+                        {% set lastDate = commentsByDate|keys|last %}
+                        <h2 class="text-success mb-0">{{ commentsByDate[lastDate] }}</h2>
+                        <small class="text-muted d-block mt-2">{{ lastDate|date('d/m/Y') }}</small>
+                    {% else %}
+                        <h2 class="text-secondary mb-0">-</h2>
+                        <small class="text-muted d-block mt-2">Aucun</small>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 
+<!-- Article Selection Actions Bar -->
+<div id="articleSelectionActionsBar" class="alert alert-info d-none mb-3" role="alert">
+    <div class="d-flex justify-content-between align-items-center">
+        <span id="articleSelectionCount">0 {{'articles selected'|trans}}</span>
+        <div class="btn-group" role="group">
+            <button type="button" id="deleteArticlesSelectedBtn" class="btn btn-danger btn-sm">
+                <i class="bx bx-trash"></i> {{'Delete Selected'|trans}}
+            </button>
+            <button type="button" id="cancelArticleSelectionBtn" class="btn btn-secondary btn-sm">
+                <i class="bx bx-x"></i> {{'Cancel'|trans}}
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th>{{'Title'|trans}}</th>
+                    <th style="width: 50px;">
+                        <input type="checkbox" id="selectArticlesAllCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                    </th>
+                    <th style="cursor: pointer;">
+                        <a href="#" class="sortable-header" data-sort="titre" style="text-decoration: none; color: inherit;">
+                            {{'Title'|trans}}
+                            {% if sortBy == 'titre' %}
+                                <i class="bx {% if sortOrder == 'asc' %}bx-up{% else %}bx-down{% endif %}" style="font-size: 12px;"></i>
+                            {% endif %}
+                        </a>
+                    </th>
                     <th>{{'Image'|trans}}</th>
-                    <th>{{'Comments count'|trans}}</th>
-                    <th>{{'Created'|trans}}</th>
+                    <th style="cursor: pointer;">
+                        <a href="#" class="sortable-header" data-sort="comments" style="text-decoration: none; color: inherit;">
+                            {{'Comments count'|trans}}
+                            {% if sortBy == 'comments' %}
+                                <i class="bx {% if sortOrder == 'asc' %}bx-up{% else %}bx-down{% endif %}" style="font-size: 12px;"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th style="cursor: pointer;">
+                        <a href="#" class="sortable-header" data-sort="date" style="text-decoration: none; color: inherit;">
+                            {{'Created'|trans}}
+                            {% if sortBy == 'date' %}
+                                <i class="bx {% if sortOrder == 'asc' %}bx-up{% else %}bx-down{% endif %}" style="font-size: 12px;"></i>
+                            {% endif %}
+                        </a>
+                    </th>
                     <th>{{'Modified'|trans}}</th>
                     <th>{{'Actions'|trans}}</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="articleTableBody">
                 {% if articles is not empty %}
                     {% for article in articles %}
-                    <tr class="table-row-clickable {% if article.id == mostCommentedArticleId %}table-highlighted{% endif %}" data-href="{{ path('app_article_show', {'id': article.id}) }}" role="button">
+                    <tr class="article-row {% if article.id == mostLikedArticleId %}table-most-liked{% endif %}" data-article-id="{{ article.id }}" data-href="{{ path('app_article_show', {'id': article.id}) }}" role="button">
+                        <td onclick="event.stopPropagation();">
+                            <input type="checkbox" class="form-check-input article-checkbox" value="{{ article.id }}">
+                        </td>
                         <td>
                             <strong>{{ article.titre }}</strong>
                             {% if article.id == mostCommentedArticleId %}<i class="bx bx-star ms-2" style="color: #ffc107;"></i>{% endif %}
+                            {% if article.id == mostLikedArticleId %}<i class="fas fa-heart ms-2" style="color: #ff6b6b;"></i>{% endif %}
                         </td>
                         <td>
                             {% if article.image %}
@@ -134,7 +182,7 @@
                         <td>
                             <small class="text-muted">{{ article.dateModification ? article.dateModification|date('d M Y') : '-' }}</small>
                         </td>
-                        <td>
+                        <td onclick="event.stopPropagation();">
                             <div class="btn-group" role="group">
                                 <a href="{{ path('app_article_edit', {'id': article.id}) }}" class="btn btn-sm btn-warning" title="{{'Edit'|trans}}">
                                     <i class="bx bx-edit"></i>
@@ -148,9 +196,9 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="7" class="text-center py-5">
                             <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
-                            <p class="text-muted mt-2">{{'No articles found.'|trans}} <a href="{{ path('app_article_new') }}">{{'Create one'|trans}}</a></p>
+                            <p class="text-muted mt-2">{{'No articles found.'|trans}}</p>
                         </td>
                     </tr>
                 {% endif %}
@@ -286,10 +334,28 @@
         </div>
         <!-- Archived Comments Tab -->
         <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
+            <!-- Archive Selection Actions Bar -->
+            <div id="archiveSelectionActionsBar" class="alert alert-info d-none mb-3" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="archiveSelectionCount">0 {{'archived comments selected'|trans}}</span>
+                    <div class="btn-group" role="group">
+                        <button type="button" id="deleteArchiveSelectedBtn" class="btn btn-danger btn-sm">
+                            <i class="bx bx-trash"></i> {{'Delete Selected'|trans}}
+                        </button>
+                        <button type="button" id="cancelArchiveSelectionBtn" class="btn btn-secondary btn-sm">
+                            <i class="bx bx-x"></i> {{'Cancel'|trans}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectArchiveAllCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                            </th>
                             <th>{{'ID'|trans}}</th>
                             <th>{{'User'|trans}}</th>
                             <th>{{'Article'|trans}}</th>
@@ -298,10 +364,13 @@
                             <th>{{'Reason'|trans}}</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="archiveTableBody">
                         {% if archived_commentaires is not empty %}
                             {% for archive in archived_commentaires %}
-                            <tr>
+                            <tr class="archive-row" data-archive-id="{{ archive.id }}">
+                                <td onclick="event.stopPropagation();">
+                                    <input type="checkbox" class="form-check-input archive-checkbox" value="{{ archive.id }}">
+                                </td>
                                 <td>
                                     <code class="text-danger">#{{ archive.id }}</code>
                                 </td>
@@ -312,7 +381,11 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <span class="badge badge-light">{{ archive.article.titre }}</span>
+                                    {% if archive.article %}
+                                        <span class="badge badge-light">{{ archive.article.titre }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{'Article deleted'|trans}}</span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <p class="text-muted mb-0">
@@ -333,7 +406,7 @@
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="text-center py-5">
+                                <td colspan="7" class="text-center py-5">
                                     <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
                                     <p class="text-muted mt-2">{{'No archived comments found.'|trans}}</p>
                                 </td>
@@ -505,11 +578,19 @@
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
+                    // Update the chart
                     initializeChart({
                         approved: data.statistics.approved,
                         pending: data.statistics.pending,
                         blocked: data.statistics.blocked
                     });
+                    
+                    // Update the statistics cards
+                    const totalComments = data.statistics.approved + data.statistics.pending + data.statistics.blocked;
+                    document.getElementById('totalCommentsCount').textContent = totalComments;
+                    document.getElementById('approvedCommentsCount').textContent = data.statistics.approved;
+                    document.getElementById('pendingCommentsCount').textContent = data.statistics.pending;
+                    document.getElementById('blockedCommentsCount').textContent = data.statistics.blocked;
                 }
             }
         } catch (error) {
@@ -529,6 +610,27 @@
         };
         
         initializeChart(statusData);
+        
+        // Handle sortable column headers
+        document.querySelectorAll('.sortable-header').forEach(header => {
+            header.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sortBy = this.dataset.sort;
+                const sortOrderInput = document.getElementById('sortOrder');
+                const sortByInput = document.getElementById('sortBy');
+                
+                // Toggle sort order if clicking same column, otherwise set to desc
+                if (sortByInput.value === sortBy) {
+                    sortOrderInput.value = sortOrderInput.value === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortOrderInput.value = 'desc';
+                }
+                sortByInput.value = sortBy;
+                
+                // Submit the form
+                this.closest('form') ? this.closest('form').submit() : document.querySelector('form[method="get"]').submit();
+            });
+        });
         
         // Setup mass selection functionality
         const selectAllCheckbox = document.getElementById('selectAllCheckbox');
@@ -653,6 +755,236 @@
                     window.location.href = href;
                 }
             });
+        });
+
+        // Setup mass selection functionality for articles
+        const selectArticlesAllCheckbox = document.getElementById('selectArticlesAllCheckbox');
+        const articleCheckboxes = document.querySelectorAll('.article-checkbox');
+        const articleSelectionActionsBar = document.getElementById('articleSelectionActionsBar');
+        const deleteArticlesSelectedBtn = document.getElementById('deleteArticlesSelectedBtn');
+        const cancelArticleSelectionBtn = document.getElementById('cancelArticleSelectionBtn');
+        const articleSelectionCount = document.getElementById('articleSelectionCount');
+        const articleTableBody = document.getElementById('articleTableBody');
+        const articleRows = document.querySelectorAll('.article-row');
+        
+        // Update selection count and visibility of action bar for articles
+        function updateArticleSelectionUI() {
+            const selectedCount = document.querySelectorAll('.article-checkbox:checked').length;
+            if (selectedCount > 0) {
+                articleSelectionActionsBar.classList.remove('d-none');
+                articleSelectionCount.textContent = selectedCount + ' {{'articles selected'|trans}}';
+            } else {
+                articleSelectionActionsBar.classList.add('d-none');
+            }
+            
+            // Update select all checkbox state
+            const totalCheckboxes = document.querySelectorAll('.article-checkbox').length;
+            selectArticlesAllCheckbox.checked = selectedCount === totalCheckboxes && totalCheckboxes > 0;
+            selectArticlesAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCheckboxes;
+        }
+        
+        // Select all checkbox for articles
+        selectArticlesAllCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.article-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateArticleSelectionUI();
+        });
+        
+        // Individual checkboxes for articles
+        articleCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateArticleSelectionUI();
+            });
+        });
+        
+        // Cancel selection for articles
+        cancelArticleSelectionBtn.addEventListener('click', function() {
+            selectArticlesAllCheckbox.checked = false;
+            articleCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateArticleSelectionUI();
+        });
+        
+        // Delete selected articles
+        deleteArticlesSelectedBtn.addEventListener('click', async function() {
+            const selectedIds = Array.from(document.querySelectorAll('.article-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                alert('{{'No articles selected'|trans}}');
+                return;
+            }
+            
+            if (!confirm(selectedIds.length + ' {{'articles will be deleted. Continue?'|trans}}')) {
+                return;
+            }
+            
+            deleteArticlesSelectedBtn.disabled = true;
+            deleteArticlesSelectedBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> {{'Deleting...'|trans}}';
+            
+            try {
+                const response = await fetch('/api/articles/delete-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove rows from table
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-article-id="${id}"]`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-20px)';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    
+                    // Reset UI
+                    setTimeout(() => {
+                        updateArticleSelectionUI();
+                        
+                        // Reload page after deletion
+                        location.reload();
+                    }, 300);
+                } else {
+                    console.error('Error deleting articles:', data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting articles:', error);
+            } finally {
+                deleteArticlesSelectedBtn.disabled = false;
+                deleteArticlesSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
+            }
+        });
+        
+        // Click row to navigate for articles (unless checkbox was clicked)
+        articleRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('.article-checkbox') || e.target.closest('.btn-group')) {
+                    return;
+                }
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+
+        // Setup mass selection functionality for archived comments
+        const selectArchiveAllCheckbox = document.getElementById('selectArchiveAllCheckbox');
+        const archiveCheckboxes = document.querySelectorAll('.archive-checkbox');
+        const archiveSelectionActionsBar = document.getElementById('archiveSelectionActionsBar');
+        const deleteArchiveSelectedBtn = document.getElementById('deleteArchiveSelectedBtn');
+        const cancelArchiveSelectionBtn = document.getElementById('cancelArchiveSelectionBtn');
+        const archiveSelectionCount = document.getElementById('archiveSelectionCount');
+        const archiveTableBody = document.getElementById('archiveTableBody');
+        const archiveRows = document.querySelectorAll('.archive-row');
+        
+        // Update selection count and visibility of action bar for archived comments
+        function updateArchiveSelectionUI() {
+            const selectedCount = document.querySelectorAll('.archive-checkbox:checked').length;
+            if (selectedCount > 0) {
+                archiveSelectionActionsBar.classList.remove('d-none');
+                archiveSelectionCount.textContent = selectedCount + ' {{'archived comments selected'|trans}}';
+            } else {
+                archiveSelectionActionsBar.classList.add('d-none');
+            }
+            
+            // Update select all checkbox state
+            const totalCheckboxes = document.querySelectorAll('.archive-checkbox').length;
+            selectArchiveAllCheckbox.checked = selectedCount === totalCheckboxes && totalCheckboxes > 0;
+            selectArchiveAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCheckboxes;
+        }
+        
+        // Select all checkbox for archived comments
+        selectArchiveAllCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.archive-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateArchiveSelectionUI();
+        });
+        
+        // Individual checkboxes for archived comments
+        archiveCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateArchiveSelectionUI();
+            });
+        });
+        
+        // Cancel selection for archived comments
+        cancelArchiveSelectionBtn.addEventListener('click', function() {
+            selectArchiveAllCheckbox.checked = false;
+            archiveCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateArchiveSelectionUI();
+        });
+        
+        // Delete selected archived comments
+        deleteArchiveSelectedBtn.addEventListener('click', async function() {
+            const selectedIds = Array.from(document.querySelectorAll('.archive-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                alert('{{'No archived comments selected'|trans}}');
+                return;
+            }
+            
+            if (!confirm(selectedIds.length + ' {{'archived comments will be deleted. Continue?'|trans}}')) {
+                return;
+            }
+            
+            deleteArchiveSelectedBtn.disabled = true;
+            deleteArchiveSelectedBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> {{'Deleting...'|trans}}';
+            
+            try {
+                const response = await fetch('/api/commentaire-archives/delete-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove rows from table
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-archive-id="${id}"]`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-20px)';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    
+                    // Reset UI
+                    setTimeout(() => {
+                        updateArchiveSelectionUI();
+                        
+                        // Update statistics before reloading
+                        if (typeof window.updateArticleStatistics === 'function') {
+                            window.updateArticleStatistics();
+                        }
+                        
+                        // Reload page after deletion
+                        location.reload();
+                    }, 300);
+                } else {
+                    console.error('Error deleting archived comments:', data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting archived comments:', error);
+            } finally {
+                deleteArchiveSelectedBtn.disabled = false;
+                deleteArchiveSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
+            }
         });
     });
 </script>

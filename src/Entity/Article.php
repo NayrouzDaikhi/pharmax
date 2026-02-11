@@ -27,12 +27,12 @@ class Article
     #[Assert\Length(min: 3, max: 255)]
     private ?string $titre = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $slug = null;
-
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank]
     private ?string $contenu = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $contenuEn = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Length(max: 255)]
@@ -43,6 +43,9 @@ class Article
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $date_modification = null;
+
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $likes = 0;
 
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Commentaire::class, orphanRemoval: true)]
     private Collection $commentaires;
@@ -61,30 +64,7 @@ class Article
     public function setTitre(string $titre): static
     {
         $this->titre = $titre;
-        $this->slug = $this->generateSlug($titre);
         return $this;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(string $slug): static
-    {
-        $this->slug = $slug;
-        return $this;
-    }
-
-    private function generateSlug(string $text): string
-    {
-        // Convert to lowercase
-        $text = strtolower($text);
-        // Replace special characters
-        $text = preg_replace('/[^a-z0-9]+/', '-', $text);
-        // Remove leading/trailing dashes
-        $text = trim($text, '-');
-        return $text;
     }
 
     public function getContenu(): ?string
@@ -95,6 +75,17 @@ class Article
     public function setContenu(string $contenu): static
     {
         $this->contenu = $contenu;
+        return $this;
+    }
+
+    public function getContenuEn(): ?string
+    {
+        return $this->contenuEn;
+    }
+
+    public function setContenuEn(?string $contenuEn): static
+    {
+        $this->contenuEn = $contenuEn;
         return $this;
     }
 
@@ -129,6 +120,31 @@ class Article
     public function setDateModification(?\DateTimeInterface $date_modification): static
     {
         $this->date_modification = $date_modification;
+        return $this;
+    }
+
+    public function getLikes(): int
+    {
+        return $this->likes;
+    }
+
+    public function setLikes(int $likes): static
+    {
+        $this->likes = $likes;
+        return $this;
+    }
+
+    public function incrementLikes(): static
+    {
+        $this->likes++;
+        return $this;
+    }
+
+    public function decrementLikes(): static
+    {
+        if ($this->likes > 0) {
+            $this->likes--;
+        }
         return $this;
     }
 

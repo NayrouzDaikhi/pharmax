@@ -11,6 +11,7 @@ class CommentModerationService
 
     // Simple blacklist (fallback)
     private array $badWords = [
+        // English words
         'fuck',
         'shit',
         'bitch',
@@ -25,7 +26,46 @@ class CommentModerationService
         'dumb',
         'worst',
         'disgusting',
-        'offensive'
+        'offensive',
+        // French words
+        'connard',
+        'connasse',
+        'débile',
+        'con',
+        'salaud',
+        'salope',
+        'crétin',
+        'imbécile',
+        'putain',
+        'foutre',
+        'merde',
+        'très con',
+        'très débile',
+        'très nul',
+        'nul',
+        'horrible',
+        'dégueulasse',
+        'ignoble',
+        'immonde',
+        'abominable',
+        'haïr',
+        'déteste',
+        'détestable',
+        'pire',
+        'pourri',
+        'pourrave',
+        'craignos',
+        'chelou',
+        'chelou pas possible',
+        'ouf',
+        't\'es pas normal',
+        't\'es fou',
+        'es un fou',
+        'c\'est de la merde',
+        'quelle merde',
+        'vraiment nul',
+        'archi nul',
+        'super nul',
     ];
 
     public function __construct(HttpClientInterface $client, string $huggingFaceApiKey)
@@ -38,13 +78,24 @@ class CommentModerationService
     {
         // 🔴 1️⃣ FAST RULE-BASED CHECK (ALWAYS WORKS)
         $lowerText = strtolower($text);
+        $normalizedText = $this->removeAccents($lowerText);
+        
         foreach ($this->badWords as $word) {
-            if (str_contains($lowerText, $word)) {
+            $normalizedWord = $this->removeAccents(strtolower($word));
+            // Use word boundaries to avoid matching substrings (e.g., 'con' in 'contenue')
+            // \b ensures the word is bounded by non-word characters or string boundaries
+            $pattern = '/\b' . preg_quote($normalizedWord, '/') . '\b/i';
+            if (preg_match($pattern, $normalizedText)) {
                 return true; // BLOQUE immediately
             }
         }
 
         // 🟡 2️⃣ AI CHECK (BEST EFFORT)
+        // Skip AI check if API key is not configured
+        if (strpos($this->apiKey, 'your_') !== false || empty($this->apiKey)) {
+            return false;
+        }
+
         try {
             $response = $this->client->request(
                 'POST',
@@ -57,8 +108,8 @@ class CommentModerationService
                     'json' => [
                         'inputs' => $text,
                     ],
-                    'timeout' => 30,
-                    'max_duration' => 30,
+                    'timeout' => 5,
+                    'max_duration' => 5,
                 ]
             );
 
@@ -93,5 +144,23 @@ class CommentModerationService
             error_log('[AI MODERATION FAILED] ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Remove accents from a string (é -> e, à -> a, etc.)
+     */
+    private function removeAccents(string $text): string
+    {
+        $replacements = [
+            'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'á' => 'a',
+            'ù' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ô' => 'o', 'ö' => 'o', 'ó' => 'o',
+            'ì' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ç' => 'c',
+            'ñ' => 'n',
+        ];
+        
+        return strtr($text, $replacements);
     }
 }

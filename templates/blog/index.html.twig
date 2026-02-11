@@ -109,6 +109,9 @@
                 // Update pagination buttons
                 updatePaginationUI(data.currentPage, data.totalPages, data.totalArticles);
                 
+                // Update likes and read-later status
+                updateLikesDisplay();
+                
                 // Update URL without reload
                 window.history.pushState({page: data.currentPage}, '', url);
             }, 300);

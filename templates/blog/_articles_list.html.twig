@@ -27,6 +27,14 @@
                     {{ article.commentaires|length }}
                 </div>
             </div>
+            <div class="post-actions">
+                <button class="btn-action btn-like" data-article-id="{{ article.id }}" data-likes="{{ article.likes }}" onclick="event.stopPropagation(); toggleLike({{ article.id }}, this);">
+                    <i class="fas fa-heart"></i> <span class="like-count">{{ article.likes }}</span>
+                </button>
+                <button class="btn-action btn-read-later" data-article-id="{{ article.id }}" onclick="event.stopPropagation(); toggleReadLater({{ article.id }}, this);">
+                    <i class="fas fa-bookmark"></i> <span class="read-later-text">{{'Read Later'|trans}}</span>
+                </button>
+            </div>
         </div>
     </div>
 {% endfor %}

@@ -38,4 +38,17 @@ class CommentaireArchiveRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * Find all archived comments with left join on articles to avoid EntityNotFoundException
+     */
+    public function findAllWithArticles()
+    {
+        return $this->createQueryBuilder('a')
+            ->leftJoin('a.article', 'article')
+            ->addSelect('article')
+            ->orderBy('a.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

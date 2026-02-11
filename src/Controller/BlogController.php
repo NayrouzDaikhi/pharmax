@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Commentaire;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentaireRepository;
+use App\Service\GoogleTranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -123,7 +124,70 @@ class BlogController extends AbstractController
         ]);
     }
 
-    #[Route('/blog/{id}/comment', name: 'app_blog_comment_create', methods: ['POST'])]
+    #[Route('/blog/{id}/translate', name: 'app_blog_translate', methods: ['POST'])]
+    public function translate(
+        int $id,
+        ArticleRepository $articleRepository,
+        GoogleTranslationService $translationService,
+        EntityManagerInterface $entityManager
+    ): Response
+    {
+        $article = $articleRepository->find($id);
+
+        if (!$article) {
+            throw $this->createNotFoundException('Article not found');
+        }
+
+        $translated = $translationService->translate(
+            $article->getContenu(),
+            'en'
+        );
+
+        if ($translated) {
+            $article->setContenuEn($translated);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('app_blog_show', [
+            'id' => $article->getId()
+        ]);
+    }
+
+    #[Route('/blog/{id}/like', name: 'app_blog_like', methods: ['POST'])]
+    public function likeArticle(int $id, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $article = $articleRepository->find($id);
+
+        if (!$article) {
+            return new JsonResponse(['error' => 'Article not found'], 404);
+        }
+
+        $article->incrementLikes();
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'likes' => $article->getLikes(),
+        ]);
+    }
+
+    #[Route('/blog/{id}/unlike', name: 'app_blog_unlike', methods: ['POST'])]
+    public function unlikeArticle(int $id, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $article = $articleRepository->find($id);
+
+        if (!$article) {
+            return new JsonResponse(['error' => 'Article not found'], 404);
+        }
+
+        $article->decrementLikes();
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'likes' => $article->getLikes(),
+        ]);
+    }
     public function createComment(int $id, Request $request, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): Response
     {
         $article = $articleRepository->find($id);

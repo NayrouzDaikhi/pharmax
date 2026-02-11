@@ -23,13 +23,8 @@ class ArticleType extends AbstractType
                 'required' => false,
                 'constraints' => [
                     new File([
-                        'maxSize' => '2M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                        ],
-                        'mimeTypesMessage' => 'Veuillez uploader une image valide',
-                            ])
+                        'maxSize' => '10M',
+                    ])
                 ],
                 ])
             ->add('date_creation')

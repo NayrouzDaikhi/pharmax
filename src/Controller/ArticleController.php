@@ -7,6 +7,7 @@ use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Repository\CommentaireRepository;
 use App\Repository\CommentaireArchiveRepository;
+use App\Service\GoogleTranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +27,7 @@ final class ArticleController extends AbstractController
         $commentFilter = $request->query->get('comment_filter', '');
         
         // Validate sort parameters
-        if (!in_array($sortBy, ['date'])) {
+        if (!in_array($sortBy, ['date', 'titre', 'likes', 'comments'])) {
             $sortBy = 'date';
         }
         if (!in_array($sortOrder, ['asc', 'desc'])) {
@@ -51,17 +52,37 @@ final class ArticleController extends AbstractController
         
         // Sort articles
         usort($articles, function($a, $b) use ($sortBy, $sortOrder) {
-            $dateA = $a->getDateCreation() ? $a->getDateCreation()->getTimestamp() : 0;
-            $dateB = $b->getDateCreation() ? $b->getDateCreation()->getTimestamp() : 0;
+            $compareValue = 0;
+            
+            switch ($sortBy) {
+                case 'titre':
+                    $compareValue = strcasecmp($a->getTitre(), $b->getTitre());
+                    break;
+                case 'likes':
+                    $compareValue = $a->getLikes() <=> $b->getLikes();
+                    break;
+                case 'comments':
+                    $compareValue = count($a->getCommentaires()) <=> count($b->getCommentaires());
+                    break;
+                case 'date':
+                default:
+                    $dateA = $a->getDateCreation() ? $a->getDateCreation()->getTimestamp() : 0;
+                    $dateB = $b->getDateCreation() ? $b->getDateCreation()->getTimestamp() : 0;
+                    $compareValue = $dateA <=> $dateB;
+                    break;
+            }
             
             if ($sortOrder === 'asc') {
-                return $dateA <=> $dateB;
+                return $compareValue;
             } else {
-                return $dateB <=> $dateA;
+                return -$compareValue;
             }
         });
         
         $allCommentaires = $commentaireRepository->findAll();
+        
+        // Get archived comments
+        $allArchived = $archiveRepository->findAll();
         
         // Filter commentaires by status
         $commentaires = $allCommentaires;
@@ -73,7 +94,7 @@ final class ArticleController extends AbstractController
         
         // Calculate statistics
         $totalArticles = count($articles);
-        $totalCommentaires = count($allCommentaires);
+        $totalCommentaires = count($allCommentaires) + count($allArchived);
         
         // Distribution by status
         $statsByStatus = [
@@ -87,11 +108,21 @@ final class ArticleController extends AbstractController
         // Find article with most comments
         $maxComments = 0;
         $mostCommentedArticleId = null;
+        // Find article with most likes
+        $maxLikes = 0;
+        $mostLikedArticleId = null;
+        
         foreach ($articles as $article) {
             $commentCount = count($article->getCommentaires());
             if ($commentCount > $maxComments) {
                 $maxComments = $commentCount;
                 $mostCommentedArticleId = $article->getId();
+            }
+            
+            $likesCount = $article->getLikes();
+            if ($likesCount > $maxLikes) {
+                $maxLikes = $likesCount;
+                $mostLikedArticleId = $article->getId();
             }
         }
         
@@ -112,18 +143,33 @@ final class ArticleController extends AbstractController
             }
         }
         
+        // Count archived comments as 'bloque'
+        $statsByStatus['bloque'] += count($allArchived);
+        
+        // Add archived comments to date count
+        foreach ($allArchived as $archive) {
+            if ($archive->getArchivedAt()) {
+                $dateKey = $archive->getArchivedAt()->format('Y-m-d');
+                if (!isset($commentsByDate[$dateKey])) {
+                    $commentsByDate[$dateKey] = 0;
+                }
+                $commentsByDate[$dateKey]++;
+            }
+        }
+        
         // Sort dates
         ksort($commentsByDate);
         
         return $this->render('article/index.html.twig', [
             'articles' => $articles,
             'commentaires' => $commentaires,
-            'archived_commentaires' => $archiveRepository->findAll(),
+            'archived_commentaires' => $archiveRepository->findAllWithArticles(),
             'totalArticles' => $totalArticles,
             'totalCommentaires' => $totalCommentaires,
             'statsByStatus' => $statsByStatus,
             'commentsByDate' => $commentsByDate,
             'mostCommentedArticleId' => $mostCommentedArticleId,
+            'mostLikedArticleId' => $mostLikedArticleId,
             'searchQuery' => $searchQuery,
             'sortBy' => $sortBy,
             'sortOrder' => $sortOrder,
@@ -211,6 +257,28 @@ final class ArticleController extends AbstractController
         return $this->render('article/edit.html.twig', [
             'article' => $article,
             'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}/translate', name: 'app_article_translate', methods: ['POST'])]
+    public function translate(
+        Article $article,
+        GoogleTranslationService $translationService,
+        EntityManagerInterface $entityManager
+    ): Response
+    {
+        $translated = $translationService->translate(
+            $article->getContenu(),
+            'en'
+        );
+
+        if ($translated) {
+            $article->setContenuEn($translated);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('app_article_show', [
+            'id' => $article->getId()
         ]);
     }
 
