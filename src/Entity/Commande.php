@@ -3,6 +3,9 @@
 namespace App\Entity;
 
 use App\Repository\CommandeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use App\Entity\LigneCommande;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommandeRepository::class)]
@@ -17,6 +20,12 @@ class Commande
     #[ORM\Column(type: 'json')]
     private array $produits = [];
 
+    /**
+     * @var Collection<int, LigneCommande>
+     */
+    #[ORM\OneToMany(mappedBy: 'commande', targetEntity: LigneCommande::class, cascade: ['persist', 'remove'])]
+    private Collection $lignes;
+
     #[ORM\Column(type: 'float')]
     private ?float $totales = null;
 
@@ -24,7 +33,7 @@ class Commande
     private ?string $statut = 'en_attente';
 
     #[ORM\ManyToOne(inversedBy: 'commandes')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $utilisateur = null;
 
     #[ORM\Column(type: 'datetime')]
@@ -33,6 +42,9 @@ class Commande
     public function __construct()
     {
         $this->created_at = new \DateTime();
+        $this->statut = 'en_attente';
+        $this->produits = [];
+        $this->lignes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -48,6 +60,35 @@ class Commande
     public function setProduits(array $produits): static
     {
         $this->produits = $produits;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LigneCommande>
+     */
+    public function getLignes(): Collection
+    {
+        return $this->lignes;
+    }
+
+    public function addLigne(LigneCommande $ligne): static
+    {
+        if (!$this->lignes->contains($ligne)) {
+            $this->lignes->add($ligne);
+            $ligne->setCommande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLigne(LigneCommande $ligne): static
+    {
+        if ($this->lignes->removeElement($ligne)) {
+            if ($ligne->getCommande() === $this) {
+                $ligne->setCommande(null);
+            }
+        }
 
         return $this;
     }

@@ -19,32 +19,50 @@ class CommandeType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('utilisateur', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'email',
-                'label' => 'Utilisateur',
-            ])
-            ->add('produits', TextType::class, [
-                'label' => 'Produits (séparés par des virgules)',
-                'help' => 'Ex: iPhone 15, MacBook Pro',
-            ])
-            ->add('totales', NumberType::class, [
-                'label' => 'Montant total',
-                'scale' => 2,
-                'data_class' => null,
-            ])
-            ->add('statut', ChoiceType::class, [
-                'label' => 'Statut',
-                'choices' => [
-                    'En cours' => 'en_cours',
-                    'En attente' => 'en_attente',
-                    'Annulée' => 'annule',
-                ],
-            ])
+            // Date (créée le)
             ->add('created_at', DateTimeType::class, [
                 'label' => 'Date de création',
                 'widget' => 'single_text',
                 'required' => true,
+            ])
+            
+            // Montant total
+            ->add('totales', NumberType::class, [
+                'label' => 'Montant total (TND)',
+                'scale' => 2,
+                'data_class' => null,
+            ])
+            
+            // Statut
+            ->add('statut', ChoiceType::class, [
+                'label' => 'Statut',
+                'choices' => [
+                    'En attente' => 'en_attente',
+                    'En cours' => 'en_cours',
+                    'Payée' => 'payee',
+                    'Annulée' => 'annule',
+                ],
+            ])
+            
+            // Utilisateur
+            ->add('utilisateur', EntityType::class, [
+                'class' => User::class,
+                'choice_label' => 'email',
+                'label' => 'Utilisateur',
+                'required' => false,
+                'placeholder' => 'Sélectionner un utilisateur',
+            ])
+            
+            // Produits
+            ->add('produits', TextType::class, [
+                'label' => 'Produits',
+                'help' => 'Entrez les produits séparés par des virgules. Ex: iPhone 15, MacBook Pro',
+                'required' => false,
+                'empty_data' => '',
+                'attr' => [
+                    'placeholder' => 'iPhone 15, MacBook Pro',
+                    'rows' => 3,
+                ],
             ])
         ;
 

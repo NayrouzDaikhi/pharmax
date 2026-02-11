@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\LigneCommandeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Commande;
 
-#[ORM\Entity(repositoryClass: LigneCommandeRepository::class)]
+#[ORM\Entity]
+#[ORM\Table(name: 'ligne_commandes')]
 class LigneCommande
 {
     #[ORM\Id]
@@ -13,24 +14,61 @@ class LigneCommande
     #[ORM\Column]
     private ?int $id = null;
 
-    // quantité
-    #[ORM\Column]
+    #[ORM\ManyToOne(targetEntity: Commande::class, inversedBy: 'lignes')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Commande $commande = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
+
+    #[ORM\Column(type: 'float')]
+    private ?float $prix = null;
+
+    #[ORM\Column(type: 'integer')]
     private ?int $quantite = null;
 
-    // total
     #[ORM\Column(type: 'float')]
-    private ?float $total = null;
-
-    // utilisateur (relation)
-    #[ORM\ManyToOne(inversedBy: 'lignesCommandes')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $utilisateur = null;
-
-    // getters & setters
+    private ?float $sousTotal = null;
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCommande(): ?Commande
+    {
+        return $this->commande;
+    }
+
+    public function setCommande(?Commande $commande): static
+    {
+        $this->commande = $commande;
+
+        return $this;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrix(): ?float
+    {
+        return $this->prix;
+    }
+
+    public function setPrix(float $prix): static
+    {
+        $this->prix = $prix;
+
+        return $this;
     }
 
     public function getQuantite(): ?int
@@ -38,31 +76,22 @@ class LigneCommande
         return $this->quantite;
     }
 
-    public function setQuantite(int $quantite): self
+    public function setQuantite(int $quantite): static
     {
         $this->quantite = $quantite;
+
         return $this;
     }
 
-    public function getTotal(): ?float
+    public function getSousTotal(): ?float
     {
-        return $this->total;
+        return $this->sousTotal;
     }
 
-    public function setTotal(float $total): self
+    public function setSousTotal(float $sousTotal): static
     {
-        $this->total = $total;
-        return $this;
-    }
+        $this->sousTotal = $sousTotal;
 
-    public function getUtilisateur(): ?User
-    {
-        return $this->utilisateur;
-    }
-
-    public function setUtilisateur(User $utilisateur): self
-    {
-        $this->utilisateur = $utilisateur;
         return $this;
     }
 }

@@ -140,17 +140,21 @@
                         {% for commande in commandes %}
                             <tr>
                                 <td><strong>#{{ commande.id }}</strong></td>
-                                <td>{{ commande.utilisateur.email }}</td>
+                                <td>{{ commande.utilisateur ? commande.utilisateur.email : 'N/A' }}</td>
                                 <td>
                                     {% if commande.produits is iterable %}
                                         {% for produit in commande.produits %}
-                                            <span class="badge bg-label-info">{{ produit }}</span>
+                                            {% if produit is iterable %}
+                                                <span class="badge bg-label-info">{{ produit.nom ?? 'Produit' }} (x{{ produit.quantite ?? 1 }})</span>
+                                            {% else %}
+                                                <span class="badge bg-label-info">{{ produit }}</span>
+                                            {% endif %}
                                         {% endfor %}
                                     {% else %}
                                         {{ commande.produits|default('N/A') }}
                                     {% endif %}
                                 </td>
-                                <td><strong>${{ commande.totales|number_format(2) }}</strong></td>
+                                <td><strong>{{ commande.totales|number_format(2, ',', ' ') }} TND</strong></td>
                                 <td>
                                     {% if commande.statut == 'en_cours' %}
                                         <span class="badge bg-label-primary">● En cours</span>

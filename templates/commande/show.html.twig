@@ -18,7 +18,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="text-muted">Utilisateur:</label>
-                            <p class="fw-bold">{{ commande.utilisateur.email }}</p>
+                            <p class="fw-bold">{{ commande.utilisateur ? commande.utilisateur.email : 'Client Anonyme' }}</p>
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted">ID Commande:</label>
@@ -60,8 +60,17 @@
 
                     <div class="mb-3">
                         <label class="text-muted">Montant Total:</label>
-                        <h3 class="text-success">${{ commande.totales|number_format(2) }}</h3>
+                        <h3 class="text-success">{{ commande.totales|number_format(2, ',', ' ') }} TND</h3>
                     </div>
+
+                    {% if qrCode %}
+                    <div class="mb-3 text-center">
+                        <label class="text-muted">QR Code</label>
+                        <div>
+                            <img src="{{ qrCode }}" alt="QR Code" style="width:200px; height:200px; border:1px solid #ddd; padding:10px;">
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -79,6 +88,9 @@
                     </div>
                     <a href="{{ path('app_commande_edit', {'id': commande.id}) }}" class="btn btn-primary w-100 mb-2">
                         <i class="bx bx-edit-alt me-1"></i> Modifier
+                    </a>
+                    <a href="{{ path('app_commande_pdf', {'id': commande.id}) }}" class="btn btn-info w-100 mb-2" target="_blank">
+                        <i class="bx bx-file me-1"></i> Exporter PDF
                     </a>
                     <form method="POST" action="{{ path('app_commande_delete', {'id': commande.id}) }}" onsubmit="return confirm('Êtes-vous sûr?');">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ commande.id) }}">

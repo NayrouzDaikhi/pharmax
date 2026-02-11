@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Commande;
 use App\Form\CommandeType;
 use App\Repository\CommandeRepository;
+use App\Service\CommandeQrCodeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -76,11 +77,18 @@ class CommandeController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_commande_show', methods: ['GET'])]
-    public function show(Commande $commande): Response
+    #[Route('/{id}', name: 'app_commande_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function show(?Commande $commande, CommandeQrCodeService $qrCodeService): Response
     {
-        return $this->render('commande/show.html.twig', [
+        if (!$commande) {
+            throw $this->createNotFoundException('La commande n\'existe pas.');
+        }
+
+        $qrCodeDataUrl = $qrCodeService->generateQrCodeDataUrl($commande);
+        
+        return $this->render('admin/commande/show.html.twig', [
             'commande' => $commande,
+            'qrCode' => $qrCodeDataUrl,
         ]);
     }
 
@@ -106,9 +114,13 @@ class CommandeController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_commande_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Commande $commande, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}/edit', name: 'app_commande_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function edit(Request $request, ?Commande $commande, EntityManagerInterface $entityManager): Response
     {
+        if (!$commande) {
+            throw $this->createNotFoundException('La commande n\'existe pas.');
+        }
+
         $form = $this->createForm(CommandeType::class, $commande);
         $form->handleRequest($request);
 
@@ -117,18 +129,22 @@ class CommandeController extends AbstractController
 
             $this->addFlash('success', 'Commande modifiée avec succès!');
 
-            return $this->redirectToRoute('app_commande_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_commande_show', ['id' => $commande->getId()], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('commande/edit.html.twig', [
+        return $this->render('admin/commande/edit.html.twig', [
             'commande' => $commande,
             'form' => $form,
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'app_commande_delete', methods: ['POST'])]
-    public function delete(Request $request, Commande $commande, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}/delete', name: 'app_commande_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function delete(Request $request, ?Commande $commande, EntityManagerInterface $entityManager): Response
     {
+        if (!$commande) {
+            throw $this->createNotFoundException('La commande n\'existe pas.');
+        }
+
         if ($this->isCsrfTokenValid('delete' . $commande->getId(), $request->request->get('_token'))) {
             $entityManager->remove($commande);
             $entityManager->flush();
@@ -204,5 +220,63 @@ class CommandeController extends AbstractController
                 'Content-Disposition' => 'attachment; filename="commandes_' . date('Y-m-d_H-i-s') . '.pdf"',
             ]
         );
+    }
+
+    #[Route('/{id}/pdf', name: 'app_commande_pdf', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function pdf(?Commande $commande, CommandeQrCodeService $qrCodeService): Response
+    {
+        if (!$commande) {
+            throw $this->createNotFoundException('La commande n\'existe pas.');
+        }
+
+        $qrCodeDataUrl = $qrCodeService->generateQrCodeDataUrl($commande);
+        
+        // Render HTML content for a single order
+        $html = $this->renderView('commande/pdf.html.twig', [
+            'commande' => $commande,
+            'qrCode' => $qrCodeDataUrl,
+        ]);
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return new Response(
+            $dompdf->output(),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="commande_' . $commande->getId() . '.pdf"',
+            ]
+        );
+    }
+
+    // ============= ROUTES FRONTEND =============
+
+    #[Route('/commandes', name: 'app_frontend_commande_index')]
+    public function indexFrontend(CommandeRepository $commandeRepository): Response
+    {
+        // Récupère toutes les commandes pour l'affichage public
+        $commandes = $commandeRepository->findAll();
+
+        return $this->render('frontend/commande/index.html.twig', [
+            'commandes' => $commandes,
+        ]);
+    }
+
+    #[Route('/commandes/{id}', name: 'app_frontend_commande_show', requirements: ['id' => '\d+'])]
+    public function showFrontend(?Commande $commande, CommandeQrCodeService $qrCodeService): Response
+    {
+        if (!$commande) {
+            throw $this->createNotFoundException('La commande demandée n\'existe pas.');
+        }
+
+        $qrCodeDataUrl = $qrCodeService->generateQrCodeDataUrl($commande);
+        
+        return $this->render('frontend/commande/show.html.twig', [
+            'commande' => $commande,
+            'qrCode' => $qrCodeDataUrl,
+        ]);
     }
 }

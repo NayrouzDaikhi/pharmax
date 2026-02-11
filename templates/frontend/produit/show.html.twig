@@ -1,0 +1,43 @@
+{% extends 'frontend/base.html.twig' %}
+
+{% block title %}{{ produit.nom }} - Pharmax{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        {% if produit.image %}
+        <img src="{{ asset('uploads/' ~ produit.image) }}" alt="{{ produit.nom }}" class="img-fluid rounded">
+        {% else %}
+        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+            <span class="text-muted">Pas d'image</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6">
+        <span class="badge bg-secondary mb-3">{{ produit.categorie.nom }}</span>
+        <h1 class="mb-3">{{ produit.nom }}</h1>
+        
+        <p class="text-muted mb-4">{{ produit.description }}</p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="text-primary mb-0">{{ produit.prix|number_format(2, ',', ' ') }} DT</h3>
+                {% if produit.dateExpiration %}
+                <small class="text-muted">Expire: {{ produit.dateExpiration|date('d/m/Y') }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" class="btn btn-primary btn-lg w-100 mb-2">
+            Ajouter au Panier
+        </a>
+        <a href="{{ path('app_panier_index') }}" class="btn btn-info btn-lg w-100 mb-2">
+            Passer la Commande
+        </a>
+        <a href="{{ path('app_produit_index') }}" class="btn btn-primary btn-outline-primary btn-lg w-100">
+            Continuer les Achats
+        </a>
+    </div>
+</div>
+{% endblock %}
