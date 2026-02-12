@@ -363,28 +363,4 @@ function translate(lang) {
     document.getElementById('translationSection').style.display = 'block';
 }
 </script>
-
-            </div>
-
-            <!-- Actions -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="mb-0">Actions</h5>
-                </div>
-                <div class="card-body">
-                    <a href="{{ path('admin_reclamation_edit', {'id': reclamation.id}) }}" class="btn btn-warning w-100 mb-2">
-                        <i class="bx bx-edit"></i> Éditer le Statut
-                    </a>
-                    <form method="POST" action="{{ path('admin_reclamation_delete', {'id': reclamation.id}) }}" 
-                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="bx bx-trash"></i> Supprimer
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

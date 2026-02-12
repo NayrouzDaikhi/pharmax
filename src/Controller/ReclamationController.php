@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Reclamation;
+use App\Service\GoogleTranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -37,31 +39,37 @@ class ReclamationController extends AbstractController
             $titre = trim($request->request->get('titre', ''));
             $description = trim($request->request->get('description', ''));
 
-            // Sanitize les données (supprimer les balises HTML/scripts)
-            $titre = strip_tags($titre);
-            $description = strip_tags($description);
-
-            // Création de l'entité
-            $reclamation = new Reclamation();
-            $reclamation->setTitre($titre);
-            $reclamation->setDescription($description);
-
-            // Valider l'entité avec Symfony Validator
-            $violations = $this->validator->validate($reclamation);
-
-            if (count($violations) > 0) {
-                // Collecter les erreurs de validation
-                foreach ($violations as $violation) {
-                    $propertyPath = $violation->getPropertyPath();
-                    $errors[$propertyPath] = $violation->getMessage();
-                }
+            // Validation PHP personnalisée
+            $phpErrors = $this->validateReclamation($titre, $description);
+            if (!empty($phpErrors)) {
+                $errors = $phpErrors;
             } else {
-                // Si pas d'erreurs, créer la réclamation
-                $reclamation->setStatut('En attente');
-                $this->em->persist($reclamation);
-                $this->em->flush();
+                // Sanitize les données (supprimer les balises HTML/scripts)
+                $titre = strip_tags($titre);
+                $description = strip_tags($description);
 
-                return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
+                // Création de l'entité
+                $reclamation = new Reclamation();
+                $reclamation->setTitre($titre);
+                $reclamation->setDescription($description);
+
+                // Valider l'entité avec Symfony Validator
+                $violations = $this->validator->validate($reclamation);
+
+                if (count($violations) > 0) {
+                    // Collecter les erreurs de validation
+                    foreach ($violations as $violation) {
+                        $propertyPath = $violation->getPropertyPath();
+                        $errors[$propertyPath] = $violation->getMessage();
+                    }
+                } else {
+                    // Si pas d'erreurs, créer la réclamation
+                    $reclamation->setStatut('En attente');
+                    $this->em->persist($reclamation);
+                    $this->em->flush();
+
+                    return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
+                }
             }
         }
 
@@ -91,31 +99,37 @@ class ReclamationController extends AbstractController
             $titre = trim($request->request->get('titre', ''));
             $description = trim($request->request->get('description', ''));
 
-            // Sanitize les données (supprimer les balises HTML/scripts)
-            $titre = strip_tags($titre);
-            $description = strip_tags($description);
-
-            // Definir les valeurs sur l'entité
-            $reclamation->setTitre($titre);
-            $reclamation->setDescription($description);
-
-            // Valider l'entité avec Symfony Validator
-            $violations = $this->validator->validate($reclamation);
-
-            if (count($violations) > 0) {
-                // Collecter les erreurs de validation
-                foreach ($violations as $violation) {
-                    $propertyPath = $violation->getPropertyPath();
-                    $errors[$propertyPath] = $violation->getMessage();
-                }
-                // Revenir aux anciennes valeurs pour l'affichage du formulaire
-                $titre = $reclamation->getTitre();
-                $description = $reclamation->getDescription();
+            // Validation PHP personnalisée
+            $phpErrors = $this->validateReclamation($titre, $description);
+            if (!empty($phpErrors)) {
+                $errors = $phpErrors;
             } else {
-                // Si pas d'erreurs, mettre à jour la réclamation
-                $this->em->flush();
+                // Sanitize les données (supprimer les balises HTML/scripts)
+                $titre = strip_tags($titre);
+                $description = strip_tags($description);
 
-                return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
+                // Definir les valeurs sur l'entité
+                $reclamation->setTitre($titre);
+                $reclamation->setDescription($description);
+
+                // Valider l'entité avec Symfony Validator
+                $violations = $this->validator->validate($reclamation);
+
+                if (count($violations) > 0) {
+                    // Collecter les erreurs de validation
+                    foreach ($violations as $violation) {
+                        $propertyPath = $violation->getPropertyPath();
+                        $errors[$propertyPath] = $violation->getMessage();
+                    }
+                    // Revenir aux anciennes valeurs pour l'affichage du formulaire
+                    $titre = $reclamation->getTitre();
+                    $description = $reclamation->getDescription();
+                } else {
+                    // Si pas d'erreurs, mettre à jour la réclamation
+                    $this->em->flush();
+
+                    return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
+                }
             }
         }
 
@@ -136,5 +150,56 @@ class ReclamationController extends AbstractController
         }
 
         return $this->redirectToRoute('frontend_reclamation_index');
+    }
+
+    #[Route('/api/translate', name: 'app_translate', methods: ['POST'])]
+    public function translate(
+        Request $request,
+        GoogleTranslationService $translationService
+    ): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!isset($data['text']) || !isset($data['target_lang'])) {
+            return new JsonResponse(['error' => 'Missing text or target_lang'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $text = $data['text'];
+        $targetLang = $data['target_lang'];
+
+        try {
+            $translated = $translationService->translate($text, $targetLang);
+            return new JsonResponse(['translated' => $translated]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Translation failed: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Valide les données de la réclamation en PHP
+     */
+    private function validateReclamation(string $titre, string $description): array
+    {
+        $errors = [];
+
+        // Validation du titre
+        if (empty($titre)) {
+            $errors['titre'] = 'Le titre est obligatoire.';
+        } elseif (strlen($titre) < 5) {
+            $errors['titre'] = 'Le titre doit contenir au moins 5 caractères.';
+        } elseif (strlen($titre) > 255) {
+            $errors['titre'] = 'Le titre ne doit pas dépasser 255 caractères.';
+        }
+
+        // Validation de la description
+        if (empty($description)) {
+            $errors['description'] = 'La description est obligatoire.';
+        } elseif (strlen($description) < 20) {
+            $errors['description'] = 'La description doit contenir au moins 20 caractères.';
+        } elseif (strlen($description) > 2000) {
+            $errors['description'] = 'La description ne doit pas dépasser 2000 caractères.';
+        }
+
+        return $errors;
     }
 }

@@ -232,12 +232,63 @@ class BlogController extends AbstractController
     // ========== FRONT PRODUITS ==========
 
     #[Route('/produits', name: 'app_front_produits', methods: ['GET'])]
-    public function listProduits(ProduitRepository $produitRepository): Response
+    public function listProduits(Request $request, ProduitRepository $produitRepository): Response
     {
-        $produits = $produitRepository->findAll();
+        $search = $request->query->get('search', '');
+        
+        if ($search) {
+            // Search for products matching the query in name or description
+            $produits = $produitRepository->createQueryBuilder('p')
+                ->where('p.nom LIKE :search OR p.description LIKE :search')
+                ->setParameter('search', '%' . $search . '%')
+                ->getQuery()
+                ->getResult();
+        } else {
+            $produits = $produitRepository->findAll();
+        }
 
         return $this->render('blog/products.html.twig', [
             'produits' => $produits,
+            'search' => $search,
+        ]);
+    }
+
+    #[Route('/api/search-produits', name: 'app_api_search_produits', methods: ['GET'])]
+    public function searchProduits(Request $request, ProduitRepository $produitRepository): JsonResponse
+    {
+        $search = $request->query->get('q', '');
+        $limit = min((int)$request->query->get('limit', 6), 20); // Max 20 results
+
+        if (strlen($search) < 2) {
+            return new JsonResponse([
+                'results' => [],
+                'count' => 0
+            ]);
+        }
+
+        // Search for products matching the query
+        $produits = $produitRepository->createQueryBuilder('p')
+            ->where('p.nom LIKE :search OR p.description LIKE :search')
+            ->setParameter('search', '%' . $search . '%')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        $results = [];
+        foreach ($produits as $produit) {
+            $results[] = [
+                'id' => $produit->getId(),
+                'nom' => $produit->getNom(),
+                'prix' => $produit->getPrix(),
+                'image' => $produit->getImage() ? '/uploads/images/' . $produit->getImage() : '/images/placeholder.png',
+                'description' => substr($produit->getDescription(), 0, 100),
+                'url' => $this->generateUrl('app_front_detail_produit', ['id' => $produit->getId()])
+            ];
+        }
+
+        return new JsonResponse([
+            'results' => $results,
+            'count' => count($results)
         ]);
     }
 

@@ -30,14 +30,27 @@ class CommandeQrCodeService
             $qrData .= "Total: " . $commande->getTotales() . " DT\n";
             $qrData .= "Date: " . ($commande->getCreatedAt()?->format('d/m/Y') ?? 'N/A') . "\n";
             
-            // Count items
-            $itemCount = 0;
+            // Add product names and quantities
+            $products = [];
             if ($commande->getLignes() && $commande->getLignes()->count() > 0) {
-                $itemCount = $commande->getLignes()->count();
-            } elseif ($commande->getProduits()) {
-                $itemCount = count($commande->getProduits());
+                foreach ($commande->getLignes() as $ligne) {
+                    $produitNom = $ligne->getNom();
+                    $quantite = $ligne->getQuantite();
+                    $products[] = $quantite . "x " . substr($produitNom, 0, 30);
+                }
             }
+            
+            $itemCount = count($products);
             $qrData .= "Items: " . $itemCount . "\n";
+            
+            // Add product details
+            if (!empty($products)) {
+                $qrData .= "---\n";
+                foreach ($products as $product) {
+                    $qrData .= $product . "\n";
+                }
+            }
+            
             $qrData .= "Status: " . strtoupper($commande->getStatut());
 
             $this->logger->info('QR data prepared: ' . strlen($qrData) . ' bytes');

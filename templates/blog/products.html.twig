@@ -6,9 +6,18 @@
 <div style="display: grid; grid-template-columns: 1fr 280px; gap: 30px;">
     <!-- Products List -->
     <article style="background-color: #ffffff; padding: 30px;">
+        {% if search %}
+        <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 10px; line-height: 1.2; color: #2c3e50;">
+            Résultats de recherche pour "{{ search }}"
+        </h1>
+        <p style="color: #999; margin-bottom: 20px; font-size: 14px;">
+            <i class="fas fa-search"></i> {{ produits|length }} produit{{ produits|length != 1 ? 's' : '' }} trouvé{{ produits|length != 1 ? 's' : '' }}
+        </p>
+        {% else %}
         <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 15px; line-height: 1.2; color: #2c3e50;">
             Nos Produits Pharmaceutiques
         </h1>
+        {% endif %}
         
         <!-- Products Meta -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #5ea96b; padding-bottom: 20px; margin-bottom: 30px; font-size: 13px; color: #999;">
@@ -63,13 +72,6 @@
                             {{ produit.prix }} DTN
                         </span>
                     </div>
-
-                    <!-- Stock Info -->
-                    {% if produit.isStatut() %}
-                        <p style="color: #999; font-size: 10px; margin-bottom: 8px;">
-                            <i class="fas fa-cube" style="color: #5ea96b;"></i> {{ produit.quantite }} unités
-                        </p>
-                    {% endif %}
                     
                     <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                         <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" style="display: inline-block; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-radius: 4px; transition: background-color 0.3s ease; flex: 1; text-align: center; box-sizing: border-box;" onmouseover="this.style.backgroundColor = '#4a8b5c';" onmouseout="this.style.backgroundColor = '#5ea96b';" data-add-to-cart>

@@ -68,6 +68,18 @@ final class CategorieController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Validation PHP des données
+            $validationErrors = $this->validateCategorie($categorie);
+            if (!empty($validationErrors)) {
+                foreach ($validationErrors as $error) {
+                    $this->addFlash('error', $error);
+                }
+                return $this->render('categorie/sneat_new.html.twig', [
+                    'categorie' => $categorie,
+                    'form' => $form,
+                ]);
+            }
+
             // S'assurer que createdAt est défini
             if (!$categorie->getCreatedAt()) {
                 $categorie->setCreatedAt(new \DateTime());
@@ -101,6 +113,18 @@ final class CategorieController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Validation PHP des données
+            $validationErrors = $this->validateCategorie($categorie);
+            if (!empty($validationErrors)) {
+                foreach ($validationErrors as $error) {
+                    $this->addFlash('error', $error);
+                }
+                return $this->render('categorie/sneat_edit.html.twig', [
+                    'form' => $form,
+                    'categorie' => $categorie
+                ]);
+            }
+
             $entityManager->flush();
             $this->addFlash('success', 'Catégorie modifiée avec succès!');
             return $this->redirectToRoute('app_categorie_show', ['id' => $categorie->getId()], Response::HTTP_SEE_OTHER);
@@ -122,5 +146,29 @@ final class CategorieController extends AbstractController
         }
 
         return $this->redirectToRoute('app_categorie_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * Valide les données de la catégorie en PHP
+     */
+    private function validateCategorie(Categorie $categorie): array
+    {
+        $errors = [];
+
+        // Validation du nom
+        $nom = $categorie->getNom();
+        if (empty($nom) || trim($nom) === '') {
+            $errors[] = 'Le nom de la catégorie est obligatoire.';
+        } elseif (strlen($nom) < 3 || strlen($nom) > 100) {
+            $errors[] = 'Le nom de la catégorie doit contenir entre 3 et 100 caractères.';
+        }
+
+        // Validation de la description
+        $description = $categorie->getDescription();
+        if (!empty($description) && strlen($description) > 500) {
+            $errors[] = 'La description ne doit pas dépasser 500 caractères.';
+        }
+
+        return $errors;
     }
 }

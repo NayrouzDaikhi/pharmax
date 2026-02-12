@@ -13,9 +13,20 @@
                 <p class="fs-5 mb-4 animate-slide-left" style="animation-delay: 0.2s; opacity: 0; animation-fill-mode: both;">
                     Découvrez notre large gamme de produits de santé et bien-être. Livraison rapide et sécurisée dans toute la Tunisie.
                 </p>
-                <a href="{{ path('app_front_produits') }}" class="btn btn-light btn-custom animate-scale" style="animation-delay: 0.4s; opacity: 0; animation-fill-mode: both;">
-                    <i class="bx bx-package"></i> Découvrir les Produits
-                </a>
+                
+                <!-- Search Bar -->
+                <div class="mb-4 animate-slide-left" style="animation-delay: 0.3s; opacity: 0; animation-fill-mode: both; position: relative; max-width: 400px;">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" id="searchProduits" placeholder="Rechercher un produit..." style="border-radius: 8px 0 0 8px; border: 2px solid #27ae60;" autocomplete="off">
+                        <button class="btn btn-success" type="button" id="searchBtn" style="border-radius: 0 8px 8px 0; background-color: #27ae60; border-color: #27ae60;">
+                            <i class="bx bx-search"></i> Rechercher
+                        </button>
+                    </div>
+                    <!-- Résultats de recherche en temps réel -->
+                    <div id="searchResults" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; max-height: 400px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+                
             </div>
             <div class="col-lg-6 text-center">
                 <i class="bx bx-health animate-fade" style="font-size: 200px; opacity: 0.15; animation-delay: 0.3s;"></i>
@@ -293,4 +304,86 @@
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchProduits');
+    const searchResults = document.getElementById('searchResults');
+    const searchBtn = document.getElementById('searchBtn');
+    let searchTimeout;
+
+    // Recherche en temps réel lors de la saisie
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        // Délai de 300ms avant de faire la requête
+        searchTimeout = setTimeout(() => {
+            fetch(`{{ path('app_api_search_produits') }}?q=${encodeURIComponent(query)}&limit=6`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results.length > 0) {
+                        displaySearchResults(data.results);
+                    } else {
+                        searchResults.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Aucun produit trouvé</div>';
+                        searchResults.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la recherche:', error);
+                    searchResults.style.display = 'none';
+                });
+        }, 300);
+    });
+
+    // Bouton de recherche
+    searchBtn.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query.length > 0) {
+            window.location.href = `{{ path('app_front_produits') }}?search=${encodeURIComponent(query)}`;
+        }
+    });
+
+    // Permettre la soumission avec Entrée
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchBtn.click();
+        }
+    });
+
+    // Fermer les résultats quand on clique ailleurs
+    document.addEventListener('click', function(e) {
+        if (e.target !== searchInput && e.target !== searchResults && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    function displaySearchResults(results) {
+        let html = '';
+        results.forEach(produit => {
+            html += `
+                <a href="${produit.url}" style="display: flex; padding: 12px 15px; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='transparent'">
+                    <div style="width: 50px; height: 50px; margin-right: 15px; background: #f0f0f0; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                        <img src="${produit.image}" alt="${produit.nom}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${produit.nom}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${produit.description}</div>
+                        <div style="color: #27ae60; font-weight: 700;">${produit.prix} DTN</div>
+                    </div>
+                </a>
+            `;
+        });
+        searchResults.innerHTML = html;
+        searchResults.style.display = 'block';
+    }
+});
+</script>
+
 {% endblock %}

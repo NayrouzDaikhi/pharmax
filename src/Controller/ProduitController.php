@@ -46,9 +46,32 @@ final class ProduitController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Validation PHP des données
+            $validationErrors = $this->validateProduit($produit, $form);
+            if (!empty($validationErrors)) {
+                foreach ($validationErrors as $error) {
+                    $this->addFlash('error', $error);
+                }
+                return $this->render('produit/sneat_new.html.twig', [
+                    'produit' => $produit,
+                    'form' => $form,
+                ]);
+            }
+
             $imageFile = $form->get('image')->getData();
             
             if ($imageFile) {
+                $imageValidationErrors = $this->validateImageFile($imageFile);
+                if (!empty($imageValidationErrors)) {
+                    foreach ($imageValidationErrors as $error) {
+                        $this->addFlash('error', $error);
+                    }
+                    return $this->render('produit/sneat_new.html.twig', [
+                        'produit' => $produit,
+                        'form' => $form,
+                    ]);
+                }
+
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
@@ -61,6 +84,10 @@ final class ProduitController extends AbstractController
                     $produit->setImage($newFilename);
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Erreur lors de l\'upload de l\'image');
+                    return $this->render('produit/sneat_new.html.twig', [
+                        'produit' => $produit,
+                        'form' => $form,
+                    ]);
                 }
             }
 
@@ -93,9 +120,32 @@ final class ProduitController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Validation PHP des données
+            $validationErrors = $this->validateProduit($produit, $form);
+            if (!empty($validationErrors)) {
+                foreach ($validationErrors as $error) {
+                    $this->addFlash('error', $error);
+                }
+                return $this->render('produit/sneat_edit.html.twig', [
+                    'produit' => $produit,
+                    'form' => $form,
+                ]);
+            }
+
             $imageFile = $form->get('image')->getData();
             
             if ($imageFile) {
+                $imageValidationErrors = $this->validateImageFile($imageFile);
+                if (!empty($imageValidationErrors)) {
+                    foreach ($imageValidationErrors as $error) {
+                        $this->addFlash('error', $error);
+                    }
+                    return $this->render('produit/sneat_edit.html.twig', [
+                        'produit' => $produit,
+                        'form' => $form,
+                    ]);
+                }
+
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
                 $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
@@ -108,6 +158,10 @@ final class ProduitController extends AbstractController
                     $produit->setImage($newFilename);
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Erreur lors de l\'upload de l\'image');
+                    return $this->render('produit/sneat_edit.html.twig', [
+                        'produit' => $produit,
+                        'form' => $form,
+                    ]);
                 }
             }
 
@@ -132,6 +186,67 @@ final class ProduitController extends AbstractController
         }
 
         return $this->redirectToRoute('app_produit_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * Valide les données du produit en PHP
+     */
+    private function validateProduit(Produit $produit, $form): array
+    {
+        $errors = [];
+
+        // Validation du nom
+        $nom = $produit->getNom();
+        if (empty($nom) || trim($nom) === '') {
+            $errors[] = 'Le nom du produit est obligatoire.';
+        } elseif (strlen($nom) < 3 || strlen($nom) > 255) {
+            $errors[] = 'Le nom du produit doit contenir entre 3 et 255 caractères.';
+        }
+
+        // Validation de la description
+        $description = $produit->getDescription();
+        if (empty($description) || trim($description) === '') {
+            $errors[] = 'La description du produit est obligatoire.';
+        } elseif (strlen($description) < 10) {
+            $errors[] = 'La description doit contenir au moins 10 caractères.';
+        }
+
+        // Validation du prix
+        $prix = $produit->getPrix();
+        if ($prix === null || $prix < 0) {
+            $errors[] = 'Le prix doit être supérieur à 0.';
+        } elseif (!is_numeric($prix)) {
+            $errors[] = 'Le prix doit être un nombre.';
+        }
+
+        // Validation de la quantité
+        $quantite = $produit->getQuantite();
+        if ($quantite === null || !is_numeric($quantite) || $quantite < 0) {
+            $errors[] = 'La quantité doit être un nombre positif.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Valide le fichier image
+     */
+    private function validateImageFile($imageFile): array
+    {
+        $errors = [];
+        $maxFileSize = 5 * 1024 * 1024; // 5 MB
+
+        if ($imageFile->getSize() > $maxFileSize) {
+            $errors[] = 'La taille du fichier image ne doit pas dépasser 5 MB.';
+        }
+
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        $extension = strtolower($imageFile->guessExtension());
+        if (!in_array($extension, $allowedExtensions)) {
+            $errors[] = 'Le format d\'image n\'est pas autorisé. Formats acceptés: JPG, PNG, GIF.';
+        }
+
+        return $errors;
     }
 }
 
