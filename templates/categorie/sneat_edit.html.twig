@@ -1,0 +1,57 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Modifier Catégorie{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Modifier Catégorie</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_categorie_index') }}">Catégories</a></li>
+                <li class="breadcrumb-item active">Modifier</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="bx bx-edit-alt"></i> Modifier: {{ categorie.nom }}
+          </h5>
+        </div>
+
+        <div class="card-body">
+          {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            <div class="mb-3">
+              {{ form_label(form.nom, 'Nom de la catégorie') }}
+              {{ form_widget(form.nom, {'attr': {'class': 'form-control form-control-lg'}}) }}
+              {{ form_errors(form.nom) }}
+            </div>
+
+            <div class="mb-3">
+              {{ form_label(form.description, 'Description') }}
+              {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '4'}}) }}
+              {{ form_errors(form.description) }}
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bx bx-check"></i> Enregistrer les modifications
+              </button>
+              <a href="{{ path('app_categorie_show', {'id': categorie.id}) }}" class="btn btn-secondary btn-lg">
+                <i class="bx bx-arrow-back"></i> Annuler
+              </a>
+            </div>
+          {{ form_end(form) }}
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

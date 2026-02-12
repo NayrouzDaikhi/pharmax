@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Article;
+use App\Entity\Produit;
 use App\Repository\CommentaireRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -30,8 +31,12 @@ class Commentaire
     private ?string $statut = 'en_attente';
 
     #[ORM\ManyToOne(inversedBy: 'commentaires')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Article $article = null;
+
+    #[ORM\ManyToOne(inversedBy: 'avis')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Produit $produit = null;
 
     public function __construct()
     {
@@ -85,6 +90,17 @@ class Commentaire
     public function setArticle(?Article $article): static
     {
         $this->article = $article;
+        return $this;
+    }
+
+    public function getProduit(): ?Produit
+    {
+        return $this->produit;
+    }
+
+    public function setProduit(?Produit $produit): static
+    {
+        $this->produit = $produit;
         return $this;
     }
 

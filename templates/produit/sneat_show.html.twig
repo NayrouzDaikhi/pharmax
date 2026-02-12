@@ -1,0 +1,143 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}{{ produit.nom }}{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">{{ produit.nom }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_produit_index') }}">Produits</a></li>
+                <li class="breadcrumb-item active">Détail</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">{{ produit.nom }}</h5>
+          <div>
+            <a href="{{ path('app_produit_edit', {'id': produit.id}) }}" class="btn btn-sm btn-warning">
+              <i class="bx bx-edit"></i> Modifier
+            </a>
+            <a href="{{ path('app_produit_index') }}" class="btn btn-sm btn-secondary">
+              <i class="bx bx-arrow-back"></i> Retour
+            </a>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              {% if produit.image %}
+                <img 
+                  src="{{ asset('uploads/images/' ~ produit.image) }}" 
+                  alt="{{ produit.nom }}" 
+                  class="img-fluid rounded mb-3"
+                  onerror="this.src='{{ asset('images/placeholder.png') }}'"
+                >
+              {% else %}
+                <div class="bg-light text-center py-5 rounded mb-3">
+                  <i class="bx bx-image" style="font-size: 48px; color: #ccc;"></i>
+                  <p class="text-muted">Pas d'image</p>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-8">
+              <dl class="row">
+                <dt class="col-sm-4">Référence:</dt>
+                <dd class="col-sm-8"><code>{{ produit.reference }}</code></dd>
+
+                <dt class="col-sm-4">SKU:</dt>
+                <dd class="col-sm-8">
+                  {% if produit.sku %}
+                    <code>{{ produit.sku }}</code>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">Catégorie:</dt>
+                <dd class="col-sm-8">
+                  {% if produit.categorie %}
+                    <span class="badge bg-info">{{ produit.categorie.name }}</span>
+                  {% else %}
+                    <span class="badge bg-warning">Sans catégorie</span>
+                  {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">Prix:</dt>
+                <dd class="col-sm-8">
+                  <strong class="text-success h5">{{ produit.prix|number_format(2, ',', ' ') }} DTN</strong>
+                </dd>
+
+                <dt class="col-sm-4">Stock:</dt>
+                <dd class="col-sm-8">
+                  {% if produit.quantite <= 10 %}
+                    <span class="badge bg-danger">{{ produit.quantite }}</span>
+                  {% elseif produit.quantite <= 50 %}
+                    <span class="badge bg-warning">{{ produit.quantite }}</span>
+                  {% else %}
+                    <span class="badge bg-success">{{ produit.quantite }}</span>
+                  {% endif %}
+                  unités
+                </dd>
+
+                <dt class="col-sm-4">Date d'expiration:</dt>
+                <dd class="col-sm-8">
+                  {% if produit.expirationDate %}
+                    {% set now = 'now'|date('Y-m-d') %}
+                    {% set futureDate = 'now'|date_modify('+30 days')|date('Y-m-d') %}
+                    {% if produit.expirationDate|date('Y-m-d') < now %}
+                      <span class="badge bg-danger">Expiré</span>
+                    {% elseif produit.expirationDate|date('Y-m-d') < futureDate %}
+                      <span class="badge bg-warning">Expire bientôt</span>
+                    {% else %}
+                      <span class="badge bg-success">Valide</span>
+                    {% endif %}
+                    {{ produit.expirationDate|date('d/m/Y') }}
+                  {% else %}
+                    <span class="text-muted">Non spécifiée</span>
+                  {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">Créé le:</dt>
+                <dd class="col-sm-8">
+                  {{ produit.createdAt|date('d/m/Y H:i') }}
+                </dd>
+              </dl>
+            </div>
+          </div>
+
+          {% if produit.description %}
+            <div class="row mt-4">
+              <div class="col-12">
+                <h6 class="text-muted text-uppercase">Description</h6>
+                <p class="text-justify">{{ produit.description }}</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <form method="POST" action="{{ path('app_produit_delete', {'id': produit.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ produit.id) }}">
+            <button type="submit" class="btn btn-danger">
+              <i class="bx bx-trash"></i> Supprimer ce produit
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

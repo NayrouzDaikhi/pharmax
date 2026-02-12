@@ -1,0 +1,195 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}{{'Product Reviews - Pharmax'|trans}}{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">{{'Product Reviews Management'|trans}}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">{{'Dashboard'|trans}}</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_commentaire_index') }}">{{'Comments'|trans}}</a></li>
+                <li class="breadcrumb-item active">{{'Reviews'|trans}}</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_commentaire_index') }}" class="btn btn-secondary">
+        <i class="bx bx-arrow-back"></i> {{'Back to Comments'|trans}}
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Statistics Section -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Total Reviews</h6>
+                <h2 id="totalReviewsCount" class="text-primary mb-0">{{ avis|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Published</h6>
+                {% set published = avis|filter(a => a.statut == 'valide')|length %}
+                <h2 id="publishedReviewsCount" class="text-success mb-0">{{ published }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Blocked</h6>
+                {% set blocked = avis|filter(a => a.statut == 'bloque')|length %}
+                <h2 id="blockedReviewsCount" class="text-danger mb-0">{{ blocked }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reviews Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bx bx-star"></i> {{'Reviews List'|trans}}</h5>
+        <div id="selectionActionsBar" class="alert alert-info d-none mb-0" role="alert">
+            <span id="selectionCount">0 {{'reviews selected'|trans}}</span>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">
+                            <input type="checkbox" id="selectAllCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                        </th>
+                        <th>{{'ID'|trans}}</th>
+                        <th>{{'Product'|trans}}</th>
+                        <th>{{'Content'|trans}}</th>
+                        <th>{{'Published'|trans}}</th>
+                        <th>{{'Status'|trans}}</th>
+                        <th>{{'Actions'|trans}}</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewTableBody">
+                    {% if avis is not empty %}
+                        {% for commentaire in avis %}
+                        <tr class="review-row" data-review-id="{{ commentaire.id }}" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}">
+                            <td onclick="event.stopPropagation();">
+                                <input type="checkbox" class="form-check-input review-checkbox" value="{{ commentaire.id }}">
+                            </td>
+                            <td>
+                                <code class="text-info">#{{ commentaire.id }}</code>
+                            </td>
+                            <td>
+                                {% if commentaire.produit %}
+                                    <span class="badge badge-info">{{ commentaire.produit.nom }}</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <p class="text-muted mb-0">
+                                    {% if commentaire.contenu|length > 50 %}
+                                        {{ commentaire.contenu|slice(0, 50) }}...
+                                    {% else %}
+                                        {{ commentaire.contenu }}
+                                    {% endif %}
+                                </p>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
+                            </td>
+                            <td>
+                                {% if commentaire.statut|lower == 'valide' %}
+                                    <span class="badge badge-success"><i class="bx bx-check"></i> {{'Published'|trans}}</span>
+                                {% elseif commentaire.statut|lower == 'en_attente' %}
+                                    <span class="badge badge-warning"><i class="bx bx-time"></i> {{'Pending'|trans}}</span>
+                                {% elseif commentaire.statut|lower == 'bloque' %}
+                                    <span class="badge badge-danger"><i class="bx bx-block"></i> {{'Blocked'|trans}}</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">{{ commentaire.statut }}</span>
+                                {% endif %}
+                            </td>
+                            <td onclick="event.stopPropagation();">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" class="btn btn-sm btn-info" title="{{'View'|trans}}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" class="btn btn-sm btn-warning" title="{{'Edit'|trans}}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this review?'|trans}}');">
+                                        <i class="bx bx-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                                <p class="text-muted mt-2">{{'No reviews found.'|trans}}</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Link back to comments management -->
+<div class="mt-4">
+    <a href="{{ path('app_commentaire_index') }}" class="btn btn-secondary">
+        <i class="bx bx-arrow-back"></i> {{'Back to Comments Management'|trans}}
+    </a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewCheckboxes = document.querySelectorAll('.review-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const selectionActionsBar = document.getElementById('selectionActionsBar');
+    const selectionCount = document.getElementById('selectionCount');
+    const reviewRows = document.querySelectorAll('.review-row');
+
+    // Select/Deselect all
+    selectAllCheckbox?.addEventListener('change', function() {
+        reviewCheckboxes.forEach(cb => cb.checked = this.checked);
+        updateSelectionCount();
+    });
+
+    // Individual checkbox changes
+    reviewCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateSelectionCount);
+    });
+
+    // Click row to navigate
+    reviewRows.forEach(row => {
+        row.addEventListener('click', function(e) {
+            if (!e.target.closest('input, button, a')) {
+                window.location.href = this.dataset.href;
+            }
+        });
+    });
+
+    function updateSelectionCount() {
+        const checked = document.querySelectorAll('.review-checkbox:checked').length;
+        if (checked > 0) {
+            selectionActionsBar?.classList.remove('d-none');
+            selectionCount.textContent = checked + ' ' + (checked === 1 ? 'review' : 'reviews') + ' {{'selected'|trans}}';
+        } else {
+            selectionActionsBar?.classList.add('d-none');
+        }
+        selectAllCheckbox.checked = checked === reviewCheckboxes.length && reviewCheckboxes.length > 0;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Test Traduction API{% endblock %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-12">
+            <h2>🌐 Page de Test - API de Traduction</h2>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Test 1: Traduction Simple</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Texte à traduire:</label>
+                        <textarea class="form-control" id="test1Text" rows="3">Bonjour, je rencontre un problème de livraison</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Langue cible:</label>
+                        <select class="form-select" id="test1Lang">
+                            <option value="en">English (Anglais)</option>
+                            <option value="es">Español (Espagnol)</option>
+                            <option value="de">Deutsch (Allemand)</option>
+                            <option value="it">Italiano (Italien)</option>
+                            <option value="pt">Português (Portugais)</option>
+                            <option value="ja">日本語 (Japonais)</option>
+                            <option value="zh">中文 (Chinois)</option>
+                            <option value="ar">العربية (Arabe)</option>
+                            <option value="ru">Русский (Russe)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="test1Btn">Tester la traduction</button>
+                    <div id="test1Result" class="mt-3" style="display:none;">
+                        <strong>Résultat:</strong>
+                        <p id="test1ResultText" class="bg-light p-2 rounded"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Test 2: Traduction Multiple</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Texte à traduire:</label>
+                        <textarea class="form-control" id="test2Text" rows="3">Ma commande n'a pas été livrée à temps</textarea>
+                    </div>
+                    <button class="btn btn-primary" id="test2Btn">Traduire vers [EN, ES, DE]</button>
+                    <div id="test2Result" class="mt-3" style="display:none;">
+                        <strong>Résultats:</strong>
+                        <div id="test2ResultText" class="bg-light p-2 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Documentation API</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Endpoint 1: Traduction Simple</h6>
+                    <pre><code>GET /api/translate/text?text=...&targetLang=en</code></pre>
+                    <p>Exemple: <code>/api/translate/text?text=Bonjour&targetLang=en</code></p>
+                    <hr>
+
+                    <h6>Endpoint 2: Traduction Multiple (POST)</h6>
+                    <pre><code>POST /api/translate/multi
+Content-Type: application/json
+
+{
+    "text": "Bonjour",
+    "targetLangs": ["en", "es", "de"]
+}</code></pre>
+                    <hr>
+
+                    <h6>Endpoint 3: Traduction Réclamation</h6>
+                    <pre><code>GET /reclamations/{id}/translate/{targetLang}</code></pre>
+                    <p>Exemple: <code>/reclamations/1/translate/en</code></p>
+                    <hr>
+
+                    <h6>Langues supportées:</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>en</strong> - English (Anglais)</li>
+                                <li><strong>es</strong> - Español (Espagnol)</li>
+                                <li><strong>de</strong> - Deutsch (Allemand)</li>
+                                <li><strong>it</strong> - Italiano (Italien)</li>
+                                <li><strong>pt</strong> - Português (Portugais)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>ja</strong> - 日本語 (Japonais)</li>
+                                <li><strong>zh</strong> - 中文 (Chinois)</li>
+                                <li><strong>ar</strong> - العربية (Arabe)</li>
+                                <li><strong>ru</strong> - Русский (Russe)</li>
+                                <li><strong>fr</strong> - Français (et beaucoup d'autres...)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Test 1: Traduction simple
+    document.getElementById('test1Btn').addEventListener('click', function() {
+        const text = document.getElementById('test1Text').value;
+        const lang = document.getElementById('test1Lang').value;
+
+        if (!text.trim()) {
+            alert('Veuillez entrer un texte');
+            return;
+        }
+
+        fetch(`/api/translate/text?text=${encodeURIComponent(text)}&targetLang=${lang}`)
+            .then(r => r.json())
+            .then(data => {
+                const resultDiv = document.getElementById('test1Result');
+                if (data.success) {
+                    document.getElementById('test1ResultText').textContent = data.translated;
+                    resultDiv.style.display = 'block';
+                } else {
+                    document.getElementById('test1ResultText').textContent = 'Erreur: ' + data.error;
+                    resultDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Erreur de connexion: ' + error.message);
+            });
+    });
+
+    // Test 2: Traduction multiple
+    document.getElementById('test2Btn').addEventListener('click', function() {
+        const text = document.getElementById('test2Text').value;
+
+        if (!text.trim()) {
+            alert('Veuillez entrer un texte');
+            return;
+        }
+
+        fetch('/api/translate/multi', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: text,
+                targetLangs: ['en', 'es', 'de']
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            const resultDiv = document.getElementById('test2Result');
+            if (data.success) {
+                let html = '';
+                for (let lang in data.translations) {
+                    html += `<p><strong>${lang.toUpperCase()}:</strong> ${data.translations[lang]}</p>`;
+                }
+                document.getElementById('test2ResultText').innerHTML = html;
+                resultDiv.style.display = 'block';
+            } else {
+                document.getElementById('test2ResultText').textContent = 'Erreur: ' + data.error;
+                resultDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            alert('Erreur de connexion: ' + error.message);
+        });
+    });
+});
+</script>
+{% endblock %}

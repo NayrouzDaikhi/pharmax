@@ -1,0 +1,145 @@
+{% extends 'front_base.html.twig' %}
+
+{% block title %}Produits - Pharmax{% endblock %}
+
+{% block content %}
+<!-- Products Header -->
+<section style="background: linear-gradient(135deg, #27ae60 0%, #3498db 100%); color: white; padding: 40px 0;">
+    <div class="container-xxl">
+        <h1 class="display-5 fw-bold">Nos Produits</h1>
+        <p class="fs-5">Découvrez notre large sélection de produits de santé et bien-être</p>
+    </div>
+</section>
+
+<!-- Filters and Search -->
+<section style="padding: 30px 0; background: white; border-bottom: 1px solid #e0e0e0;">
+    <div class="container-xxl">
+        <form method="GET" action="{{ path('front_produits') }}" class="row g-3">
+            <!-- Recherche -->
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Rechercher</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bx bx-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Nom ou description..." value="{{ search }}">
+                </div>
+            </div>
+
+            <!-- Catégorie -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Catégorie</label>
+                <select name="categorie" class="form-select">
+                    <option value="">Toutes les catégories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if categorie == cat.id %}selected{% endif %}>
+                            {{ cat.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Tri -->
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Trier par</label>
+                <select name="sortBy" class="form-select">
+                    <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Nouveauté</option>
+                    <option value="nom" {% if sortBy == 'nom' %}selected{% endif %}>Nom</option>
+                    <option value="prix" {% if sortBy == 'prix' %}selected{% endif %}>Prix</option>
+                </select>
+            </div>
+
+            <!-- Ordre -->
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Ordre</label>
+                <select name="sortOrder" class="form-select">
+                    <option value="DESC" {% if sortOrder == 'DESC' %}selected{% endif %}>↓ Desc.</option>
+                    <option value="ASC" {% if sortOrder == 'ASC' %}selected{% endif %}>↑ Asc.</option>
+                </select>
+            </div>
+
+            <!-- Boutons -->
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-search"></i> Rechercher
+                    </button>
+                    <a href="{{ path('front_produits') }}" class="btn btn-outline-secondary">
+                        <i class="bx bx-reset"></i> Réinitialiser
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Products Grid -->
+<section style="padding: 40px 0;">
+    <div class="container-xxl">
+        {% if produits|length > 0 %}
+            <div class="row g-4">
+                {% for produit in produits %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card product-card h-100" style="border-radius: 8px; overflow: hidden;">
+                        {% if produit.image %}
+                            <img src="{{ asset('uploads/images/' ~ produit.image) }}" class="card-img-top product-image" alt="{{ produit.nom }}" onerror="this.src='{{ asset('images/logo pharmax.png') }}'">
+                        {% else %}
+                            <div class="product-image d-flex align-items-center justify-content-center">
+                                <i class="bx bx-image" style="font-size: 50px; color: #ccc;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="position-relative">
+                            {% if produit.statut %}
+                                <span class="badge bg-success badge">En Stock ({{ produit.quantite }})</span>
+                            {% else %}
+                                <span class="badge bg-danger badge">Hors Stock</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold">{{ produit.nom }}</h5>
+                            
+                            {% if produit.categorie %}
+                                <small class="badge bg-light text-dark mb-2">{{ produit.categorie.nom }}</small>
+                            {% endif %}
+
+                            <p class="card-text text-muted flex-grow-1" style="font-size: 0.9rem;">
+                                {{ produit.description|slice(0, 100) }}{% if produit.description|length > 100 %}...{% endif %}
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+                                <h4 class="text-primary fw-bold mb-0">{{ produit.prix }} DTN</h4>
+                            </div>
+
+                            {% if produit.dateExpiration %}
+                                <small class="text-muted">
+                                    <i class="bx bx-calendar"></i> Expire: {{ produit.dateExpiration|date('d/m/Y') }}
+                                </small>
+                            {% endif %}
+
+                            <a href="{{ path('front_detail', {'id': produit.id}) }}" class="btn btn-primary btn-sm w-100 mt-3">
+                                <i class="bx bx-detail"></i> Voir Détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-12 text-center text-muted">
+                    <p>Affichage de {{ produits|length }} produit(s)</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bx bx-sad" style="font-size: 80px; color: #ccc;"></i>
+                <h4 class="mt-3 text-muted">Aucun produit trouvé</h4>
+                <p class="text-muted">Essayez de modifier vos critères de recherche</p>
+                <a href="{{ path('front_produits') }}" class="btn btn-primary mt-3">
+                    <i class="bx bx-refresh"></i> Voir tous les produits
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

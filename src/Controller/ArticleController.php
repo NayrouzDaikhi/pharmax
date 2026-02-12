@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/article')]
+#[Route('/admin/article')]
 final class ArticleController extends AbstractController
 {
     #[Route(name: 'app_article_index', methods: ['GET'])]
@@ -81,11 +81,20 @@ final class ArticleController extends AbstractController
         
         $allCommentaires = $commentaireRepository->findAll();
         
+        // Separate article comments and product reviews
+        $articleCommentaires = array_filter($allCommentaires, function($c) {
+            return $c->getArticle() !== null; // Only article comments
+        });
+        
+        $avis = array_filter($allCommentaires, function($c) {
+            return $c->getProduit() !== null; // Only product reviews
+        });
+        
         // Get archived comments
         $allArchived = $archiveRepository->findAll();
         
-        // Filter commentaires by status
-        $commentaires = $allCommentaires;
+        // Filter commentaires by status (only article comments)
+        $commentaires = $articleCommentaires;
         if (!empty($commentFilter)) {
             $commentaires = array_filter($commentaires, function($commentaire) use ($commentFilter) {
                 return strtolower($commentaire->getStatut()) === $commentFilter;
@@ -94,7 +103,8 @@ final class ArticleController extends AbstractController
         
         // Calculate statistics
         $totalArticles = count($articles);
-        $totalCommentaires = count($allCommentaires) + count($allArchived);
+        $totalCommentaires = count($articleCommentaires) + count($allArchived);
+        $totalAvis = count($avis);
         
         // Distribution by status
         $statsByStatus = [
@@ -126,7 +136,7 @@ final class ArticleController extends AbstractController
             }
         }
         
-        foreach ($allCommentaires as $commentaire) {
+        foreach ($articleCommentaires as $commentaire) {
             // Count by status (case-insensitive)
             $status = strtolower($commentaire->getStatut());
             if (isset($statsByStatus[$status])) {
@@ -164,8 +174,10 @@ final class ArticleController extends AbstractController
             'articles' => $articles,
             'commentaires' => $commentaires,
             'archived_commentaires' => $archiveRepository->findAllWithArticles(),
+            'avis' => $avis,
             'totalArticles' => $totalArticles,
             'totalCommentaires' => $totalCommentaires,
+            'totalAvis' => $totalAvis,
             'statsByStatus' => $statsByStatus,
             'commentsByDate' => $commentsByDate,
             'mostCommentedArticleId' => $mostCommentedArticleId,
@@ -217,10 +229,19 @@ final class ArticleController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_article_show', methods: ['GET'])]
-    public function show(Article $article): Response
+    public function show(Article $article, ArticleRepository $articleRepository): Response
     {
+        // Get recommended/recent articles (excluding the current article)
+        $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 5);
+        $recommendedArticles = array_filter($recentArticles, function($a) use ($article) {
+            return $a->getId() !== $article->getId();
+        });
+        // Limit to 4 articles for sidebar
+        $recommendedArticles = array_slice($recommendedArticles, 0, 4);
+        
         return $this->render('article/show.html.twig', [
             'article' => $article,
+            'recommendedArticles' => $recommendedArticles,
         ]);
     }
 

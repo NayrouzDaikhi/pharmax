@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-12">
+            <h4 class="py-3 mb-4">Bienvenue sur Pharmax</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- FRONT OFFICE - Client -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-start border-primary border-3">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bx bx-user"></i> Front Office - Client
+                    </h5>
+                    <p class="card-text">Gérez vos réclamations et consultez les réponses du support</p>
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('frontend_reclamation_index') }}" class="btn btn-primary btn-sm">Mes Réclamations</a>
+                        <a href="{{ path('frontend_reclamation_new') }}" class="btn btn-success btn-sm">+ Nouvelle</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BACK OFFICE - Admin -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-start border-danger border-3">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        🔧 Back Office - Admin
+                    </h5>
+                    <p class="card-text">Gérez toutes les réclamations et envoyez des réponses</p>
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('admin_reclamation_index') }}" class="btn btn-danger btn-sm">Gérer Réclamations</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info mt-3">
+                <strong>📝 À savoir:</strong>
+                <ul class="mb-0 mt-2">
+                    <li><strong>Front Office (Client):</strong> Créer, modifier, supprimer vos propres réclamations et consulter les réponses</li>
+                    <li><strong>Back Office (Admin):</strong> Voir toutes les réclamations, modifier leurs statuts et envoyer des réponses</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

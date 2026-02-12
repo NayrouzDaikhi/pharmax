@@ -9,7 +9,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{{ path('app_commentaire_index') }}">Comments</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_article_index') }}">Comments</a></li>
                 <li class="breadcrumb-item active">Comment #{{ commentaire.id }}</li>
             </ol>
         </nav>
@@ -21,7 +21,7 @@
         <a href="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" class="btn btn-danger" data-confirm-delete>
             <i class="bx bx-trash"></i> Delete
         </a>
-        <a href="{{ path('app_commentaire_index') }}" class="btn btn-secondary">
+        <a href="{{ path('app_article_index') }}" class="btn btn-secondary">
             <i class="bx bx-arrow-back"></i> Back
         </a>
     </div>
@@ -46,6 +46,20 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
+                            <label class="form-label">Target</label>
+                            <p class="pb-2">
+                                {% if commentaire.article %}
+                                    <span class="badge badge-light">Article: {{ commentaire.article.titre }}</span>
+                                {% elseif commentaire.produit %}
+                                    <span class="badge badge-info">Product: {{ commentaire.produit.nom }}</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">No target</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
                             <label class="form-label">Published Date</label>
                             <p class="border-bottom pb-2">
                                 <i class="bx bx-calendar me-2"></i>
@@ -53,14 +67,19 @@
                             </p>
                         </div>
                     </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Status</label>
                             <p class="pb-2">
-                                {% if commentaire.statut == 'approuvé' %}
+                                {% if commentaire.statut|lower == 'valide' %}
                                     <span class="badge badge-success">Approved</span>
-                                {% elseif commentaire.statut == 'en attente' %}
+                                {% elseif commentaire.statut|lower == 'en_attente' %}
                                     <span class="badge badge-warning">Pending</span>
+                                {% elseif commentaire.statut|lower == 'bloque' %}
+                                    <span class="badge badge-danger">Blocked</span>
                                 {% else %}
                                     <span class="badge badge-secondary">{{ commentaire.statut }}</span>
                                 {% endif %}
@@ -70,8 +89,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
     </div>
 </div>
 {% endblock %}

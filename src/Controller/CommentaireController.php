@@ -16,12 +16,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CommentaireController extends AbstractController
 {
     #[Route(name: 'app_commentaire_index', methods: ['GET'])]
-    public function index(CommentaireRepository $commentaireRepository, CommentaireArchiveRepository $archiveRepository): Response
+    public function index(): Response
     {
-        return $this->render('commentaire/index.html.twig', [
-            'commentaires' => $commentaireRepository->findAll(),
-            'archived_commentaires' => $archiveRepository->findAll(),
-        ]);
+        // Redirect to the admin article management page
+        return $this->redirectToRoute('app_article_index', [], Response::HTTP_FOUND);
     }
 
     #[Route('/new', name: 'app_commentaire_new', methods: ['GET', 'POST'])]
@@ -30,6 +28,8 @@ final class CommentaireController extends AbstractController
         $commentaire = new Commentaire();
         // Set publication date to current date/time
         $commentaire->setDatePublication(new \DateTime());
+        // Set default status to 'valide' for admin-created comments
+        $commentaire->setStatut('valide');
         
         $form = $this->createForm(CommentaireType::class, $commentaire);
         $form->handleRequest($request);
@@ -38,12 +38,7 @@ final class CommentaireController extends AbstractController
             $entityManager->persist($commentaire);
             $entityManager->flush();
 
-            // If article ID is provided, redirect to blog show page instead of article index
-            $articleId = $commentaire->getArticle()->getId();
-            if ($articleId) {
-                return $this->redirectToRoute('app_blog_show', ['id' => $articleId], Response::HTTP_SEE_OTHER);
-            }
-
+            // Return to the admin article management page
             return $this->redirectToRoute('app_article_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -64,19 +59,13 @@ final class CommentaireController extends AbstractController
     #[Route('/{id}/edit', name: 'app_commentaire_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Commentaire $commentaire, EntityManagerInterface $entityManager): Response
     {
-        $articleId = $commentaire->getArticle()->getId();
-        
         $form = $this->createForm(CommentaireType::class, $commentaire);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-
-            // Determine redirect based on referrer or return to blog
-            if ($articleId) {
-                return $this->redirectToRoute('app_blog_show', ['id' => $articleId], Response::HTTP_SEE_OTHER);
-            }
-
+            
+            // Always return to admin article management page
             return $this->redirectToRoute('app_article_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -89,18 +78,12 @@ final class CommentaireController extends AbstractController
     #[Route('/{id}', name: 'app_commentaire_delete', methods: ['POST'])]
     public function delete(Request $request, Commentaire $commentaire, EntityManagerInterface $entityManager): Response
     {
-        $articleId = $commentaire->getArticle()->getId();
-        
         if ($this->isCsrfTokenValid('delete'.$commentaire->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($commentaire);
             $entityManager->flush();
         }
 
-        // Determine redirect based on article or return to index
-        if ($articleId) {
-            return $this->redirectToRoute('app_blog_show', ['id' => $articleId], Response::HTTP_SEE_OTHER);
-        }
-
+        // Always return to admin article management page
         return $this->redirectToRoute('app_article_index', [], Response::HTTP_SEE_OTHER);
     }
 }

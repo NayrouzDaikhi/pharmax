@@ -1,9 +1,9 @@
 {% extends 'blog/base.html.twig' %}
 
-{% block content %}
-<div style="display: grid; grid-template-columns: 1fr 280px; gap: 30px;">
-    <!-- Article Content -->
-    <article style="background-color: #ffffff; padding: 30px;">
+{% block blog_content %}
+<div class="row" style="display: grid; grid-template-columns: 1fr 320px; gap: 30px; margin-bottom: 40px;">
+    <!-- Main Article Content (8 cols on desktop, full width on mobile) -->
+    <article style="background-color: #ffffff; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
         <!-- Article Image -->
         {% if article.image %}
             <div style="margin-bottom: 30px; overflow: hidden;">
@@ -67,20 +67,11 @@
             </span>
         </div>
     </article>
-        
-        <!-- Article Categories -->
-        <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0f0f0;">
-            <span style="color: #5ea96b; font-weight: 700;">Categories:</span>
-            <span style="display: inline-block; background-color: #5ea96b; color: white; padding: 5px 12px; margin-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">
-                Blog
-            </span>
-        </div>
-    </article>
     
-    <!-- Sidebar -->
-    <aside>
+    <!-- Sidebar (4 cols on desktop, full width on mobile) -->
+    <aside style="display: flex; flex-direction: column; gap: 30px;">
         <!-- About Card -->
-        <div style="background-color: #ffffff; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+        <div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); height: fit-content;">
             <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
                 {{'About Author'|trans}}
             </h4>
@@ -90,23 +81,53 @@
         </div>
         
         <!-- Recent Articles Card -->
-        <div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+        <div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); height: fit-content;">
             <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
-                {{'Recent Articles'|trans}}
+                {{'Recommended Articles'|trans}}
             </h4>
-            <div>
-                <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
-                    <a href="{{ path('app_blog_show', {'id': article.id}) }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; font-size: 13px;">
-                        {{ article.titre }}
-                    </a>
-                    <div style="font-size: 11px; color: #999; margin-top: 5px;">
-                        {{ article.dateCreation|date('d M Y') }}
-                    </div>
-                </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% if recommendedArticles|length > 0 %}
+                    {% for recentArticle in recommendedArticles %}
+                        <div style="display: flex; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+                            <!-- Article Thumbnail -->
+                            {% if recentArticle.image %}
+                                <div style="flex-shrink: 0; width: 70px; height: 70px; overflow: hidden; border-radius: 4px;">
+                                    <img src="{{ asset('uploads/images/' ~ recentArticle.image) }}" alt="{{ recentArticle.titre }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            {% else %}
+                                <div style="flex-shrink: 0; width: 70px; height: 70px; background-color: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-image" style="color: #ccc; font-size: 28px;"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Article Info -->
+                            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                                <a href="{{ path('app_blog_show', {'id': recentArticle.id}) }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; font-size: 12px; line-height: 1.3; transition: color 0.3s ease; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" onmouseover="this.style.color='#4a8b5c'" onmouseout="this.style.color='#5ea96b'">
+                                    {{ recentArticle.titre }}
+                                </a>
+                                <div style="font-size: 10px; color: #999;">
+                                    {{ recentArticle.dateCreation|date('d M Y') }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #999; font-size: 12px; margin: 0;">
+                        {{'No articles available'|trans}}
+                    </p>
+                {% endif %}
             </div>
         </div>
     </aside>
 </div>
+
+<style>
+    @media (max-width: 768px) {
+        .row {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
 
 <!-- Comments Section -->
 <section style="background-color: #ffffff; padding: 30px; margin-top: 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">

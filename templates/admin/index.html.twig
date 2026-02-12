@@ -1,0 +1,217 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Admin Dashboard - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Tableau de Bord Admin</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_admin_index') }}">Admin</a></li>
+                <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Statistics Row -->
+<div class="row g-4 mb-4">
+    <!-- Articles Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bx bx-file" style="font-size: 2rem; color: #7367f0;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Total Articles</h6>
+                        <p class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #7367f0;">{{ statsArticles.total }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Produits Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bx bx-package" style="font-size: 2rem; color: #5ea96b;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Total Produits</h6>
+                        <p class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #5ea96b;">{{ statsProduits.total }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- En Stock -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bx bx-check-circle" style="font-size: 2rem; color: #28a745;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">En Stock</h6>
+                        <p class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #28a745;">{{ statsProduits.enStock }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hors Stock -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bx bx-x-circle" style="font-size: 2rem; color: #dc3545;"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="card-title mb-1">Hors Stock</h6>
+                        <p class="mb-0" style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">{{ statsProduits.horsStock }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row g-4">
+    <!-- Articles Table -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Articles Récents</h5>
+                <a href="{{ path('app_article_index') }}" class="btn btn-sm btn-primary">Voir tous</a>
+            </div>
+            <div class="card-body">
+                {% if articles|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for article in articles|slice(0, 5) %}
+                                <tr class="table-row-clickable">
+                                    <td><strong>{{ article.titre|truncate(30) }}</strong></td>
+                                    <td><small class="text-muted">{{ article.dateCreation|date('d/m/Y') }}</small></td>
+                                    <td>
+                                        <a href="{{ path('app_article_show', {id: article.id}) }}" class="btn btn-xs btn-info" title="Voir">
+                                            <i class="bx bx-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_article_edit', {id: article.id}) }}" class="btn btn-xs btn-warning" title="Modifier">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">Aucun article</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Produits Table -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Produits Récents</h5>
+                <a href="{{ path('app_produit_index') }}" class="btn btn-sm btn-success">Voir tous</a>
+            </div>
+            <div class="card-body">
+                {% if produits|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Prix</th>
+                                    <th>Stock</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produit in produits|slice(0, 5) %}
+                                <tr class="table-row-clickable">
+                                    <td><strong>{{ produit.nom|truncate(20) }}</strong></td>
+                                    <td>{{ produit.prix }} DTN</td>
+                                    <td>
+                                        {% if produit.isStatut() %}
+                                            <span class="badge bg-success">{{ produit.quantite }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_produit_show', {id: produit.id}) }}" class="btn btn-xs btn-info" title="Voir">
+                                            <i class="bx bx-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_produit_edit', {id: produit.id}) }}" class="btn btn-xs btn-warning" title="Modifier">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">Aucun produit</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Info -->
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Catégories ({{ categories|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if categories|length > 0 %}
+                    <div class="row g-3">
+                        {% for categorie in categories %}
+                        <div class="col-md-4">
+                            <div class="card border" style="background: linear-gradient(135deg, #27ae60 0%, #3498db 100%); color: white;">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ categorie.nom }}</h6>
+                                    <p class="card-text" style="font-size: 0.9rem;">{{ categorie.description|truncate(60) }}</p>
+                                    <p class="mb-0"><strong>{{ categorie.produits|length }}</strong> produits</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">Aucune catégorie</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

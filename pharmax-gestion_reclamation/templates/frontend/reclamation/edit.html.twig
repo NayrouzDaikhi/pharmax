@@ -1,0 +1,108 @@
+{% extends 'misho-base.html.twig' %}
+
+{% block title %}Modifier - {{ reclamation.titre }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ path('home') }}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('frontend_reclamation_index') }}">Mes réclamations</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Modifier la réclamation</li>
+    </ol>
+</nav>
+
+<h1 class="misho-page-title">✏️ Modifier la Réclamation</h1>
+
+<div class="row">
+    <div class="col-lg-8 offset-lg-2 col-md-10 offset-md-1">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Formulaire de modification</h5>
+            </div>
+            <div class="card-body">
+                {% if errors|default({}) is not empty %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <h6 class="alert-heading mb-2"><i class="fas fa-exclamation-circle"></i> Erreurs de validation</h6>
+                        <ul class="mb-0">
+                            {% for field, message in errors %}
+                                <li>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                    </div>
+                {% endif %}
+
+                <form method="POST" id="reclamationEditForm">
+                    <fieldset>
+                        <legend class="visually-hidden">Formulaire de modification</legend>
+
+                        <div class="mb-3">
+                            <label for="titre" class="form-label">
+                                Titre de la Réclamation <span class="text-danger">*</span>
+                                <small class="text-muted float-end" id="titre-count">0 / 50</small>
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="titre" name="titre"
+                                   value="{{ titre|default('') }}" placeholder="Résumé en quelques mots">
+                            {% if errors|default({})['titre']|default(false) %}
+                                <div class="invalid-feedback" style="display: block;">
+                                    {{ errors['titre'] }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Minimum 5 caractères, maximum 50 caractères. Champ obligatoire.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                Description Détaillée <span class="text-danger">*</span>
+                                <small class="text-muted float-end" id="description-count">0 / 2000</small>
+                            </label>
+                            <textarea class="form-control form-control-lg" id="description" name="description" rows="8"
+                                      placeholder="Expliquez en détail votre réclamation...">{{ description|default('') }}</textarea>
+                            {% if errors|default({})['description']|default(false) %}
+                                <div class="invalid-feedback" style="display: block;">
+                                    {{ errors['description'] }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Maximum 2000 caractères. Champ obligatoire.</div>
+                        </div>
+
+                        <div class="alert alert-info" role="status">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            <span class="ms-1">Le statut est géré par notre équipe support.</span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ path('frontend_reclamation_show', {'id': reclamation.id}) }}" class="btn btn-secondary btn-lg" role="button">Annuler</a>
+                            <button type="submit" class="btn btn-primary btn-lg" aria-label="Sauvegarder les modifications">
+                                <i class="fas fa-save" aria-hidden="true"></i>
+                                <span class="ms-1">Sauvegarder</span>
+                            </button>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Compteur de caractères côté client (informationnel seulement)
+    // La validation véritable se fait côté serveur PHP
+    const titreInput = document.getElementById('titre');
+    const titreCount = document.getElementById('titre-count');
+    const descriptionInput = document.getElementById('description');
+    const descriptionCount = document.getElementById('description-count');
+
+    function updateCounters() {
+        titreCount.textContent = titreInput.value.length + ' / 50';
+        descriptionCount.textContent = descriptionInput.value.length + ' / 2000';
+    }
+
+    titreInput.addEventListener('input', updateCounters);
+    descriptionInput.addEventListener('input', updateCounters);
+
+    // Initialiser les compteurs au chargement
+    updateCounters();
+</script>
+
+{% endblock %}

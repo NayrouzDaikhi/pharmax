@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Article;
 use App\Entity\Commentaire;
+use App\Entity\Produit;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -28,6 +29,12 @@ class CommentaireType extends AbstractType
             ->add('article', EntityType::class, [
                 'class' => Article::class,
                 'choice_label' => 'titre',
+                'required' => false,
+            ])
+            ->add('produit', EntityType::class, [
+                'class' => Produit::class,
+                'choice_label' => 'nom',
+                'required' => false,
             ])
         ;
     }

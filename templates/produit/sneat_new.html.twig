@@ -1,0 +1,99 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Ajouter un Produit{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Ajouter un Produit</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_produit_index') }}">Produits</a></li>
+                <li class="breadcrumb-item active">Nouveau</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="bx bx-plus-circle"></i> Ajouter un produit
+          </h5>
+        </div>
+
+        <div class="card-body">
+          {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            <div class="mb-3">
+              {{ form_label(form.nom, 'Nom du produit') }}
+              {{ form_widget(form.nom, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Ex: Paracétamol 500mg'}}) }}
+              {{ form_errors(form.nom) }}
+            </div>
+
+            <div class="mb-3">
+              {{ form_label(form.description, 'Description') }}
+              {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '4', 'placeholder': 'Description détaillée du produit...'}}) }}
+              {{ form_errors(form.description) }}
+            </div>
+
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  {{ form_label(form.prix, 'Prix (DTN)') }}
+                  {{ form_widget(form.prix, {'attr': {'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}}) }}
+                  {{ form_errors(form.prix) }}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  {{ form_label(form.quantite, 'Quantité') }}
+                  {{ form_widget(form.quantite, {'attr': {'class': 'form-control', 'type': 'number', 'placeholder': '0'}}) }}
+                  {{ form_errors(form.quantite) }}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  {{ form_label(form.categorie, 'Catégorie') }}
+                  {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                  {{ form_errors(form.categorie) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  {{ form_label(form.dateExpiration, 'Date d\'expiration') }}
+                  {{ form_widget(form.dateExpiration, {'attr': {'class': 'form-control'}}) }}
+                  {{ form_errors(form.dateExpiration) }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  {{ form_label(form.image, 'Image du produit') }}
+                  {{ form_widget(form.image, {'attr': {'class': 'form-control', 'accept': 'image/*'}}) }}
+                  {{ form_errors(form.image) }}
+                  <small class="text-muted">PNG, JPG, GIF (max 5MB)</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bx bx-check"></i> Créer le produit
+              </button>
+              <a href="{{ path('app_produit_index') }}" class="btn btn-secondary btn-lg">
+                <i class="bx bx-arrow-back"></i> Annuler
+              </a>
+            </div>
+          {{ form_end(form) }}
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

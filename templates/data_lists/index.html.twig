@@ -1,0 +1,255 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'Listes de Données'|trans }} - PHARMAX{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h4 mb-0">{{ 'Listes de Données'|trans }}</h1>
+                <div class="breadcrumb" style="background: none; padding: 0;">
+                    <a href="{{ path('app_dashboard') }}" class="breadcrumb-item">{{ 'Accueil'|trans }}</a>
+                    <span class="breadcrumb-item active">{{ 'Listes de Données'|trans }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="dataListTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="articles-tab" data-bs-toggle="tab" data-bs-target="#articles" type="button" role="tab" aria-controls="articles" aria-selected="true">
+                        <i class="bx bx-file"></i> {{ 'Articles'|trans }} ({{ articles|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="produits-tab" data-bs-toggle="tab" data-bs-target="#produits" type="button" role="tab" aria-controls="produits" aria-selected="false">
+                        <i class="bx bx-shopping-bag"></i> {{ 'Produits'|trans }} ({{ produits|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="commentaires-tab" data-bs-toggle="tab" data-bs-target="#commentaires" type="button" role="tab" aria-controls="commentaires" aria-selected="false">
+                        <i class="bx bx-comment"></i> {{ 'Commentaires'|trans }} ({{ commentaires|length }})
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="dataListTabsContent">
+        <!-- Articles Tab -->
+        <div class="tab-pane fade show active" id="articles" role="tabpanel" aria-labelledby="articles-tab">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ 'Articles'|trans }}</h5>
+                            <span class="badge bg-primary">{{ articles|length }}</span>
+                        </div>
+                        <div class="card-body">
+                            {% if articles|length > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>{{ 'Titre'|trans }}</th>
+                                                <th>{{ 'Contenu'|trans }}</th>
+                                                <th>{{ 'Likes'|trans }}</th>
+                                                <th>{{ 'Image'|trans }}</th>
+                                                <th>{{ 'Actions'|trans }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for article in articles %}
+                                                <tr>
+                                                    <td><span class="badge bg-light text-dark">{{ article.id }}</span></td>
+                                                    <td><strong>{{ article.titre }}</strong></td>
+                                                    <td>{{ article.contenu|slice(0, 50) }}{% if article.contenu|length > 50 %}...{% endif %}</td>
+                                                    <td><span class="badge bg-success">{{ article.likes }}</span></td>
+                                                    <td>
+                                                        {% if article.image %}
+                                                            <img src="{{ article.image }}" alt="{{ article.titre }}" style="max-height: 40px;" class="rounded">
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ path('app_article_view', {id: article.id}) }}" class="btn btn-sm btn-info" title="{{ 'Voir'|trans }}">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                        <a href="{{ path('app_article_update', {id: article.id}) }}" class="btn btn-sm btn-warning" title="{{ 'Éditer'|trans }}">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="bx bx-info-circle"></i> {{ 'Aucun article trouvé'|trans }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produits Tab -->
+        <div class="tab-pane fade" id="produits" role="tabpanel" aria-labelledby="produits-tab">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ 'Produits'|trans }}</h5>
+                            <span class="badge bg-primary">{{ produits|length }}</span>
+                        </div>
+                        <div class="card-body">
+                            {% if produits|length > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>{{ 'Nom'|trans }}</th>
+                                                <th>{{ 'Description'|trans }}</th>
+                                                <th>{{ 'Prix'|trans }}</th>
+                                                <th>{{ 'Stock'|trans }}</th>
+                                                <th>{{ 'Catégorie'|trans }}</th>
+                                                <th>{{ 'Statut'|trans }}</th>
+                                                <th>{{ 'Actions'|trans }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for produit in produits %}
+                                                <tr>
+                                                    <td><span class="badge bg-light text-dark">{{ produit.id }}</span></td>
+                                                    <td><strong>{{ produit.nom }}</strong></td>
+                                                    <td>{{ produit.description|slice(0, 50) }}{% if produit.description|length > 50 %}...{% endif %}</td>
+                                                    <td><span class="badge bg-success">{{ produit.prix }} DZD</span></td>
+                                                    <td>
+                                                        {% if produit.quantite > 0 %}
+                                                            <span class="badge bg-info">{{ produit.quantite }}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">{{ 'Stock épuisé'|trans }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if produit.categorie %}
+                                                            <span class="badge bg-secondary">{{ produit.categorie.nom }}</span>
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if produit.statut %}
+                                                            <span class="badge bg-success">{{ 'Actif'|trans }}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">{{ 'Inactif'|trans }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ path('app_produit_view', {id: produit.id}) }}" class="btn btn-sm btn-info" title="{{ 'Voir'|trans }}">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                        <a href="{{ path('app_produit_update', {id: produit.id}) }}" class="btn btn-sm btn-warning" title="{{ 'Éditer'|trans }}">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="bx bx-info-circle"></i> {{ 'Aucun produit trouvé'|trans }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commentaires Tab -->
+        <div class="tab-pane fade" id="commentaires" role="tabpanel" aria-labelledby="commentaires-tab">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ 'Commentaires'|trans }}</h5>
+                            <span class="badge bg-primary">{{ commentaires|length }}</span>
+                        </div>
+                        <div class="card-body">
+                            {% if commentaires|length > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>{{ 'Article'|trans }}</th>
+                                                <th>{{ 'Contenu'|trans }}</th>
+                                                <th>{{ 'Email'|trans }}</th>
+                                                <th>{{ 'Statut'|trans }}</th>
+                                                <th>{{ 'Date'|trans }}</th>
+                                                <th>{{ 'Actions'|trans }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for commentaire in commentaires %}
+                                                <tr>
+                                                    <td><span class="badge bg-light text-dark">{{ commentaire.id }}</span></td>
+                                                    <td>
+                                                        {% if commentaire.article %}
+                                                            <span class="badge bg-secondary">{{ commentaire.article.titre|slice(0, 30) }}...</span>
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ commentaire.contenu|slice(0, 50) }}{% if commentaire.contenu|length > 50 %}...{% endif %}</td>
+                                                    <td>{{ commentaire.email }}</td>
+                                                    <td>
+                                                        {% if commentaire.statut == 'approuve' %}
+                                                            <span class="badge bg-success">{{ 'Approuvé'|trans }}</span>
+                                                        {% elseif commentaire.statut == 'en_attente' %}
+                                                            <span class="badge bg-warning">{{ 'En attente'|trans }}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">{{ 'Rejeté'|trans }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ commentaire.dateCreated|date('d/m/Y H:i') }}</td>
+                                                    <td>
+                                                        <a href="{{ path('app_commentaire_view', {id: commentaire.id}) }}" class="btn btn-sm btn-info" title="{{ 'Voir'|trans }}">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                        <a href="{{ path('app_commentaire_update', {id: commentaire.id}) }}" class="btn btn-sm btn-warning" title="{{ 'Éditer'|trans }}">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="bx bx-info-circle"></i> {{ 'Aucun commentaire trouvé'|trans }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

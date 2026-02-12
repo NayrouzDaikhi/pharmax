@@ -125,7 +125,7 @@
             <!-- Menu -->
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                 <div class="app-brand demo">
-                    <a href="{{ path('app_blog_index') }}" class="app-brand-link">
+                    <a href="{{ path('home') }}" class="app-brand-link">
                         <span class="app-brand-logo demo">
                             <img src="{{ asset('images/logo pharmax.png') }}" alt="Pharmax Logo" style="height: 110px; width: auto; object-fit: contain;">
                         </span>
@@ -141,9 +141,30 @@
                 <ul class="menu-inner py-1">
                     <!-- Dashboard -->
                     <li class="menu-item">
+                        <a href="{{ path('app_dashboard') }}" class="menu-link {% if 'dashboard' in app.request.pathInfo %}active{% endif %}">
+                            <i class="menu-icon tf-icons bx bx-home"></i>
+                            <div data-i18n="Dashboard">{{('Dashboard'|trans)}}</div>
+                        </a>
+                    </li>
+                    <!-- Articles -->
+                    <li class="menu-item">
                         <a href="{{ path('app_article_index') }}" class="menu-link {% if 'article' in app.request.pathInfo %}active{% endif %}">
                             <i class="menu-icon tf-icons bx bx-file"></i>
                             <div data-i18n="Articles">{{('Articles'|trans)}}</div>
+                        </a>
+                    </li>
+                    <!-- Produits -->
+                    <li class="menu-item">
+                        <a href="{{ path('app_produit_index') }}" class="menu-link {% if 'produit' in app.request.pathInfo %}active{% endif %}">
+                            <i class="menu-icon tf-icons bx bx-package"></i>
+                            <div data-i18n="Produits">{{('Produits'|trans)}}</div>
+                        </a>
+                    </li>
+                    <!-- Catégories -->
+                    <li class="menu-item">
+                        <a href="{{ path('app_categorie_index') }}" class="menu-link {% if 'categorie' in app.request.pathInfo %}active{% endif %}">
+                            <i class="menu-icon tf-icons bx bx-list-ul"></i>
+                            <div data-i18n="Catégories">{{('Catégories'|trans)}}</div>
                         </a>
                     </li>
                 </ul>

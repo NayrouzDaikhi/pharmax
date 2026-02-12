@@ -1,0 +1,16 @@
+<svg viewBox="0 0 400 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Icon -->
+  <g>
+    <!-- Leaf shape with arrow -->
+    <path d="M 60 50 Q 80 30 100 40 Q 90 70 80 90 Q 70 80 60 90 Q 50 70 60 50 Z" fill="#6BA873" opacity="0.8"/>
+    <path d="M 100 40 L 120 20 L 110 60 Z" fill="#5B8DBE"/>
+    <circle cx="75" cy="50" r="12" fill="#5B8DBE"/>
+  </g>
+  
+  <!-- Text "pharmaX" -->
+  <text x="140" y="85" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#5B8DBE">pharma</text>
+  <text x="320" y="85" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#6BA873">X</text>
+  
+  <!-- Tagline -->
+  <text x="140" y="110" font-family="Arial, sans-serif" font-size="12" fill="#5a6b7d">Simplicité d'achat, excellence en santé</text>
+</svg>
