@@ -1,0 +1,148 @@
+{% extends "base_simple.html.twig" %}
+
+{% block title %}Gestion des Commandes{% endblock %}
+
+{% block body %}
+<div class="container-fluid flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Gestion /</span> Commandes
+    </h4>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1 text-muted">En cours</h6>
+                            <h3 class="card-text text-primary">{{ statistics.en_cours|default(0) }}</h3>
+                        </div>
+                        <i class="bx bx-run" style="font-size:2rem; color:#007bff;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1 text-muted">En attente</h6>
+                            <h3 class="card-text text-warning">{{ statistics.en_attente|default(0) }}</h3>
+                        </div>
+                        <i class="bx bx-time" style="font-size:2rem; color:#ffc107;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1 text-muted">Livrée</h6>
+                            <h3 class="card-text text-success">{{ statistics.livree|default(0) }}</h3>
+                        </div>
+                        <i class="bx bx-check-circle" style="font-size:2rem; color:#28a745;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1 text-muted">Total</h6>
+                            <h3 class="card-text text-info">{{ statistics.total|default(0) }}</h3>
+                        </div>
+                        <i class="bx bx-package" style="font-size:2rem; color:#17a2b8;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-header mb-0">Liste des Commandes</h5>
+            <a href="{{ path('app_admin_commande_new') }}" class="btn btn-primary btn-sm">
+                <i class="bx bx-plus"></i> Nouvelle Commande
+            </a>
+        </div>
+
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>#ID</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Utilisateur</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if commandes|length == 0 %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Aucune commande trouvée</td>
+                        </tr>
+                    {% else %}
+                        {% for commande in commandes %}
+                            <tr>
+                                <td><strong>#{{ commande.id }}</strong></td>
+                                <td>{{ commande.createdAt|date('d/m/Y H:i')|default('N/A') }}</td>
+                                <td><strong>{{ (commande.totales|default(0))|number_format(2, ',', ' ') }} TND</strong></td>
+                                <td>
+                                    {% if commande.statut|default('') == 'en_cours' %}
+                                        <span class="badge bg-label-primary">En cours</span>
+                                    {% elseif commande.statut|default('') == 'en_attente' %}
+                                        <span class="badge bg-label-warning">En attente</span>
+                                    {% elseif commande.statut|default('') == 'livree' %}
+                                        <span class="badge bg-label-success">Livrée</span>
+                                    {% elseif commande.statut|default('') == 'annule' or commande.statut|default('') == 'annulée' %}
+                                        <span class="badge bg-label-danger">Annulée</span>
+                                    {% else %}
+                                        <span class="badge bg-label-secondary">{{ commande.statut|default('N/A') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ commande.utilisateur.email|default('Client Anonyme') }}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="{{ path('app_admin_commande_show', {'id': commande.id}) }}">
+                                                <i class="bx bx-eye me-1"></i> Voir
+                                            </a>
+                                            <a class="dropdown-item" href="{{ path('app_admin_commande_edit', {'id': commande.id}) }}">
+                                                <i class="bx bx-edit-alt me-1"></i> Modifier
+                                            </a>
+                                            <form method="POST" action="{{ path('app_admin_commande_delete', {'id': commande.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ commande.id) }}">
+                                                <button type="submit" class="dropdown-item" style="background:none; border:none; padding: 0.5rem 1rem; text-align:left; width:100%;">
+                                                    <i class="bx bx-trash me-1"></i> Supprimer
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

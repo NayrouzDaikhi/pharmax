@@ -26,9 +26,9 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ path('home') }}">Accueil</a></li>
-                        <li class="breadcrumb-item"><a href="{{ path('front_produits') }}">Produits</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_front_produits') }}">Produits</a></li>
                         {% if produit.categorie %}
-                            <li class="breadcrumb-item"><a href="{{ path('front_produits', {'categorie': produit.categorie.id}) }}">{{ produit.categorie.nom }}</a></li>
+                            <li class="breadcrumb-item"><a href="{{ path('app_front_produits', {'categorie': produit.categorie.id}) }}">{{ produit.categorie.nom }}</a></li>
                         {% endif %}
                         <li class="breadcrumb-item active">{{ produit.nom }}</li>
                     </ol>
@@ -78,14 +78,9 @@
                 <!-- Add to Cart (Placeholder) -->
                 <div class="mb-4">
                     {% if produit.statut %}
-                        <div class="input-group mb-3" style="max-width: 150px;">
-                            <button class="btn btn-outline-secondary" type="button">−</button>
-                            <input type="number" class="form-control text-center" value="1" min="1" max="{{ produit.quantite }}">
-                            <button class="btn btn-outline-secondary" type="button">+</button>
-                        </div>
-                        <button class="btn btn-primary btn-lg w-100 mb-2">
+                        <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" class="btn btn-primary btn-lg w-100" data-add-to-cart>
                             <i class="bx bx-cart-add"></i> Ajouter au Panier
-                        </button>
+                        </a>
                     {% else %}
                         <button class="btn btn-secondary btn-lg w-100 mb-2" disabled>
                             <i class="bx bx-x"></i> Produit Indisponible
@@ -170,7 +165,7 @@
                                         <h6 class="text-primary fw-bold mb-0">{{ related.prix }} DTN</h6>
                                     </div>
 
-                                    <a href="{{ path('front_detail', {'id': related.id}) }}" class="btn btn-primary btn-sm w-100">
+                                    <a href="{{ path('app_front_detail_produit', {'id': related.id}) }}" class="btn btn-primary btn-sm w-100">
                                         Voir Détails
                                     </a>
                                 </div>
@@ -189,7 +184,7 @@
         <!-- Back Button -->
         <div class="row mt-5">
             <div class="col-12">
-                <a href="{{ path('front_produits') }}" class="btn btn-outline-secondary">
+                <a href="{{ path('app_front_produits') }}" class="btn btn-outline-secondary">
                     <i class="bx bx-chevron-left"></i> Retour aux produits
                 </a>
             </div>

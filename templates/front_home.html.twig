@@ -13,7 +13,7 @@
                 <p class="fs-5 mb-4 animate-slide-left" style="animation-delay: 0.2s; opacity: 0; animation-fill-mode: both;">
                     Découvrez notre large gamme de produits de santé et bien-être. Livraison rapide et sécurisée dans toute la Tunisie.
                 </p>
-                <a href="{{ path('front_produits') }}" class="btn btn-light btn-custom animate-scale" style="animation-delay: 0.4s; opacity: 0; animation-fill-mode: both;">
+                <a href="{{ path('app_front_produits') }}" class="btn btn-light btn-custom animate-scale" style="animation-delay: 0.4s; opacity: 0; animation-fill-mode: both;">
                     <i class="bx bx-package"></i> Découvrir les Produits
                 </a>
             </div>
@@ -68,7 +68,7 @@
         <div class="row g-4">
             {% for item in top_categories %}
             <div class="col-md-6 col-lg-3">
-                <a href="{{ path('front_produits') }}?categorie={{ item.categorie.id }}" style="text-decoration: none; color: inherit;">
+                <a href="{{ path('app_front_produits') }}?categorie={{ item.categorie.id }}" style="text-decoration: none; color: inherit;">
                     <div class="category-card animate-scale" style="animation-delay: {{ loop.index0 * 0.1 }}s; border-radius: 12px; padding: 30px; background: white; border: 1px solid #e0e0e0; text-align: center; transition: all 0.3s ease; cursor: pointer; height: 100%;">
                         <div style="font-size: 50px; margin-bottom: 15px; color: #27ae60;">
                             <i class="bx bx-package"></i>
@@ -123,9 +123,14 @@
                                 {% endif %}
                             </div>
 
-                            <a href="{{ path('front_detail', {'id': produit.id}) }}" class="btn btn-primary btn-sm w-100" style="border-radius: 8px;">
-                                <i class="bx bx-show"></i> Voir Détails
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" class="btn btn-primary btn-sm flex-fill" style="border-radius: 8px;" data-add-to-cart>
+                                    <i class="bx bx-cart-add"></i> Ajouter
+                                </a>
+                                <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" class="btn btn-outline-primary btn-sm flex-fill" style="border-radius: 8px;">
+                                    <i class="bx bx-show"></i> Détails
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -139,7 +144,7 @@
         
         {% if recent_products is not empty %}
         <div class="text-center mt-5">
-            <a href="{{ path('front_produits') }}" class="btn btn-outline-primary btn-custom animate-scale" style="animation-delay: 0.5s;">
+            <a href="{{ path('app_front_produits') }}" class="btn btn-outline-primary btn-custom animate-scale" style="animation-delay: 0.5s;">
                 <i class="bx bx-chevron-right"></i> Voir Tous les Produits
             </a>
         </div>
@@ -183,9 +188,14 @@
                             {% endif %}
                         </div>
 
-                        <a href="{{ path('front_detail', {'id': produit.id}) }}" class="btn btn-warning btn-sm w-100" style="border-radius: 8px; color: #fff;">
-                            <i class="bx bx-show"></i> Voir Détails
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" class="btn btn-warning btn-sm flex-fill" style="border-radius: 8px; color: #fff;" data-add-to-cart>
+                                <i class="bx bx-cart-add"></i> Ajouter
+                            </a>
+                            <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" class="btn btn-warning btn-sm flex-fill" style="border-radius: 8px; color: #fff;">
+                                <i class="bx bx-show"></i> Détails
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

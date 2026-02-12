@@ -1,0 +1,143 @@
+{% extends "admin/base.html.twig" %}
+
+{% block title %}Modifier Commande #{{ commande.id }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="fw-bold">
+                <span class="text-muted fw-light">Commandes /</span> Modifier #{{ commande.id }}
+            </h4>
+        </div>
+    </div>
+
+    {% if form.vars.errors|length > 0 %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Erreur(s) de validation :</strong>
+        <ul class="mb-0 mt-2">
+            {% for error in form.vars.errors %}
+                <li>{{ error.message }}</li>
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Modifier la Commande</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+
+                    <div class="mb-3">
+                        {{ form_label(form.created_at, 'Date de Création', {'label_attr': {'class': 'form-label'}}) }}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bx bx-calendar"></i></span>
+                            {{ form_widget(form.created_at, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        {% if form.created_at.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.created_at) }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.totales, 'Montant Total', {'label_attr': {'class': 'form-label'}}) }}
+                        <div class="input-group">
+                            <span class="input-group-text">TND</span>
+                            {{ form_widget(form.totales, {'attr': {'class': 'form-control', 'placeholder': '0.00', 'step': '0.01', 'min': '0'}}) }}
+                        </div>
+                        {% if form.totales.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.totales) }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.statut, 'Statut', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.statut, {'attr': {'class': 'form-select form-control'}}) }}
+                        {% if form.statut.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.statut) }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.utilisateur, 'Utilisateur', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.utilisateur, {'attr': {'class': 'form-select form-control'}}) }}
+                        <small class="form-text text-muted">Optionnel</small>
+                        {% if form.utilisateur.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.utilisateur) }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.produits, 'Produits', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.produits, {'attr': {'class': 'form-control', 'placeholder': 'Ex: iPhone 15, MacBook Pro', 'rows': 3}}) }}
+                        <small class="form-text text-muted">Entrez les produits séparés par des virgules (Optionnel)</small>
+                        {% if form.produits.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.produits) }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2 pt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> Enregistrer les modifications
+                        </button>
+                        <a href="{{ path('app_commande_show', {'id': commande.id}) }}" class="btn btn-secondary">
+                            <i class="bx bx-x"></i> Annuler
+                        </a>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Information Commande</h5>
+                </div>
+                <div class="card-body small">
+                    <div class="mb-2">
+                        <strong>ID :</strong> #{{ commande.id }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Créée le :</strong> <br>{{ commande.createdAt|date('d/m/Y H:i') }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Total :</strong><br>
+                        <span class="badge bg-success">{{ commande.totales|number_format(2, ',', ' ') }} TND</span>
+                    </div>
+                    <div>
+                        <strong>Statut :</strong><br>
+                        {% if commande.statut == 'en_cours' %}
+                            <span class="badge bg-primary">En cours</span>
+                        {% elseif commande.statut == 'en_attente' %}
+                            <span class="badge bg-warning">En attente</span>
+                        {% elseif commande.statut == 'payee' %}
+                            <span class="badge bg-success">Payée</span>
+                        {% elseif commande.statut == 'annule' or commande.statut == 'annulée' %}
+                            <span class="badge bg-danger">Annulée</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ commande.statut }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

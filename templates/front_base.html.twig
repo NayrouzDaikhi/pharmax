@@ -14,8 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
 
-    <!-- Icons -->
-    <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/fonts/iconify-icons.css') }}" />
+    <!-- Icons (Boxicons) -->
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
 
     <!-- Core CSS -->
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/core.css') }}" />
@@ -363,7 +363,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('front_produits') }}">
+                        <a class="nav-link" href="{{ path('app_front_produits') }}">
                             <i class="bx bx-package"></i> Produits
                         </a>
                     </li>
@@ -373,8 +373,19 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#contact">
-                            <i class="bx bx-envelope"></i> Contact
+                        <a class="nav-link" href="{{ path('frontend_reclamation_index') }}">
+                            <i class="bx bx-message-square"></i> Réclamations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ path('app_panier_index') }}">
+                            <i class="bx bx-shopping-bag" style="font-size: 1.3rem;"></i>
+                            {% set panierCount = app.request.session.get('panier')|length %}
+                            {% if panierCount > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-badge" style="background: #ff4757; transform: translate(-50%, -50%);">
+                                {{ panierCount }}
+                            </span>
+                            {% endif %}
                         </a>
                     </li>
                     <li class="nav-item">
@@ -404,7 +415,7 @@
                     <h5>Liens Rapides</h5>
                     <ul class="list-unstyled">
                         <li><a href="{{ path('home') }}">Accueil</a></li>
-                        <li><a href="{{ path('front_produits') }}">Produits</a></li>
+                        <li><a href="{{ path('app_front_produits') }}">Produits</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
                 </div>
@@ -437,5 +448,125 @@
 
     <!-- Page JS -->
     {% block extra_js %}{% endblock %}
+
+    <!-- Shopping Cart AJAX Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Intercepter les clics sur les boutons "Ajouter au Panier"
+            const addToCartButtons = document.querySelectorAll('[data-add-to-cart]');
+            
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const url = this.href;
+                    
+                    // Effectuer la requête AJAX
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Mettre à jour le badge du panier
+                            updateCartBadge(data.count);
+                            
+                            // Afficher la notification
+                            showNotification(data.message);
+                        } else {
+                            showNotification('Erreur: ' + data.message, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showNotification('Une erreur est survenue', 'danger');
+                    });
+                });
+            });
+        });
+
+        // Fonction pour mettre à jour le badge du panier
+        function updateCartBadge(count) {
+            const badge = document.querySelector('.cart-badge');
+            if (badge) {
+                badge.textContent = count;
+                // Animation smooth
+                badge.style.transition = 'transform 0.3s ease';
+                badge.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    badge.style.transform = 'scale(1)';
+                }, 300);
+            } else if (count > 0) {
+                // Créer le badge s'il n'existe pas
+                const cartLink = document.querySelector('a[href="{{ path('app_panier_index') }}"]');
+                if (cartLink) {
+                    const newBadge = document.createElement('span');
+                    newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill cart-badge';
+                    newBadge.style.background = '#ff4757';
+                    newBadge.style.transform = 'translate(-50%, -50%)';
+                    newBadge.textContent = count;
+                    cartLink.appendChild(newBadge);
+                }
+            }
+        }
+
+        // Fonction pour afficher une notification
+        function showNotification(message, type = 'success') {
+            // Créer le conteneur de notification
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show`;
+            notification.setAttribute('role', 'alert');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                width: 350px;
+                max-width: 90vw;
+                z-index: 1050;
+                animation: slideInRight 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            
+            // Déterminer l'icône
+            let icon = 'bx-check-circle';
+            if (type === 'danger') {
+                icon = 'bx-error-circle';
+            } else if (type === 'warning') {
+                icon = 'bx-info-circle';
+            }
+            
+            notification.innerHTML = `
+                <i class="bx ${icon}" style="margin-right: 10px;"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animation CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight {
+                    from {
+                        opacity: 0;
+                        transform: translateX(350px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Auto-supprimer après 5 secondes
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

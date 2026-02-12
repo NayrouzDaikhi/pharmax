@@ -71,9 +71,14 @@
                         </p>
                     {% endif %}
                     
-                    <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" style="display: inline-block; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-radius: 4px; transition: background-color 0.3s ease; width: 100%; text-align: center; box-sizing: border-box;" onmouseover="this.style.backgroundColor = '#4a8b5c';" onmouseout="this.style.backgroundColor = '#5ea96b';">
-                        Détails
-                    </a>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" style="display: inline-block; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-radius: 4px; transition: background-color 0.3s ease; flex: 1; text-align: center; box-sizing: border-box;" onmouseover="this.style.backgroundColor = '#4a8b5c';" onmouseout="this.style.backgroundColor = '#5ea96b';" data-add-to-cart>
+                            <i class="fas fa-shopping-cart"></i> Ajouter
+                        </a>
+                        <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" style="display: inline-block; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-radius: 4px; transition: background-color 0.3s ease; flex: 1; text-align: center; box-sizing: border-box;" onmouseover="this.style.backgroundColor = '#4a8b5c';" onmouseout="this.style.backgroundColor = '#5ea96b';">
+                            Détails
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endfor %}

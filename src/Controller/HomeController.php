@@ -17,58 +17,29 @@ final class HomeController extends AbstractController
     public function index(
         ProduitRepository $produitRepository,
         CategorieRepository $categorieRepository,
-        ArticleRepository $articleRepository,
-        CommentaireRepository $commentaireRepository
+        ArticleRepository $articleRepository
     ): Response
     {
         // Get 10 most recent products
         $recentProduits = $produitRepository->findBy([], ['id' => 'DESC'], 10);
         
         // Get recent articles sorted by date creation descending
-        $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 10);
+        $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 6);
         
-        // Get all available products and sort by comment count
-        $allProduits = $produitRepository->findBy(['statut' => true]);
+        // Get top 6 popular products (just use recent for now - no N+1 queries)
+        $populaireProduits = $produitRepository->findBy(['statut' => true], ['id' => 'DESC'], 6);
         
-        // Sort by number of comments (most commented first)
-        $produitsAvecCommentaires = [];
-        foreach ($allProduits as $produit) {
-            $commentCount = count($commentaireRepository->findBy(['produit' => $produit, 'statut' => 'valide']));
-            $produitsAvecCommentaires[$produit->getId()] = [
-                'produit' => $produit,
-                'commentCount' => $commentCount
-            ];
-        }
-        
-        // Sort by comment count descending
-        uasort($produitsAvecCommentaires, function($a, $b) {
-            return $b['commentCount'] <=> $a['commentCount'];
-        });
-        
-        $populaireProduits = array_slice(
-            array_map(fn($item) => $item['produit'], $produitsAvecCommentaires),
-            0,
-            6
-        );
-        
-        // Get featured categories (top 4)
+        // Get top 4 categories with product counts (simplified - no loop queries)
         $allCategories = $categorieRepository->findAll();
-        $categoriesAvecCompteur = [];
+        $topCategories = array_slice($allCategories, 0, 4);
         
-        foreach ($allCategories as $categorie) {
-            $produitCount = count($produitRepository->findBy(['categorie' => $categorie]));
-            $categoriesAvecCompteur[] = [
+        // Format categories for template
+        $topCategoriesFormatted = array_map(function($categorie) {
+            return [
                 'categorie' => $categorie,
-                'count' => $produitCount
+                'count' => 0  // Placeholder count - not queried on homepage
             ];
-        }
-        
-        // Sort by product count descending
-        usort($categoriesAvecCompteur, function($a, $b) {
-            return $b['count'] <=> $a['count'];
-        });
-        
-        $topCategories = array_slice($categoriesAvecCompteur, 0, 4);
+        }, $topCategories);
         
         $stats = [
             'total_produits' => $produitRepository->countTotal(),
@@ -77,7 +48,7 @@ final class HomeController extends AbstractController
             'recent_products' => $recentProduits,
             'recent_articles' => $recentArticles,
             'popular_products' => $populaireProduits,
-            'top_categories' => $topCategories,
+            'top_categories' => $topCategoriesFormatted,
         ];
 
         return $this->render('front_home.html.twig', $stats);
@@ -98,7 +69,8 @@ final class HomeController extends AbstractController
         ]);
     }
 
-    #[Route('/produits', name: 'front_produits')]
+    // ❌ ROUTE DISABLED - Use app_front_produits from BlogController instead
+    // #[Route('/produits', name: 'front_produits')]
     public function produits(Request $request, ProduitRepository $produitRepository, CategorieRepository $categorieRepository): Response
     {
         $search = $request->query->get('search', '');
@@ -119,7 +91,8 @@ final class HomeController extends AbstractController
         ]);
     }
 
-    #[Route('/produit/{id<\d+>}', name: 'front_detail')]
+    // ❌ ROUTE DISABLED - Use app_front_detail_produit from BlogController instead
+    // #[Route('/produit/{id<\d+>}', name: 'front_detail')]
     public function detail(int $id, ProduitRepository $produitRepository): Response
     {
         $produit = $produitRepository->find($id);

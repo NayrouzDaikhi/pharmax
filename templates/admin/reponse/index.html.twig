@@ -1,0 +1,108 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Gestion des Réponses - Pharmax Admin{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="py-3 mb-4">🔧 Gestion des Réponses</h4>
+    </div>
+</div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <!-- Recherche par contenu -->
+                <div class="col-md-6">
+                    <label for="contenu" class="form-label">Contenu</label>
+                    <input type="text"
+                           class="form-control"
+                           id="contenu"
+                           name="contenu"
+                           placeholder="Rechercher par contenu..."
+                           value="{{ filters.contenu|default('') }}">
+                </div>
+
+                <!-- Filtre par date -->
+                <div class="col-md-4">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date"
+                           class="form-control"
+                           id="date"
+                           name="date"
+                           value="{{ filters.date|default('') }}">
+                </div>
+
+                <!-- Boutons -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-search"></i> Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if reponses is not empty %}
+    <div class="card">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Contenu</th>
+                        <th>Réclamation</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                    {% for reponse in reponses %}
+                    <tr>
+                        <td><strong>#{{ reponse.id }}</strong></td>
+
+                        <td>
+                            {{ reponse.contenu|length > 50 
+                                ? reponse.contenu|slice(0, 50) ~ '...' 
+                                : reponse.contenu }}
+                        </td>
+
+                        <td>
+                            <a href="{{ path('admin_reclamation_show', {'id': reponse.reclamation.id}) }}">
+                                #{{ reponse.reclamation.id }} - {{ reponse.reclamation.titre|slice(0, 30) }}
+                            </a>
+                        </td>
+
+                        <td>{{ reponse.dateReponse|date('d/m/Y H:i') }}</td>
+
+                        <td>
+                            <a href="{{ path('admin_reponse_edit', {'id': reponse.id}) }}"
+                               class="btn btn-sm btn-warning">
+                                <i class="bx bx-edit"></i> Éditer
+                            </a>
+
+                            <form method="POST"
+                                  action="{{ path('admin_reponse_delete', {'id': reponse.id}) }}"
+                                  style="display:inline;">
+                                <input type="hidden"
+                                       name="_token"
+                                       value="{{ csrf_token('delete' ~ reponse.id) }}">
+                                <button type="submit"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette réponse ?')">
+                                    <i class="bx bx-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="bx bx-info-circle"></i> Aucune réponse trouvée
+    </div>
+    {% endif %}
+{% endblock %}

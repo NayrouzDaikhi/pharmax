@@ -1,0 +1,43 @@
+{% extends "frontend/base.html.twig" %}
+
+{% block title %}Pharmax - Biotech & Pharmacie{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold mb-3">Pharmax</h1>
+    <p class="lead text-muted">Les meilleurs produits pharmaceutiques et compléments alimentaires</p>
+    <a href="{{ path('app_produit_index') }}" class="btn btn-primary btn-lg">Découvrir nos produits</a>
+</div>
+
+<!-- Features -->
+<div class="row g-4 mt-5">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">📦 Nos Produits</h5>
+                <p class="card-text">Une large gamme de produits de qualité</p>
+                <a href="{{ path('app_produit_index') }}" class="btn btn-primary">Voir plus</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">📋 Commandes</h5>
+                <p class="card-text">Gérez vos commandes facilement</p>
+                <a href="{{ path('app_frontend_commande_index') }}" class="btn btn-primary">Voir mes commandes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="card-title">💬 Support</h5>
+                <p class="card-text">Notre équipe est là pour vous aider</p>
+                <a href="#" class="btn btn-primary">Nous contacter</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

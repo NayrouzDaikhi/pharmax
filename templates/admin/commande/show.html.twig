@@ -1,0 +1,120 @@
+{% extends "base_simple.html.twig" %}
+
+{% block title %}Détails Commande #{{ commande.id|default('N/A') }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+        <span class="text-muted fw-light">Commandes /</span> Détails #{{ commande.id|default('N/A') }}
+    </h4>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Information Commande</h5>
+            <a href="{{ path('app_admin_commande_index') }}" class="btn btn-outline-secondary btn-sm">Retour à la liste</a>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label"><strong>N° Commande:</strong></label>
+                    <p>#{{ commande.id|default('N/A') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label"><strong>Date:</strong></label>
+                    <p>{{ commande.createdAt|date('d/m/Y H:i')|default('N/A') }}</p>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label"><strong>Utilisateur:</strong></label>
+                    <p>{{ commande.utilisateur.email|default('Client Anonyme') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label"><strong>Statut:</strong></label>
+                    <p>
+                        {% if commande.statut|default('') == 'en_cours' %}
+                            <span class="badge bg-label-primary">En cours</span>
+                        {% elseif commande.statut|default('') == 'en_attente' %}
+                            <span class="badge bg-label-warning">En attente</span>
+                        {% elseif commande.statut|default('') == 'livree' %}
+                            <span class="badge bg-label-success">Livrée</span>
+                        {% elseif commande.statut|default('') == 'annule' or commande.statut|default('') == 'annulée' %}
+                            <span class="badge bg-label-danger">Annulée</span>
+                        {% else %}
+                            <span class="badge bg-label-secondary">{{ commande.statut|default('N/A') }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <h6 class="mb-3">Produits Commandés</h6>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Produit</th>
+                            <th>Prix Unitaire</th>
+                            <th>Quantité</th>
+                            <th>Sous-Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if commande.lignes|default([]) is not empty %}
+                            {% for ligne in commande.lignes %}
+                                <tr>
+                                    <td>{{ ligne.nom|default('Produit N/A') }}</td>
+                                    <td>{{ (ligne.prix|default(0))|number_format(2, ',', ' ') }} TND</td>
+                                    <td>{{ ligne.quantite|default(0) }}</td>
+                                    <td><strong>{{ (ligne.sousTotal|default(0))|number_format(2, ',', ' ') }} TND</strong></td>
+                                </tr>
+                            {% endfor %}
+                        {% elseif commande.produits|default([]) is not empty %}
+                            {% for produit in commande.produits %}
+                                <tr>
+                                    <td>{{ produit.nom|default('Produit N/A') }}</td>
+                                    <td>{{ (produit.prix|default(0))|number_format(2, ',', ' ') }} TND</td>
+                                    <td>{{ produit.quantite|default(0) }}</td>
+                                    <td><strong>{{ ((produit.prix|default(0)) * (produit.quantite|default(0)))|number_format(2, ',', ' ') }} TND</strong></td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">Aucun produit</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <div class="text-end">
+                <h5 class="text-primary"><strong>Montant Total: {{ (commande.totales|default(0))|number_format(2, ',', ' ') }} TND</strong></h5>
+            </div>
+
+            {% if qrCode|default('') %}
+                <hr>
+                <div class="text-center">
+                    <h6 class="mb-3">Code QR</h6>
+                    <img src="{{ qrCode }}" alt="QR Code" style="width:150px; height:150px;">
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_admin_commande_edit', {'id': commande.id}) }}" class="btn btn-warning">
+            <i class="bx bx-edit me-1"></i> Modifier
+        </a>
+        <form method="POST" action="{{ path('app_admin_commande_delete', {'id': commande.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ commande.id) }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="bx bx-trash me-1"></i> Supprimer
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
