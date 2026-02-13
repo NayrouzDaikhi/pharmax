@@ -73,6 +73,7 @@ class AdminReponseController extends AbstractController
             $contenu = strip_tags($contenu);
 
             $reponse->setContenu($contenu);
+            $reponse->setUser($this->getUser());
 
             $this->em->persist($reponse);
             $this->em->flush();

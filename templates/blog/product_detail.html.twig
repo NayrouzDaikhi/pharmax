@@ -94,9 +94,15 @@
                 <!-- Action Buttons -->
                 <div style="margin-bottom: 20px; display: flex; gap: 12px;">
                     {% if produit.isStatut() %}
-                        <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" style="flex: 1; background-color: #5ea96b; color: white; padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; text-decoration: none;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';" data-add-to-cart>
-                            <i class="fas fa-shopping-cart"></i> Ajouter au Panier
-                        </a>
+                        {% if app.user %}
+                            <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" style="flex: 1; background-color: #5ea96b; color: white; padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; text-decoration: none;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';" data-add-to-cart>
+                                <i class="fas fa-shopping-cart"></i> Ajouter au Panier
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" style="flex: 1; background-color: #5ea96b; color: white; padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; text-decoration: none;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';">
+                                <i class="fas fa-sign-in-alt"></i> Se Connecter pour Acheter
+                            </a>
+                        {% endif %}
                         <button style="flex: 0.4; background-color: white; color: #5ea96b; padding: 12px 15px; font-weight: 700; font-size: 13px; border: 2px solid #5ea96b; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor = '#f0f8f5';" onmouseout="this.style.backgroundColor = 'white';">
                             <i class="fas fa-heart"></i>
                         </button>
@@ -139,52 +145,70 @@
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 30px;">
                 <h4 style="color: #2c3e50; font-weight: 700; margin: 0 0 15px 0; font-size: 14px;">Laisser un Avis</h4>
                 
-                <!-- Success Message -->
-                <div id="avis-success-message" style="display: none; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
-                    <i class="fas fa-check-circle"></i> <span id="success-text">Merci! Votre avis a été publié.</span>
-                </div>
-
-                <!-- Error Message -->
-                <div id="avis-error-message" style="display: none; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
-                    <i class="fas fa-exclamation-circle"></i> <span id="error-text"></span>
-                </div>
-
-                <!-- Loading State -->
-                <div id="avis-loading" style="display: none; text-align: center; padding: 10px; color: #5ea96b;">
-                    <i class="fas fa-spinner fa-spin"></i> Envoi en cours...
-                </div>
-
-                <form id="avis-form" method="POST" action="#" style="display: none;">
-                    <div style="margin-bottom: 15px;">
-                        <textarea 
-                            id="avis-contenu"
-                            name="contenu" 
-                            placeholder="Partager votre expérience avec ce produit..." 
-                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; font-size: 13px; resize: vertical; min-height: 100px; box-sizing: border-box;"
-                            required
-                            minlength="2"
-                            maxlength="1000"></textarea>
-                        <small style="color: #999; display: block; margin-top: 5px;">Minimum 2 caractères, maximum 1000</small>
+                {% if app.user %}
+                    <!-- Success Message -->
+                    <div id="avis-success-message" style="display: none; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+                        <i class="fas fa-check-circle"></i> <span id="success-text">Merci! Votre avis a été publié.</span>
                     </div>
-                    <button 
-                        type="submit" 
-                        id="avis-submit-btn"
-                        style="background-color: #5ea96b; color: white; padding: 10px 25px; font-weight: 700; font-size: 12px; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;"
-                        onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';"
-                        onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';">
-                        <i class="fas fa-paper-plane"></i> Soumettre mon Avis
-                    </button>
-                </form>
 
-                <!-- Form toggle button (visible when not showing form) -->
-                <button 
-                    id="avis-toggle-btn"
-                    type="button"
-                    style="background-color: #5ea96b; color: white; padding: 10px 25px; font-weight: 700; font-size: 12px; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; width: 100%;"
-                    onmouseover="this.style.backgroundColor = '#4a8b5c';"
-                    onmouseout="this.style.backgroundColor = '#5ea96b';">
-                    <i class="fas fa-edit"></i> Ajouter un Avis
-                </button>
+                    <!-- Error Message -->
+                    <div id="avis-error-message" style="display: none; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-circle"></i> <span id="error-text"></span>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="avis-loading" style="display: none; text-align: center; padding: 10px; color: #5ea96b;">
+                        <i class="fas fa-spinner fa-spin"></i> Envoi en cours...
+                    </div>
+
+                    <form id="avis-form" method="POST" action="#" style="display: none;">
+                        <div style="margin-bottom: 15px;">
+                            <textarea 
+                                id="avis-contenu"
+                                name="contenu" 
+                                placeholder="Partager votre expérience avec ce produit..." 
+                                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; font-size: 13px; resize: vertical; min-height: 100px; box-sizing: border-box;"
+                                required
+                                minlength="2"
+                                maxlength="1000"></textarea>
+                            <small style="color: #999; display: block; margin-top: 5px;">Minimum 2 caractères, maximum 1000</small>
+                        </div>
+                        <button 
+                            type="submit" 
+                            id="avis-submit-btn"
+                            style="background-color: #5ea96b; color: white; padding: 10px 25px; font-weight: 700; font-size: 12px; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;"
+                            onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';"
+                            onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';">
+                            <i class="fas fa-paper-plane"></i> Soumettre mon Avis
+                        </button>
+                    </form>
+
+                    <!-- Form toggle button (visible when not showing form) -->
+                    <button 
+                        id="avis-toggle-btn"
+                        type="button"
+                        style="background-color: #5ea96b; color: white; padding: 10px 25px; font-weight: 700; font-size: 12px; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; width: 100%;"
+                        onmouseover="this.style.backgroundColor = '#4a8b5c';"
+                        onmouseout="this.style.backgroundColor = '#5ea96b';">
+                        <i class="fas fa-edit"></i> Ajouter un Avis
+                    </button>
+                {% else %}
+                    <!-- Authentication Required Message -->
+                    <div style="padding: 20px; text-align: center; background-color: white; border: 2px dashed #5ea96b; border-radius: 4px;">
+                        <h5 style="color: #2c3e50; font-weight: 700; margin: 0 0 10px 0; font-size: 14px;">
+                            <i class="fas fa-lock" style="color: #5ea96b;"></i> Authentification Requise
+                        </h5>
+                        <p style="color: #656565; margin: 0 0 15px 0; font-size: 13px;">
+                            Vous devez être connecté pour laisser un avis sur ce produit.
+                        </p>
+                        <a href="{{ path('app_login') }}" class="btn btn-primary me-2" style="display: inline-block; background-color: #5ea96b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; font-size: 12px; transition: all 0.3s ease;">
+                            <i class="fas fa-sign-in-alt"></i> Se Connecter
+                        </a>
+                        <a href="{{ path('app_register') }}" class="btn btn-outline-primary" style="display: inline-block; background-color: transparent; color: #5ea96b; border: 2px solid #5ea96b; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; font-size: 12px; transition: all 0.3s ease;">
+                            <i class="fas fa-user-plus"></i> S'Inscrire
+                        </a>
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Display Reviews -->
@@ -195,7 +219,14 @@
                             <!-- Review Header -->
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                                 <div>
-                                    <h5 style="color: #2c3e50; font-weight: 700; margin: 0; font-size: 13px;">Client</h5>
+                                    <h5 style="color: #2c3e50; font-weight: 700; margin: 0; font-size: 13px;">
+                                        <i class="fas fa-user-circle"></i>
+                                        {% if commentaire.user %}
+                                            {{ commentaire.user.firstName ?? 'Utilisateur' }}
+                                        {% else %}
+                                            Client
+                                        {% endif %}
+                                    </h5>
                                     <small style="color: #999; font-size: 11px;">
                                         <i class="far fa-calendar"></i>
                                         {{ commentaire.datePublication|date('d M Y à H:i') }}

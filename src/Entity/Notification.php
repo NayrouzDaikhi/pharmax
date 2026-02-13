@@ -16,11 +16,15 @@ class Notification
     #[ORM\Column(type: 'text')]
     private ?string $message = null;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', name: 'is_read')]
     private ?bool $isRead = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $user = null;
 
     public function getId(): ?int
     {
@@ -59,6 +63,18 @@ class Notification
     public function setIsRead(bool $isRead): static
     {
         $this->isRead = $isRead;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

@@ -35,7 +35,7 @@ class Produit
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, name: 'date_expiration')]
     #[Assert\NotBlank(message: 'La date d\'expiration est requise')]
     #[Assert\GreaterThan('today', message: 'La date d\'expiration doit être dans le futur')]
     private ?\DateTime $dateExpiration = null;
@@ -44,7 +44,7 @@ class Produit
     #[Assert\NotNull(message: 'Le statut est requis')]
     private ?bool $statut = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'created_at')]
     private ?\DateTime $createdAt = null;
 
     #[ORM\Column]

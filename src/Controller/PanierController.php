@@ -18,6 +18,9 @@ class PanierController extends AbstractController
     #[Route('/', name: 'app_panier_index')]
     public function index(Request $request): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
         $session = $request->getSession();
         if (!$session->isStarted()) {
             $session->start();
@@ -39,6 +42,9 @@ class PanierController extends AbstractController
     #[Route('/ajouter/{id}', name: 'app_panier_ajouter')]
     public function ajouter(int $id, Request $request, ProduitRepository $produitRepository): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
         $produit = $produitRepository->find($id);
 
         if (!$produit) {
@@ -175,6 +181,11 @@ class PanierController extends AbstractController
     #[Route('/commander', name: 'app_panier_commander', methods: ['POST'])]
     public function commander(Request $request, EntityManagerInterface $em, ProduitRepository $produitRepository): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        
         $session = $request->getSession();
         if (!$session->isStarted()) {
             $session->start();
@@ -191,8 +202,8 @@ class PanierController extends AbstractController
 
         // Créer la commande
         $commande = new Commande();
-        // Si vous avez un système d'authentification
-        // $commande->setUtilisateur($this->getUser());
+        // Associate the order with the authenticated user
+        $commande->setUtilisateur($user);
 
         foreach ($panier as $item) {
             $sous = $item['prix'] * $item['quantite'];

@@ -16,12 +16,16 @@ class Reponse
     #[ORM\Column(type: "text")]
     private ?string $contenu = null;
 
-    #[ORM\Column(type: "datetime")]
+    #[ORM\Column(type: "datetime", name: 'date_reponse')]
     private \DateTimeInterface $dateReponse;
 
     #[ORM\ManyToOne(targetEntity: Reclamation::class, inversedBy: "reponses")]
     #[ORM\JoinColumn(nullable: false)]
     private ?Reclamation $reclamation = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
 
     public function __construct()
     {
@@ -63,6 +67,17 @@ class Reponse
     public function setReclamation(?Reclamation $reclamation): self
     {
         $this->reclamation = $reclamation;
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
         return $this;
     }
 }

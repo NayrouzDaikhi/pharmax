@@ -3,28 +3,37 @@
 {% block title %}Mes Commandes - Pharmax{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Mes Commandes</h1>
+<div class="mb-5">
+    <h1 class="mb-2">Mes Commandes</h1>
+    <p class="text-muted">Consultez l'historique et les détails de vos commandes</p>
+</div>
 
 {% if commandes|length == 0 %}
-<div class="alert alert-info text-center py-4">
-    <p>Vous n'avez pas encore de commandes.</p>
-    <a href="{{ path('app_front_produits') }}" class="btn btn-primary">Voir les Produits</a>
+<div class="alert alert-info text-center py-5">
+    <i class="bx bx-inbox bx-lg mb-3" style="display: block; color: #666;"></i>
+    <p class="mb-3">Vous n'avez pas encore de commandes.</p>
+    <a href="{{ path('app_front_produits') }}" class="btn btn-primary" style="background-color: #ff0000; border: none;">
+        <i class="bx bx-package me-2"></i>Voir les Produits
+    </a>
 </div>
 {% else %}
-<div class="row g-3">
+<div class="row g-4">
     {% for commande in commandes %}
     <div class="col-lg-6">
-        <div class="card">
+        <div class="card h-100" style="border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h5 class="card-title">Commande #{{ commande.id }}</h5>
+                    <div>
+                        <h5 class="card-title mb-1">Commande #{{ commande.id }}</h5>
+                        <small class="text-muted">{{ commande.createdAt|date('d/m/Y H:i') }}</small>
+                    </div>
                     <span class="badge 
                         {% if commande.statut == 'en_attente' %}bg-warning
                         {% elseif commande.statut == 'confirmee' %}bg-info
                         {% elseif commande.statut == 'expediee' %}bg-primary
                         {% elseif commande.statut == 'livree' %}bg-success
                         {% else %}bg-secondary{% endif %}
-                    ">
+                    " style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
                         {% if commande.statut == 'en_attente' %}En Attente
                         {% elseif commande.statut == 'confirmee' %}Confirmée
                         {% elseif commande.statut == 'expediee' %}Expédiée
@@ -33,21 +42,19 @@
                     </span>
                 </div>
 
-                <p class="text-muted">
-                    <strong>Date:</strong> {{ commande.createdAt|date('d/m/Y H:i') }}
-                </p>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Nombre d'articles</small>
+                        <strong class="d-block">{{ commande.produits|length }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Montant total</small>
+                        <strong class="d-block" style="color: #ff0000;">{{ commande.totales|number_format(2, ',', ' ') }} DT</strong>
+                    </div>
+                </div>
 
-                <p class="text-muted">
-                    <strong>Produits:</strong> {{ commande.produits|length }}
-                </p>
-
-                <p class="text-muted">
-                    <strong>Montant:</strong> 
-                    <span class="text-success fw-bold">{{ commande.totales|number_format(2, ',', ' ') }} DT</span>
-                </p>
-
-                <a href="{{ path('app_frontend_commande_show', {'id': commande.id}) }}" class="btn btn-sm btn-outline-primary">
-                    Voir Détails
+                <a href="{{ path('app_frontend_commande_show', {'id': commande.id}) }}" class="btn btn-sm btn-primary w-100" style="background-color: #ff0000; border: none;">
+                    <i class="bx bx-chevron-right me-1"></i>Voir Détails
                 </a>
             </div>
         </div>
