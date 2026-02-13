@@ -13,17 +13,43 @@
     
     <style>
         body { font-family: 'Lato', sans-serif; background: #f8f8f8; }
-        nav { background: #fff !important; border-bottom: 1px solid #e0e0e0; }
-        .navbar-brand { font-weight: 700; color: #222 !important; }
-        .nav-link { color: #222 !important; font-weight: 500; }
-        .nav-link:hover { color: #ff0000 !important; }
+        .navbar {
+            background: linear-gradient(135deg, #27ae60 0%, #3498db 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+            font-size: 1.5rem;
+        }
+        .nav-link {
+            color: white !important;
+            transition: opacity 0.3s;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            opacity: 0.8;
+        }
         .product-card { background: #fff; border: 1px solid #e0e0e0; transition: box-shadow 0.3s; }
         .product-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .product-price { color: #ff0000; font-weight: 700; }
         .btn-primary { background: #ff0000; border: none; }
         .btn-primary:hover { background: #cc0000; }
-        footer { background: #222; color: #fff; margin-top: 60px; }
-        .badge { background: #ff0000; }
+        footer { background: #2c3e50; color: #fff; margin-top: 60px; }
+        .badge { background: #ff4757; }
+        .dropdown-menu {
+            background: white;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .dropdown-item {
+            color: #222 !important;
+            font-weight: 500;
+        }
+        .dropdown-item:hover {
+            background-color: #f8f8f8;
+            color: #ff0000 !important;
+        }
     </style>
 
     {% block stylesheets %}{% endblock %}
@@ -31,31 +57,106 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ path('home') }}">Pharmax</a>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-xxl">
+            <a class="navbar-brand d-flex align-items-center" href="{{ path('home') }}">
+                <img src="{{ asset('images/logo pharmax.png') }}" alt="Pharmax" style="height:54px; object-fit:contain;" />
+                <span class="visually-hidden">Pharmax</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto gap-3">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('home') }}">Accueil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_front_produits') }}">Produits</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_panier_index') }}">
-                            <i class="bx bx-shopping-bag"></i> Panier
-                            {% if app.request.session.get('panier')|length > 0 %}
-                            <span class="badge ms-1">{{ app.request.session.get('panier')|length }}</span>
-                            {% endif %}
+                        <a class="nav-link" href="{{ path('home') }}">
+                            <i class="bx bx-home"></i> Accueil
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_frontend_commande_index') }}">Commandes</a>
+                        <a class="nav-link" href="{{ path('app_front_produits') }}">
+                            <i class="bx bx-package"></i> Produits
+                        </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_blog_index') }}">
+                            <i class="bx bx-news"></i> Blog
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('frontend_reclamation_index') }}">
+                            <i class="bx bx-message-square"></i> Réclamations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ path('app_panier_index') }}">
+                            <i class="bx bx-shopping-bag" style="font-size: 1.3rem;"></i>
+                            {% set panierCount = app.request.session.get('panier')|length %}
+                            {% if panierCount > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-badge" style="background: #ff4757; transform: translate(-50%, -50%);">
+                                {{ panierCount }}
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <!-- Dynamic Menu Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bx bx-menu"></i> Menu
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
+                            {% if not app.user %}
+                                <!-- Not logged in -->
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_register') }}">
+                                        <i class="bx bx-user-plus me-2"></i>
+                                        <span>S'inscrire</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_login') }}">
+                                        <i class="bx bx-log-in me-2"></i>
+                                        <span>Se Connecter</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <!-- Logged in -->
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_profile') }}">
+                                        <i class="bx bx-user me-2"></i>
+                                        <span>Mon Profil</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_frontend_commande_index') }}">
+                                        <i class="bx bx-shopping-bag me-2"></i>
+                                        <span>Mes Commandes</span>
+                                    </a>
+                                </li>
+                                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPER_ADMIN') %}
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ path('app_dashboard') }}">
+                                            <i class="bx bx-lock me-2"></i>
+                                            <span>Dashboard</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li>
+                                    <div class="dropdown-divider"></div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_logout') }}">
+                                        <i class="bx bx-log-out me-2"></i>
+                                        <span>Déconnexion</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    <!--/ Dynamic Menu Dropdown -->
                 </ul>
             </div>
         </div>
@@ -64,6 +165,19 @@
     <!-- Main Content -->
     <main class="py-4">
         <div class="container">
+            <!-- Flash Messages -->
+            {% if app.session.flashbag.peekAll %}
+                {% for label, messages in app.session.flashbag.all %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'danger' ? 'danger' : 'info') }} alert-dismissible fade show" role="alert">
+                            <i class="bx {{ label == 'success' ? 'bx-check-circle' : (label == 'danger' ? 'bx-error-circle' : 'bx-info-circle') }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+
             {% block content %}{% endblock %}
         </div>
     </main>

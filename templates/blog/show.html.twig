@@ -143,7 +143,14 @@
                     <div id="comment-{{ comment.id }}" style="padding: 20px; border-left: 4px solid #5ea96b; background-color: #f9f9f9; margin-bottom: 20px;" data-comment-id="{{ comment.id }}">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                             <div>
-                                <strong style="color: #2c3e50; font-size: 14px;">Admin</strong>
+                                <strong style="color: #2c3e50; font-size: 14px;">
+                                    <i class="fas fa-user-circle"></i>
+                                    {% if comment.user %}
+                                        {{ comment.user.firstName ?? 'Utilisateur' }}
+                                    {% else %}
+                                        Utilisateur
+                                    {% endif %}
+                                </strong>
                                 <span style="font-size: 12px; color: #999; margin-left: 15px;">
                                     {{ comment.datePublication|date('d M Y H:i') }}
                                 </span>
@@ -176,20 +183,37 @@
     
     <!-- Add Comment Form -->
     <div style="border-top: 2px solid #f0f0f0; padding-top: 30px; margin-top: 30px;">
-        <h4 style="color: #2c3e50; font-size: 16px; font-weight: 700; margin-bottom: 20px;">
-            <i class="fas fa-plus-circle" style="color: #5ea96b;"></i> {{'Add your comment'|trans}}
-        </h4>
-        
-        <!-- Response Message Area -->
-        <div id="commentResponse" style="display: none; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-size: 14px;"></div>
-        
-        <form id="commentForm" style="display: flex; flex-direction: column; gap: 15px;">
-            <textarea id="commentContent" name="contenu" required placeholder="{{'Enter your comment...'|trans}}" style="width: 100%; padding: 15px; border: 2px solid #ddd; font-size: 14px; font-family: 'Lato', sans-serif; line-height: 1.5; min-height: 120px; resize: vertical; transition: all 0.3s ease;" onblur="this.style.borderColor = '#ddd'; this.style.boxShadow = 'none';" onfocus="this.style.borderColor = '#5ea96b'; this.style.boxShadow = '0 0 0 3px rgba(94,169,107,0.1)';"></textarea>
+        {% if app.user %}
+            <h4 style="color: #2c3e50; font-size: 16px; font-weight: 700; margin-bottom: 20px;">
+                <i class="fas fa-plus-circle" style="color: #5ea96b;"></i> {{'Add your comment'|trans}}
+            </h4>
             
-            <button type="submit" id="submitBtn" style="background-color: #5ea96b; color: white; padding: 12px 30px; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease; max-width: 200px;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 4px 12px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)'; this.style.boxShadow = 'none';">
-                <i class="fas fa-paper-plane"></i> {{'Post comment'|trans}}
-            </button>
-        </form>
+            <!-- Response Message Area -->
+            <div id="commentResponse" style="display: none; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-size: 14px;"></div>
+            
+            <form id="commentForm" style="display: flex; flex-direction: column; gap: 15px;">
+                <textarea id="commentContent" name="contenu" required placeholder="{{'Enter your comment...'|trans}}" style="width: 100%; padding: 15px; border: 2px solid #ddd; font-size: 14px; font-family: 'Lato', sans-serif; line-height: 1.5; min-height: 120px; resize: vertical; transition: all 0.3s ease;" onblur="this.style.borderColor = '#ddd'; this.style.boxShadow = 'none';" onfocus="this.style.borderColor = '#5ea96b'; this.style.boxShadow = '0 0 0 3px rgba(94,169,107,0.1)';"></textarea>
+                
+                <button type="submit" id="submitBtn" style="background-color: #5ea96b; color: white; padding: 12px 30px; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease; max-width: 200px;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 4px 12px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)'; this.style.boxShadow = 'none';">
+                    <i class="fas fa-paper-plane"></i> {{'Post comment'|trans}}
+                </button>
+            </form>
+        {% else %}
+            <div style="padding: 30px; text-align: center; background-color: #f9f9f9; border-radius: 4px; border: 2px dashed #5ea96b;">
+                <h4 style="color: #2c3e50; font-size: 16px; font-weight: 700; margin-bottom: 15px;">
+                    <i class="fas fa-lock" style="color: #5ea96b;"></i> Authentification Requise
+                </h4>
+                <p style="color: #656565; margin-bottom: 20px; font-size: 14px;">
+                    Vous devez être connecté pour ajouter un commentaire.
+                </p>
+                <a href="{{ path('app_login') }}" class="btn btn-primary me-2" style="display: inline-block; background-color: #5ea96b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; transition: all 0.3s ease;">
+                    <i class="fas fa-sign-in-alt"></i> Se Connecter
+                </a>
+                <a href="{{ path('app_register') }}" class="btn btn-outline-primary" style="display: inline-block; background-color: transparent; color: #5ea96b; border: 2px solid #5ea96b; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; transition: all 0.3s ease;">
+                    <i class="fas fa-user-plus"></i> S'Inscrire
+                </a>
+            </div>
+        {% endif %}
     </div>
 </section>
 

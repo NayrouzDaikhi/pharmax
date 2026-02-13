@@ -1,0 +1,126 @@
+{% extends 'front/authentication_base.html.twig' %}
+
+{% block title %}Register | Pharmax{% endblock %}
+
+{% block auth_inner_class %} py-4{% endblock %}
+
+{% block auth_content %}
+  <h4 class="mb-2">Adventure starts here 🚀</h4>
+  <p class="mb-4">Make your app management easy and fun!</p>
+
+  {% if form is defined %}
+  {{ form_start(form, {'attr': {'class': 'mb-3', 'id': 'formAuthentication', 'method': 'POST'}}) }}
+
+    {% if form.vars.submitted and form.vars.errors %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Registration Failed!</strong>
+        {% for error in form.vars.errors %}
+          <div>{{ error.message }}</div>
+        {% endfor %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endif %}
+
+    <div class="mb-3">
+      {{ form_label(form.firstName) }}
+      {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'Enter your first name', 'autofocus': 'autofocus'}}) }}
+      {% if form.firstName.vars.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.firstName.vars.errors %}
+            {{ error.message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form_label(form.lastName) }}
+      {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Enter your last name'}}) }}
+      {% if form.lastName.vars.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.lastName.vars.errors %}
+            {{ error.message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form_label(form.email) }}
+      {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'Enter your email'}}) }}
+      {% if form.email.vars.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.email.vars.errors %}
+            {{ error.message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3 form-password-toggle">
+      {{ form_label(form.password) }}
+      <div class="input-group input-group-merge">
+        {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': '••••••••••••'}}) }}
+        <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+      </div>
+      {% if form.password.vars.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.password.vars.errors %}
+            {{ error.message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <div class="form-check">
+        {{ form_widget(form.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
+        {{ form_label(form.agreeTerms, 'I agree to privacy policy & terms', {'label_attr': {'class': 'form-check-label'}}) }}
+      </div>
+      {% if form.agreeTerms.vars.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.agreeTerms.vars.errors %}
+            {{ error.message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form_label(form.captcha, 'Verify', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.captcha) }}
+      {{ form_errors(form.captcha) }}
+    </div>
+
+    <button class="btn btn-primary d-grid w-100" type="submit">Sign up</button>
+  {{ form_end(form) }}
+  {% else %}
+    <p class="text-danger">Form not available. Please access the page through the proper registration route.</p>
+  {% endif %}
+
+  <div class="divider my-4">
+    <div class="divider-text">Or</div>
+  </div>
+
+  <div class="mb-3">
+    <a href="{{ path('connect_google_start') }}"
+       class="btn btn-light border d-grid w-100 d-flex align-items-center justify-content-center gap-2"
+       style="border-color:#dadce0; color:#3c4043; background-color:#ffffff;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.5 24.5c0-1.57-.14-3.08-.4-4.5H24v9h12.7c-.55 2.96-2.24 5.48-4.76 7.18l7.73 6c4.51-4.17 6.83-10.32 6.83-17.68z"/>
+        <path fill="#FBBC05" d="M10.54 28.41A14.5 14.5 0 0 1 9.5 24c0-1.53.26-3.01.72-4.39l-7.98-6.19C.79 16.09 0 19 0 22c0 4.91 1.77 9.41 4.74 12.9l7.8-6.49z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.73-6c-2.15 1.45-4.93 2.3-8.17 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+      <span>Sign up with Google</span>
+    </a>
+  </div>
+
+  <p class="text-center">
+    <span>Already have an account?</span>
+    <a href="{{ path('app_login') }}">
+      <span>Sign in instead</span>
+    </a>
+  </p>
+{% endblock %}

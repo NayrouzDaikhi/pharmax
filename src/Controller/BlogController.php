@@ -202,6 +202,11 @@ class BlogController extends AbstractController
     }
     public function createComment(int $id, Request $request, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        
         $article = $articleRepository->find($id);
 
         if (!$article) {
@@ -219,6 +224,7 @@ class BlogController extends AbstractController
         $commentaire = new Commentaire();
         $commentaire->setContenu($contenu);
         $commentaire->setArticle($article);
+        $commentaire->setUser($user);
         $commentaire->setDatePublication(new \DateTime());
         $commentaire->setStatut('en_attente');
 
@@ -321,6 +327,11 @@ class BlogController extends AbstractController
         Request $request,
         CommentModerationService $moderationService
     ): JsonResponse {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        
         $produit = $produitRepository->find((int)$id);
 
         if (!$produit) {
@@ -358,6 +369,7 @@ class BlogController extends AbstractController
         $commentaire = new Commentaire();
         $commentaire->setContenu($contenu);
         $commentaire->setProduit($produit);
+        $commentaire->setUser($user);
         $commentaire->setStatut('valide');
         $commentaire->setDatePublication(new \DateTime());
 

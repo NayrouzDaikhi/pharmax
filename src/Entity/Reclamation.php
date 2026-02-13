@@ -26,7 +26,7 @@ class Reclamation
     #[Assert\Length(max: 2000, maxMessage: "La description ne peut pas dépasser 2000 caractères")]
     private ?string $description = null;
 
-    #[ORM\Column(type: "datetime")]
+    #[ORM\Column(type: "datetime", name: 'date_creation')]
     private \DateTimeInterface $dateCreation;
 
     #[ORM\Column(type: "string", length: 50)]
@@ -34,6 +34,10 @@ class Reclamation
 
     #[ORM\OneToMany(mappedBy: "reclamation", targetEntity: Reponse::class, cascade: ["persist", "remove"])]
     private Collection $reponses;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
 
     public function __construct()
     {
@@ -112,6 +116,17 @@ class Reclamation
                 $reponse->setReclamation(null);
             }
         }
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
         return $this;
     }
 }

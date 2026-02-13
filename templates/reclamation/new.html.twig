@@ -7,47 +7,64 @@
     <div class="container-xxl">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card" style="border-radius: 12px; border: 1px solid #e0e0e0;">
-                    <div class="card-body p-4">
-                        <h1 class="card-title fw-bold mb-4">
-                            <i class="bx bx-message-square-add"></i> Nouvelle Réclamation
-                        </h1>
+                {% if app.user %}
+                    <div class="card" style="border-radius: 12px; border: 1px solid #e0e0e0;">
+                        <div class="card-body p-4">
+                            <h1 class="card-title fw-bold mb-4">
+                                <i class="bx bx-message-square-add"></i> Nouvelle Réclamation
+                            </h1>
 
-                        <form method="POST" action="{{ path('frontend_reclamation_new') }}">
-                            <div class="mb-3">
-                                <label for="titre" class="form-label fw-bold">Titre <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control {% if errors.titre|default(false) %}is-invalid{% endif %}" 
-                                       id="titre" name="titre" value="{{ titre|default('') }}" placeholder="Résumé de votre réclamation"
-                                       minlength="5" maxlength="50" required>
-                                {% if errors.titre|default(false) %}
-                                    <div class="invalid-feedback d-block">{{ errors.titre }}</div>
-                                {% endif %}
-                                <small class="form-text text-muted">Entre 5 et 50 caractères</small>
-                            </div>
+                            <form method="POST" action="{{ path('frontend_reclamation_new') }}">
+                                <div class="mb-3">
+                                    <label for="titre" class="form-label fw-bold">Titre <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control {% if errors.titre|default(false) %}is-invalid{% endif %}" 
+                                           id="titre" name="titre" value="{{ titre|default('') }}" placeholder="Résumé de votre réclamation"
+                                           minlength="5" maxlength="50" required>
+                                    {% if errors.titre|default(false) %}
+                                        <div class="invalid-feedback d-block">{{ errors.titre }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Entre 5 et 50 caractères</small>
+                                </div>
 
-                            <div class="mb-4">
-                                <label for="description" class="form-label fw-bold">Description <span class="text-danger">*</span></label>
-                                <textarea class="form-control {% if errors.description|default(false) %}is-invalid{% endif %}" 
-                                          id="description" name="description" rows="6" 
-                                          placeholder="Décrivez votre problème en détail..."
-                                          maxlength="2000" required>{{ description|default('') }}</textarea>
-                                {% if errors.description|default(false) %}
-                                    <div class="invalid-feedback d-block">{{ errors.description }}</div>
-                                {% endif %}
-                                <small class="form-text text-muted">Maximum 2000 caractères</small>
-                            </div>
+                                <div class="mb-4">
+                                    <label for="description" class="form-label fw-bold">Description <span class="text-danger">*</span></label>
+                                    <textarea class="form-control {% if errors.description|default(false) %}is-invalid{% endif %}" 
+                                              id="description" name="description" rows="6" 
+                                              placeholder="Décrivez votre problème en détail..."
+                                              maxlength="2000" required>{{ description|default('') }}</textarea>
+                                    {% if errors.description|default(false) %}
+                                        <div class="invalid-feedback d-block">{{ errors.description }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Maximum 2000 caractères</small>
+                                </div>
 
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="bx bx-send"></i> Soumettre la Réclamation
-                                </button>
-                                <a href="{{ path('frontend_reclamation_index') }}" class="btn btn-outline-secondary btn-lg">
-                                    <i class="bx bx-arrow-back"></i> Annuler
-                                </a>
-                            </div>
-                        </form>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bx bx-send"></i> Soumettre la Réclamation
+                                    </button>
+                                    <a href="{{ path('frontend_reclamation_index') }}" class="btn btn-outline-secondary btn-lg">
+                                        <i class="bx bx-arrow-back"></i> Annuler
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <div class="card" style="border-radius: 12px; border: 1px solid #e0e0e0;">
+                        <div class="card-body p-4 text-center">
+                            <h1 class="card-title fw-bold mb-4">
+                                <i class="bx bx-lock"></i> Authentification Requise
+                            </h1>
+                            <p class="lead mb-4">Vous devez être connecté pour soumettre une réclamation.</p>
+                            <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg me-2">
+                                <i class="bx bx-log-in"></i> Se Connecter
+                            </a>
+                            <a href="{{ path('app_register') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="bx bx-user-plus"></i> S'Inscrire
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -1,0 +1,116 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Mon Profil - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Mon Profil</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">Mon Profil</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                {% set fallbackAvatar = asset('back/assets/img/avatars/1.png') %}
+                {% set avatarPath = user.avatar ? asset(user.avatar) : fallbackAvatar %}
+
+                <div class="mb-3">
+                    <img
+                        src="{{ avatarPath }}"
+                        alt="User avatar"
+                        class="rounded-circle img-fluid"
+                        style="width: 120px; height: 120px; object-fit: cover;"
+                        onerror="this.onerror=null;this.src='{{ fallbackAvatar }}';"
+                    />
+                </div>
+                <h5 class="mb-1">{{ user.fullName }}</h5>
+                <p class="text-muted mb-0">{{ user.email }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Détails du Profil</h5>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.firstName) }}
+                        {{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
+                        {% if form.firstName.vars.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.firstName) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.lastName) }}
+                        {{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
+                        {% if form.lastName.vars.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form_errors(form.lastName) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.email) }}
+                    {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                    {% if form.email.vars.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form_errors(form.email) }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.plainPassword, 'Nouveau Mot de passe') }}
+                    {{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
+                    <small class="text-muted d-block mt-1">Laissez vide si vous ne souhaitez pas modifier votre mot de passe.</small>
+                    {% if form.plainPassword.vars.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form_errors(form.plainPassword) }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.avatar) }}
+                    {{ form_widget(form.avatar, {'attr': {'class': 'form-control'}}) }}
+                    <small class="text-muted d-block mt-1">Téléchargez un JPG, PNG ou GIF (max 2MB).</small>
+                    {% if form.avatar.vars.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form_errors(form.avatar) }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="pt-3">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bx bx-save me-1"></i>
+                        Enregistrer les modifications
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

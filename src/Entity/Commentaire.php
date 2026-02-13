@@ -22,7 +22,7 @@ class Commentaire
     #[Assert\Length(min: 2, max: 1000)]
     private ?string $contenu = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, name: 'created_at')]
     #[Assert\NotNull]
     private ?\DateTimeInterface $date_publication = null;
 
@@ -37,6 +37,10 @@ class Commentaire
     #[ORM\ManyToOne(inversedBy: 'avis')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Produit $produit = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
 
     public function __construct()
     {
@@ -104,7 +108,14 @@ class Commentaire
         return $this;
     }
 
-    // TODO: relation avec Utilisateur à ajouter ultérieurement
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
 
-
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+        return $this;
+    }
 }

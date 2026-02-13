@@ -145,6 +145,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Titre</th>
+                        <th>Utilisateur</th>
                         <th>Statut</th>
                         <th>Date</th>
                         <th>Réponses</th>
@@ -156,6 +157,14 @@
                     <tr>
                         <td><strong>#{{ reclamation.id }}</strong></td>
                         <td>{{ reclamation.titre }}</td>
+                        <td>
+                            {% if reclamation.user %}
+                                <i class="bx bx-user"></i> {{ reclamation.user.firstName ?? 'N/A' }}<br>
+                                <small class="text-muted">{{ reclamation.user.email ?? '' }}</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if reclamation.statut == 'En attente' %}
                                 <span class="badge bg-label-warning">En attente</span>

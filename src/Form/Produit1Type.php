@@ -9,6 +9,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
@@ -48,7 +49,12 @@ class Produit1Type extends AbstractType
                     ])
                 ],
             ])
-            ->add('dateExpiration')
+            ->add('dateExpiration', DateType::class, [
+                'label' => 'Date d\'expiration',
+                'widget' => 'single_text',
+                'format' => 'yyyy-MM-dd',
+                'attr' => ['class' => 'form-control', 'type' => 'date'],
+            ])
             ->add('statut', ChoiceType::class, [
                 'label' => 'État du Stock',
                 'choices' => [

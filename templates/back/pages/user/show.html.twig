@@ -1,0 +1,373 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}{{ user.fullName }} - Détails Utilisateur - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Détails de l'Utilisateur</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('admin_user_index') }}">Utilisateurs</a></li>
+                <li class="breadcrumb-item active">{{ user.fullName }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Informations de l'Utilisateur</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Prénom</label>
+                        <p class="mb-0"><strong>{{ user.firstName }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Nom</label>
+                        <p class="mb-0"><strong>{{ user.lastName }}</strong></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label text-muted">Email</label>
+                        <p class="mb-0"><strong>{{ user.email }}</strong></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Statut</label>
+                        <p class="mb-0">
+                            {% if user.isBlocked %}
+                                <span class="badge bg-label-danger">Bloqué</span>
+                            {% else %}
+                                <span class="badge bg-label-success">Actif</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Rôles</label>
+                        <div>
+                            {% for role in user.roles %}
+                                <span class="badge bg-label-{{ role == 'ROLE_SUPER_ADMIN' ? 'primary' : (role == 'ROLE_ADMIN' ? 'warning' : 'info') }} me-1">
+                                    {{ role|replace({'ROLE_': ''}) }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatar Display -->
+                {% if user.avatar %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label text-muted">Avatar</label>
+                        <div>
+                            <img src="{{ asset(user.avatar) }}" alt="{{ user.fullName }}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Password Display (Only for Super Admin) -->
+                {% if canShowPassword %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="card border-info mb-0">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="bx bx-lock-alt text-info" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="text-info mb-2">🔐 Hashed Password</h6>
+                                        <p class="text-muted small mb-2">
+                                            <em>This password is stored as a secure hash in the database and cannot be reversed.</em>
+                                        </p>
+                                        <div class="bg-light border border-info rounded p-3" style="font-family: monospace; font-size: 0.85rem; word-break: break-all; overflow-x: auto;">
+                                            <code class="text-dark">{{ user.password }}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Dates</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Créé le</label>
+                        <p class="mb-0">
+                            {% if user.createdAt %}
+                                {{ user.createdAt|date('d/m/Y H:i') }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Modifié le</label>
+                        <p class="mb-0">
+                            {% if user.updatedAt %}
+                                {{ user.updatedAt|date('d/m/Y H:i') }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ path('admin_user_edit', {'id': user.id}) }}" class="btn btn-primary w-100 mb-2">
+                    <i class="bx bx-edit me-1"></i> Éditer
+                </a>
+                <form method="POST" action="{{ path('admin_user_delete', {'id': user.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');" class="d-grid">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bx bx-trash me-1"></i> Supprimer
+                    </button>
+                </form>
+                <hr />
+                <a href="{{ path('admin_user_index') }}" class="btn btn-secondary w-100">
+                    <i class="bx bx-arrow-back me-1"></i> Retour à la Liste
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table with Filters -->
+{% if users is defined %}
+<div class="card mt-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="card-title mb-0">Tous les Utilisateurs</h5>
+        <small class="text-muted">{{ users|length }} utilisateurs trouvés</small>
+    </div>
+    
+    <!-- Filter Form -->
+    <div class="card-body border-bottom">
+        <form id="filterForm" method="GET" action="{{ path('admin_user_show', {'id': user.id}) }}">
+            <div class="row g-3 align-items-end">
+                <!-- Search Input -->
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="searchInput" class="form-label fw-500">Recherche</label>
+                    <input 
+                        type="text" 
+                        name="q" 
+                        id="searchInput" 
+                        class="form-control" 
+                        placeholder="Nom ou email"
+                        value="{{ criteria.q ?? '' }}"
+                    >
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="statusFilter" class="form-label fw-500">Statut</label>
+                    <select 
+                        name="status" 
+                        id="statusFilter" 
+                        class="form-select"
+                        onchange="document.getElementById('filterForm').submit()"
+                    >
+                        <option value="">— Tous les Statuts —</option>
+                        <option value="UNBLOCKED" {% if criteria.status == 'UNBLOCKED' %}selected{% endif %}>
+                            Actif
+                        </option>
+                        <option value="BLOCKED" {% if criteria.status == 'BLOCKED' %}selected{% endif %}>
+                            Bloqué
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Role Filter -->
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="roleFilter" class="form-label fw-500">Rôle</label>
+                    <select 
+                        name="role" 
+                        id="roleFilter" 
+                        class="form-select"
+                        onchange="document.getElementById('filterForm').submit()"
+                    >
+                        <option value="">— Tous les Rôles —</option>
+                        <option value="ROLE_SUPER_ADMIN" {% if criteria.role == 'ROLE_SUPER_ADMIN' %}selected{% endif %}>
+                            Super Admin
+                        </option>
+                        <option value="ROLE_ADMIN" {% if criteria.role == 'ROLE_ADMIN' %}selected{% endif %}>
+                            Admin
+                        </option>
+                        <option value="ROLE_USER" {% if criteria.role == 'ROLE_USER' %}selected{% endif %}>
+                            Utilisateur
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Sort Field -->
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="sortField" class="form-label fw-500">Trier par</label>
+                    <select 
+                        name="sort" 
+                        id="sortField" 
+                        class="form-select"
+                        onchange="document.getElementById('filterForm').submit()"
+                    >
+                        <option value="lastName" {% if sort.field == 'lastName' %}selected{% endif %}>
+                            Nom
+                        </option>
+                        <option value="firstName" {% if sort.field == 'firstName' %}selected{% endif %}>
+                            Prénom
+                        </option>
+                        <option value="email" {% if sort.field == 'email' %}selected{% endif %}>
+                            Email
+                        </option>
+                        <option value="createdAt" {% if sort.field == 'createdAt' %}selected{% endif %}>
+                            Créé le
+                        </option>
+                        <option value="updatedAt" {% if sort.field == 'updatedAt' %}selected{% endif %}>
+                            Modifié le
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row g-2 mt-3">
+                <div class="col-12 col-sm-auto">
+                    <!-- Sort Direction Toggle -->
+                    <button 
+                        type="submit" 
+                        name="dir" 
+                        value="{{ sort.dir == 'ASC' ? 'DESC' : 'ASC' }}"
+                        class="btn btn-outline-secondary w-100"
+                        title="Inverser l'ordre de tri"
+                    >
+                        <i class="bx bx-sort{{ sort.dir == 'ASC' ? '-up' : '-down' }}"></i>
+                        <span class="d-none d-sm-inline ms-1">{{ sort.dir == 'ASC' ? 'ASC' : 'DESC' }}</span>
+                    </button>
+                </div>
+
+                <div class="col-12 col-sm-auto">
+                    <!-- Search Button -->
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-search"></i>
+                        <span class="d-none d-sm-inline ms-1">Recherche</span>
+                    </button>
+                </div>
+
+                <!-- Clear Button (show only if filters are active) -->
+                {% if criteria.q or criteria.status or criteria.role or sort.dir != 'ASC' or sort.field != 'lastName' %}
+                <div class="col-12 col-sm-auto">
+                    <a href="{{ path('admin_user_show', {'id': user.id}) }}" class="btn btn-warning w-100">
+                        <i class="bx bx-x"></i>
+                        <span class="d-none d-sm-inline ms-1">Effacer</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    {% if users is not empty %}
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th class="text-nowrap">Prénom</th>
+                    <th class="text-nowrap">Nom</th>
+                    <th class="text-nowrap">Email</th>
+                    <th class="text-nowrap">Statut</th>
+                    <th class="text-nowrap">Rôle</th>
+                    <th class="text-nowrap">Créé le</th>
+                    <th class="text-center text-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for filteredUser in users %}
+                <tr>
+                    <td class="align-middle">
+                        <strong>{{ filteredUser.firstName }}</strong>
+                    </td>
+                    <td class="align-middle">
+                        <strong>{{ filteredUser.lastName }}</strong>
+                    </td>
+                    <td class="align-middle">
+                        <small>{{ filteredUser.email }}</small>
+                    </td>
+                    <td class="align-middle">
+                        {% if filteredUser.isBlocked %}
+                            <span class="badge bg-danger">
+                                <i class="bx bx-block me-1"></i>Bloqué
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">
+                                <i class="bx bx-check me-1"></i>Actif
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="align-middle">
+                        {% if filteredUser.roles is not empty %}
+                            {% for role in filteredUser.roles %}
+                                <span class="badge bg-label-{{ role == 'ROLE_SUPER_ADMIN' ? 'primary' : (role == 'ROLE_ADMIN' ? 'warning' : 'info') }} me-1">
+                                    {{ role|replace({'ROLE_': ''}) }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td class="align-middle text-nowrap">
+                        {% if filteredUser.createdAt %}
+                            <small>{{ filteredUser.createdAt|date('d/m/Y') }}</small>
+                        {% else %}
+                            <small class="text-muted">—</small>
+                        {% endif %}
+                    </td>
+                    <td class="align-middle text-center">
+                        <a href="{{ path('admin_user_show', {'id': filteredUser.id}) }}" class="btn btn-sm btn-info" title="Voir">
+                            <i class="bx bx-show"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="alert alert-info m-4 mb-0">
+        <div class="d-flex align-items-center">
+            <i class="bx bx-info-circle me-3 fs-4"></i>
+            <div>
+                <strong>Aucun résultat</strong>
+                <p class="mb-0 small mt-1">Aucun utilisateur ne correspond aux critères de recherche.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

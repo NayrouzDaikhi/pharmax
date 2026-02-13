@@ -55,33 +55,89 @@ class CommandeQrCodeService
 
             $this->logger->info('QR data prepared: ' . strlen($qrData) . ' bytes');
 
-            // Generate QR code
-            $qrCode = QrCode::create($qrData)
-                ->setErrorCorrectionLevel(ErrorCorrectionLevel::High)
-                ->setSize(250)
-                ->setMargin(5);
+            // Generate QR code using v5.1 API
+            try {
+                $qrCode = QrCode::create($qrData)
+                    ->setErrorCorrectionLevel(ErrorCorrectionLevel::High)
+                    ->setSize(250)
+                    ->setMargin(5);
 
-            $this->logger->info('QR code object created');
+                $this->logger->info('QR code object created successfully');
 
-            // Write to PNG
-            $writer = new PngWriter();
-            $result = $writer->write($qrCode);
-            $pngData = $result->getString();
+                // Write to PNG
+                $writer = new PngWriter();
+                $result = $writer->write($qrCode);
+                
+                // Get PNG data from the result object
+                $pngData = null;
+                if (method_exists($result, 'getString')) {
+                    $pngData = $result->getString();
+                } elseif (method_exists($result, 'getStream')) {
+                    $pngData = stream_get_contents($result->getStream());
+                } else {
+                    // Try to convert to string directly
+                    $pngData = (string)$result;
+                }
 
-            $this->logger->info('PNG data generated, size: ' . strlen($pngData) . ' bytes');
+                $this->logger->info('PNG data generated, size: ' . strlen($pngData ?? '') . ' bytes');
 
-            if (empty($pngData)) {
-                $this->logger->warning('QR code generation returned empty string');
-                return '';
+                if (empty($pngData)) {
+                    $this->logger->warning('QR code generation: Empty PNG data returned');
+                    // Return fallback - generate QR code with simpler method
+                    return $this->generateFallbackQrCode($qrData);
+                }
+
+                $dataUrl = 'data:image/png;base64,' . base64_encode($pngData);
+                $this->logger->info('QR code data URL generated successfully, length: ' . strlen($dataUrl) . ' chars');
+                
+                return $dataUrl;
+            } catch (\Exception $e) {
+                $this->logger->error('QR code library error: ' . $e->getMessage());
+                $this->logger->error('Stack trace: ' . $e->getTraceAsString());
+                // Return fallback
+                return $this->generateFallbackQrCode($qrData);
             }
-
-            $dataUrl = 'data:image/png;base64,' . base64_encode($pngData);
-            $this->logger->info('QR code data URL generated successfully, length: ' . strlen($dataUrl) . ' chars');
-            
-            return $dataUrl;
         } catch (\Exception $e) {
             $this->logger->error('QR code generation failed: ' . $e->getMessage() . ' | ' . $e->getTraceAsString());
             return '';
         }
     }
+
+    /**
+     * Generate a fallback QR code using alternative method
+     */
+    private function generateFallbackQrCode(string $data): string
+    {
+        try {
+            $this->logger->info('Using fallback QR code generation');
+            
+            // Use a free QR code API as fallback
+            $encodedData = urlencode($data);
+            $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" . $encodedData;
+            
+            $this->logger->info('Fallback QR code URL: ' . $qrUrl);
+            
+            // Safely fetch the QR code from external API
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 5,
+                ]
+            ]);
+            
+            $pngData = @file_get_contents($qrUrl, false, $context);
+            
+            if (!empty($pngData)) {
+                $dataUrl = 'data:image/png;base64,' . base64_encode($pngData);
+                $this->logger->info('Fallback QR code generated successfully');
+                return $dataUrl;
+            }
+            
+            $this->logger->warning('Fallback QR code: Could not fetch from API');
+            return '';
+        } catch (\Exception $e) {
+            $this->logger->error('Fallback QR code generation failed: ' . $e->getMessage());
+            return '';
+        }
+    }
 }
+

@@ -388,11 +388,64 @@
                             {% endif %}
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-light btn-sm text-dark" href="{{ path('app_dashboard') }}">
-                            <i class="bx bx-lock"></i> Admin
+                    <!-- Dynamic Menu Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bx bx-menu"></i> Menu
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
+                            {% if not app.user %}
+                                <!-- Not logged in -->
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_register') }}">
+                                        <i class="bx bx-user-plus me-2"></i>
+                                        <span>S'inscrire</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_login') }}">
+                                        <i class="bx bx-log-in me-2"></i>
+                                        <span>Se Connecter</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <!-- Logged in -->
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_profile') }}">
+                                        <i class="bx bx-user me-2"></i>
+                                        <span>Mon Profil</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_frontend_commande_index') }}">
+                                        <i class="bx bx-shopping-bag me-2"></i>
+                                        <span>Mes Commandes</span>
+                                    </a>
+                                </li>
+                                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPER_ADMIN') %}
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ path('app_dashboard') }}">
+                                            <i class="bx bx-lock me-2"></i>
+                                            <span>Dashboard</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li>
+                                    <div class="dropdown-divider"></div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_logout') }}">
+                                        <i class="bx bx-log-out me-2"></i>
+                                        <span>Déconnexion</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
                     </li>
+                    <!--/ Dynamic Menu Dropdown -->
                 </ul>
             </div>
         </div>

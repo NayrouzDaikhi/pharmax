@@ -26,6 +26,18 @@
                     {% endif %}
                 </div>
                 <div class="card-body">
+                    <!-- User Information -->
+                    {% if reclamation.user %}
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <strong>Utilisateur:</strong>
+                        <p class="mb-0">
+                            <i class="bx bx-user"></i> 
+                            {{ reclamation.user.firstName ?? 'N/A' }}
+                            <small class="text-muted">({{ reclamation.user.email ?? 'N/A' }})</small>
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <div class="mb-3">
                         <strong>Date de création:</strong>
                         <p>{{ reclamation.dateCreation|date('d/m/Y à H:i') }}</p>
@@ -200,27 +212,41 @@
                 <div class="card-body">
                     {% for reponse in reclamation.reponses %}
                     <div class="mb-3 p-3 border-start border-info rounded">
-                        <div class="d-flex justify-content-between align-items-start">
+                        <!-- Admin/User Info -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <p class="mb-2">{{ reponse.contenu }}</p>
-                                <small class="text-muted">
-                                    <i class="bx bx-calendar"></i> {{ reponse.dateReponse|date('d/m/Y à H:i') }}
-                                </small>
+                                {% if reponse.user %}
+                                    <strong>
+                                        <i class="bx bx-user-circle"></i> 
+                                        {{ reponse.user.firstName ?? 'Admin' }}
+                                    </strong>
+                                    {% if 'ROLE_SUPER_ADMIN' in reponse.user.roles %}
+                                        <span class="badge bg-danger ms-1">Super Admin</span>
+                                    {% elseif 'ROLE_ADMIN' in reponse.user.roles %}
+                                        <span class="badge bg-warning ms-1">Admin</span>
+                                    {% endif %}
+                                {% else %}
+                                    <strong><i class="bx bx-user-circle"></i> Admin</strong>
+                                {% endif %}
                             </div>
-                            <div class="d-flex gap-2">
-                                <a href="{{ path('admin_reponse_edit', {'id': reponse.id}) }}" 
-                                   class="btn btn-sm btn-warning" title="Éditer">
-                                    <i class="bx bx-edit"></i>
-                                </a>
-                                <form method="POST" action="{{ path('admin_reponse_delete', {'id': reponse.id}) }}" 
-                                      style="display:inline;"
-                                      onsubmit="return confirm('Êtes-vous sûr?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
-                                        <i class="bx bx-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
+                            <small class="text-muted">
+                                <i class="bx bx-calendar"></i> {{ reponse.dateReponse|date('d/m/Y à H:i') }}
+                            </small>
+                        </div>
+                        <p class="mb-2">{{ reponse.contenu }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('admin_reponse_edit', {'id': reponse.id}) }}" 
+                               class="btn btn-sm btn-warning" title="Éditer">
+                                <i class="bx bx-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ path('admin_reponse_delete', {'id': reponse.id}) }}" 
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Êtes-vous sûr?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}

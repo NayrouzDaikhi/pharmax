@@ -1,0 +1,13 @@
+# Google OAuth2: redirect_uri is generated from redirect_route as an absolute URL.
+# It must match EXACTLY what you add in Google Cloud Console → APIs & Services →
+# Credentials → your OAuth 2.0 Client ID → Authorized redirect URIs.
+# Examples: http://localhost:8000/connect/google/check (local) or https://yourdomain.com/connect/google/check (prod)
+knpu_oauth2_client:
+    clients:
+        google:
+            type: google
+            client_id: '%env(GOOGLE_CLIENT_ID)%'
+            client_secret: '%env(GOOGLE_CLIENT_SECRET)%'
+            redirect_route: connect_google_check
+            redirect_params: {}
+            use_state: true

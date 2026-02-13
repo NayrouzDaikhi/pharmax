@@ -30,7 +30,7 @@ class Categorie
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'created_at')]
     private ?\DateTime $createdAt = null;
 
     #[ORM\OneToMany(targetEntity: Produit::class, mappedBy: 'categorie', cascade: ['persist', 'remove'])]

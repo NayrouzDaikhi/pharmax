@@ -31,6 +31,10 @@ class ReclamationController extends AbstractController
     #[Route('/new', name: 'frontend_reclamation_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
         $errors = [];
         $titre = '';
         $description = '';
@@ -52,6 +56,7 @@ class ReclamationController extends AbstractController
                 $reclamation = new Reclamation();
                 $reclamation->setTitre($titre);
                 $reclamation->setDescription($description);
+                $reclamation->setUser($user); // Track the logged-in user
 
                 // Valider l'entité avec Symfony Validator
                 $violations = $this->validator->validate($reclamation);
@@ -83,6 +88,16 @@ class ReclamationController extends AbstractController
     #[Route('/{id}', name: 'frontend_reclamation_show', methods: ['GET'])]
     public function show(Reclamation $reclamation): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        
+        // Check if the user owns this reclamation or is an admin
+        if ($reclamation->getUser() !== $user && !$this->isGranted('ROLE_ADMIN')) {
+            throw $this->createAccessDeniedException('You can only view your own reclamations.');
+        }
+        
         return $this->render('reclamation/show.html.twig', [
             'reclamation' => $reclamation,
         ]);
@@ -91,6 +106,16 @@ class ReclamationController extends AbstractController
     #[Route('/{id}/edit', name: 'frontend_reclamation_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Reclamation $reclamation): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        
+        // Check if the user owns this reclamation
+        if ($reclamation->getUser() !== $user) {
+            throw $this->createAccessDeniedException('You can only edit your own reclamations.');
+        }
+        
         $errors = [];
         $titre = $reclamation->getTitre() ?? '';
         $description = $reclamation->getDescription() ?? '';
@@ -144,6 +169,16 @@ class ReclamationController extends AbstractController
     #[Route('/{id}', name: 'frontend_reclamation_delete', methods: ['POST'])]
     public function delete(Request $request, Reclamation $reclamation): Response
     {
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        
+        // Check if the user owns this reclamation
+        if ($reclamation->getUser() !== $user) {
+            throw $this->createAccessDeniedException('You can only delete your own reclamations.');
+        }
+        
         if ($this->isCsrfTokenValid('delete' . $reclamation->getId(), $request->request->get('_token'))) {
             $this->em->remove($reclamation);
             $this->em->flush();
