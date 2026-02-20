@@ -9,7 +9,7 @@
   <p class="mb-4">Make your app management easy and fun!</p>
 
   {% if form is defined %}
-  {{ form_start(form, {'attr': {'class': 'mb-3', 'id': 'formAuthentication', 'method': 'POST'}}) }}
+  {{ form_start(form, {'attr': {'class': 'mb-3', 'id': 'formAuthentication', 'method': 'POST', 'novalidate': 'novalidate'}}) }}
 
     {% if form.vars.submitted and form.vars.errors %}
       <div class="alert alert-danger alert-dismissible fade show" role="alert">

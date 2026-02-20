@@ -111,15 +111,6 @@ public function login(AuthenticationUtils $authenticationUtils, Request $request
     }
 
     /**
-     * Home/index page
-     */
-    #[Route('/', name: 'app_index')]
-    public function index(): Response
-    {
-        return $this->render('front/index.html.twig');
-    }
-
-    /**
      * User profile page (placeholder)
      */
     #[Route('/profile', name: 'app_profile')]

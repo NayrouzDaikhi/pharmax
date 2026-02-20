@@ -24,7 +24,11 @@ class RegistrationFormType extends AbstractType
                     new Assert\NotBlank(['message' => 'First name is required']),
                     new Assert\Length([
                         'max' => 255,
-                        'maxMessage' => 'Username must not exceed 255 characters',
+                        'maxMessage' => 'First name must not exceed 255 characters',
+                    ]),
+                    new Assert\Regex([
+                        'pattern' => '/^[a-zA-Z\s\-\']+$/u',
+                        'message' => 'First name can only contain letters, spaces, hyphens and apostrophes',
                     ]),
                 ],
             ])
@@ -36,6 +40,10 @@ class RegistrationFormType extends AbstractType
                         'max' => 255,
                         'maxMessage' => 'Last name must not exceed 255 characters',
                     ]),
+                    new Assert\Regex([
+                        'pattern' => '/^[a-zA-Z\s\-\']+$/u',
+                        'message' => 'Last name can only contain letters, spaces, hyphens and apostrophes',
+                    ]),
                 ],
             ])
             ->add('email', EmailType::class, [
@@ -43,6 +51,10 @@ class RegistrationFormType extends AbstractType
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'Email is required']),
                     new Assert\Email(['message' => 'Invalid email format']),
+                    new Assert\Length([
+                        'max' => 255,
+                        'maxMessage' => 'Email must not exceed 255 characters',
+                    ]),
                 ],
             ])
             ->add('password', PasswordType::class, [
@@ -52,7 +64,10 @@ class RegistrationFormType extends AbstractType
                     new Assert\Length([
                         'min' => 8,
                         'minMessage' => 'Password must be at least 8 characters long',
+                        'max' => 4096,
+                        'maxMessage' => 'Password must not exceed 4096 characters',
                     ]),
+                    new Assert\PasswordStrength(),
                 ],
             ])
             ->add('agreeTerms', CheckboxType::class, [

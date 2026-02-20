@@ -38,4 +38,18 @@ class ReclamationRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * Find reclamations by user
+     */
+    public function findByUser($user, $orderBy = 'dateCreation', $direction = 'DESC')
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('r.' . $orderBy, $direction)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

@@ -10,9 +10,11 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class ProfileFormType extends AbstractType
 {
@@ -23,17 +25,40 @@ class ProfileFormType extends AbstractType
                 'label' => 'First Name',
                 'constraints' => [
                     new NotBlank(['message' => 'First name is required']),
+                    new Length([
+                        'max' => 255,
+                        'maxMessage' => 'First name must not exceed 255 characters',
+                    ]),
+                    new Regex([
+                        'pattern' => '/^[a-zA-Z\s\-\']+$/u',
+                        'message' => 'First name can only contain letters, spaces, hyphens and apostrophes',
+                    ]),
                 ],
             ])
             ->add('lastName', TextType::class, [
                 'label' => 'Last Name',
                 'required' => false,
                 'empty_data' => '',
+                'constraints' => [
+                    new Length([
+                        'max' => 255,
+                        'maxMessage' => 'Last name must not exceed 255 characters',
+                    ]),
+                    new Regex([
+                        'pattern' => '/^[a-zA-Z\s\-\']*$/u',
+                        'message' => 'Last name can only contain letters, spaces, hyphens and apostrophes',
+                    ]),
+                ],
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Email',
                 'constraints' => [
                     new NotBlank(['message' => 'Email is required']),
+                    new Email(['message' => 'Invalid email format']),
+                    new Length([
+                        'max' => 255,
+                        'maxMessage' => 'Email must not exceed 255 characters',
+                    ]),
                 ],
             ])
             ->add('plainPassword', PasswordType::class, [
@@ -44,6 +69,8 @@ class ProfileFormType extends AbstractType
                     new Length([
                         'min' => 6,
                         'minMessage' => 'Password must be at least {{ limit }} characters long',
+                        'max' => 4096,
+                        'maxMessage' => 'Password must not exceed 4096 characters',
                     ]),
                 ],
                 'attr' => [

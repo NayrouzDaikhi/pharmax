@@ -58,7 +58,6 @@ class Produit1Type extends AbstractType
             ->add('statut', ChoiceType::class, [
                 'label' => 'État du Stock',
                 'choices' => [
-                    'Valable' => true,
                     'Hors Stock' => false,
                 ],
                 'attr' => ['class' => 'form-select'],

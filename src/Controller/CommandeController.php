@@ -201,6 +201,14 @@ class CommandeController extends AbstractController
             $commandes = $qb->getQuery()->getResult();
         }
 
+        // Verify GD extension is enabled (required for Dompdf to handle images)
+        if (!extension_loaded('gd')) {
+            throw new \RuntimeException(
+                'The GD extension is required for PDF generation but is not enabled. '
+                . 'Please enable the GD extension in your php.ini file.'
+            );
+        }
+
         // Render HTML content for PDF
         $html = $this->renderView('commande/export-pdf.html.twig', [
             'commandes' => $commandes,
@@ -227,6 +235,14 @@ class CommandeController extends AbstractController
     {
         if (!$commande) {
             throw $this->createNotFoundException('La commande n\'existe pas.');
+        }
+
+        // Verify GD extension is enabled (required for Dompdf to handle images)
+        if (!extension_loaded('gd')) {
+            throw new \RuntimeException(
+                'The GD extension is required for PDF generation but is not enabled. '
+                . 'Please enable the GD extension in your php.ini file.'
+            );
         }
 
         $qrCodeDataUrl = $qrCodeService->generateQrCodeDataUrl($commande);

@@ -1,0 +1,369 @@
+{% extends 'front_base.html.twig' %}
+
+{% block title %}Accueil - Pharmax{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container-xxl">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                <h1 class="hero-title animate-slide-left">Votre Pharmacie en Ligne</h1>
+                <p class="fs-5 mb-4 animate-slide-left" style="animation-delay: 0.2s; opacity: 0; animation-fill-mode: both;">
+                    Découvrez notre large gamme de produits de santé et bien-être. Livraison rapide et sécurisée dans toute la Tunisie.
+                </p>
+                
+                <!-- Search Bar -->
+                <div class="mb-4 animate-slide-left" style="animation-delay: 0.3s; opacity: 0; animation-fill-mode: both; position: relative; max-width: 400px;">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" id="searchProduits" placeholder="Rechercher un produit..." style="border-radius: 8px 0 0 8px; border: 2px solid #27ae60;" autocomplete="off">
+                        <button class="btn btn-success" type="button" id="searchBtn" style="border-radius: 0 8px 8px 0; background-color: #27ae60; border-color: #27ae60;">
+                            <i class="bx bx-search"></i> Rechercher
+                        </button>
+                    </div>
+                    <!-- Résultats de recherche en temps réel -->
+                    <div id="searchResults" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; max-height: 400px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+                
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="bx bx-health animate-fade" style="font-size: 200px; opacity: 0.15; animation-delay: 0.3s;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section style="padding: 80px 0; background: white;">
+    <div class="container-xxl">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale">
+                    <div class="stat-number">{{ total_produits }}+</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">Produits Disponibles</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale" style="animation-delay: 0.1s;">
+                    <div class="stat-number">{{ total_categories }}</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">Catégories</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale" style="animation-delay: 0.2s;">
+                    <div class="stat-number">{{ produits_valables }}</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">En Stock</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale" style="animation-delay: 0.3s;">
+                    <div class="stat-number">24/7</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">Support Client</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Produits Populaires Section -->
+<section style="padding: 80px 0; background: #f8f9fa;">
+    <div class="container-xxl">
+        <h2 class="text-center mb-5 animate-fade" style="font-size: 2.5rem;">Produits Populaires</h2>
+        
+        <div class="row g-4" id="productsContainer">
+            {% if popular_products|length > 0 %}
+                {% for product in popular_products %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="product-card animate-scale">
+                            <div class="product-image">
+                                {% if product.image %}
+                                    <img src="{{ asset('uploads/images/' ~ product.image) }}" alt="{{ product.nom }}" style="height: 250px; object-fit: cover;">
+                                {% else %}
+                                    <div style="height: 250px; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bx bx-image" style="font-size: 48px; color: #999;"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="product-info">
+                                <h5>{{ product.nom }}</h5>
+                                <p class="text-muted" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                    {{ product.description|truncate(60, '...') }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h6 mb-0" style="color: #27ae60; font-weight: 700;">{{ product.prix }} DTN</span>
+                                    <a href="{{ path('app_front_detail_produit', {id: product.id}) }}" class="btn btn-sm btn-success">
+                                        <i class="bx bx-show"></i> Détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info w-100">Aucun produit disponible</div>
+            {% endif %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{{ path('app_front_produits') }}" class="btn btn-success btn-lg" style="background-color: #27ae60; border-color: #27ae60;">
+                <i class="bx bx-arrow-back"></i> Voir tous les produits
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Articles Récents Section -->
+<section style="padding: 80px 0; background: white;">
+    <div class="container-xxl">
+        <h2 class="text-center mb-5 animate-fade" style="font-size: 2.5rem;">Actualités & Blog</h2>
+        
+        <div class="row g-4">
+            {% if recent_articles|length > 0 %}
+                {% for article in recent_articles %}
+                    <div class="col-md-6 col-lg-4">
+                        <article class="article-card animate-scale">
+                            {% if article.image %}
+                                <div style="height: 200px; overflow: hidden; border-radius: 8px;">
+                                    <img src="{{ asset('uploads/articles/' ~ article.image) }}" alt="{{ article.titre }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            {% endif %}
+                            <div class="p-4">
+                                <small class="text-muted">{{ article.date_creation|date('d/m/Y') }}</small>
+                                <h5 class="mt-3">{{ article.titre }}</h5>
+                                <p class="text-muted text-truncate">{{ article.contenu }}</p>
+                                <a href="{{ path('app_blog_show', {id: article.id}) }}" class="btn btn-outline-success btn-sm mt-3">
+                                    Lire plus <i class="bx bx-arrow-right"></i>
+                                </a>
+                            </div>
+                        </article>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info w-100">Aucun article disponible</div>
+            {% endif %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{{ path('app_blog_index') }}" class="btn btn-success btn-lg" style="background-color: #27ae60; border-color: #27ae60;">
+                Découvrir le blog <i class="bx bx-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Catégories Section -->
+<section style="padding: 80px 0; background: #f8f9fa;">
+    <div class="container-xxl">
+        <h2 class="text-center mb-5 animate-fade" style="font-size: 2.5rem;">Nos Catégories</h2>
+        
+        <div class="row g-4">
+            {% if top_categories|length > 0 %}
+                {% for cat_item in top_categories %}
+                    {% set categorie = cat_item.categorie %}
+                    {% set count = cat_item.count %}
+                    <div class="col-md-6 col-lg-3">
+                        <a href="{{ path('app_front_produits') }}?categorie={{ categorie.id }}" style="text-decoration: none; color: inherit;">
+                            <div class="category-card animate-scale">
+                                <div style="font-size: 48px; margin-bottom: 15px; color: #27ae60;">
+                                    <i class="bx bx-{{ loop.index0 == 0 ? 'pill' : loop.index0 == 1 ? 'heart' : loop.index0 == 2 ? 'first-aid-box' : 'spa' }}"></i>
+                                </div>
+                                <h5>{{ categorie.nom }}</h5>
+                                <p class="text-muted">{{ count }} produits</p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+<section style="padding: 60px 0; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white; text-align: center;">
+    <div class="container-xxl">
+        <h2 class="mb-4">Besoin d'aide ?</h2>
+        <p class="fs-5 mb-4">Notre équipe de pharmaciens est disponible pour répondre à vos questions.</p>
+        <a href="{{ path('app_front_produits') }}" class="btn btn-light btn-lg">
+            <i class="bx bx-plus"></i> Commencer vos achats
+        </a>
+    </div>
+</section>
+
+<style>
+    .hero-section {
+        padding: 120px 0;
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8f0f7 100%);
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 20px;
+    }
+
+    .animate-slide-left {
+        animation: slideLeft 0.8s ease-out forwards;
+    }
+
+    .animate-fade {
+        animation: fadeIn 1s ease-out forwards;
+    }
+
+    .animate-scale {
+        animation: scaleIn 0.6s ease-out forwards;
+        opacity: 0;
+    }
+
+    @keyframes slideLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .stat-card, .product-card, .article-card, .category-card {
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card:hover, .product-card:hover, .article-card:hover, .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-card .product-image {
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+
+    .product-card .product-image img {
+        width: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.05);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #27ae60;
+    }
+
+    .category-card {
+        text-align: center;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    // Animations au scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.animate-scale').forEach(el => observer.observe(el));
+
+    // Search functionality
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const searchQuery = document.getElementById('searchProduits').value;
+        if (searchQuery.trim()) {
+            window.location.href = '{{ path("app_front_produits") }}?search=' + encodeURIComponent(searchQuery);
+        }
+    });
+
+    document.getElementById('searchProduits').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('searchBtn').click();
+        }
+    });
+
+    // Live search
+    document.getElementById('searchProduits').addEventListener('input', function(e) {
+        const query = e.target.value;
+        const resultsDiv = document.getElementById('searchResults');
+        
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        fetch('{{ path("app_api_search_produits") }}?search=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    resultsDiv.innerHTML = data.map(product => `
+                        <div style="padding: 10px 15px; border-bottom: 1px solid #eee; cursor: pointer;" class="search-item" data-id="${product.id}">
+                            <strong>${product.nom}</strong><br>
+                            <small style="color: #27ae60;">${product.prix} DTN</small>
+                        </div>
+                    `).join('');
+                    resultsDiv.style.display = 'block';
+
+                    document.querySelectorAll('.search-item').forEach(item => {
+                        item.addEventListener('click', function() {
+                            window.location.href = '{{ path("app_front_detail_produit", {id: "__ID__"}) }}'.replace('__ID__', this.dataset.id);
+                        });
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<div style="padding: 15px;">Aucun produit trouvé</div>';
+                    resultsDiv.style.display = 'block';
+                }
+            })
+            .catch(err => console.error('Search error:', err));
+    });
+
+    document.addEventListener('click', function(e) {
+        const searchDiv = document.getElementById('searchProduits').parentElement.parentElement;
+        if (!searchDiv.contains(e.target)) {
+            document.getElementById('searchResults').style.display = 'none';
+        }
+    });
+</script>
+
+{% endblock %}

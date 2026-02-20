@@ -22,7 +22,12 @@ class ReclamationController extends AbstractController
     #[Route('', name: 'frontend_reclamation_index', methods: ['GET'])]
     public function index(): Response
     {
-        $reclamations = $this->em->getRepository(Reclamation::class)->findAll();
+        // Require user to be authenticated
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        // Get only reclamations belonging to the current user
+        $reclamations = $this->em->getRepository(Reclamation::class)->findByUser($user);
         return $this->render('reclamation/index.html.twig', [
             'reclamations' => $reclamations,
         ]);

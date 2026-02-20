@@ -22,7 +22,7 @@
     </div>
   {% endif %}
 
-  {{ form_start(form, {'attr': {'id': 'formAuthentication', 'class': 'mb-3', 'action': path('app_login'), 'method': 'POST'}}) }}
+  {{ form_start(form, {'attr': {'id': 'formAuthentication', 'class': 'mb-3', 'action': path('app_login'), 'method': 'POST', 'novalidate': 'novalidate'}}) }}
     <div class="mb-3">
       {{ form_label(form.email_username, 'Email', {'label_attr': {'class': 'form-label'}}) }}
       {{ form_widget(form.email_username, {'attr': {'placeholder': 'Enter your email'}}) }}

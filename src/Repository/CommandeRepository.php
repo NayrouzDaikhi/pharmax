@@ -100,7 +100,7 @@ class CommandeRepository extends ServiceEntityRepository
         return [
             'en_cours' => $this->countByStatut('en_cours'),
             'en_attente' => $this->countByStatut('en_attente'),
-            'livree' => $this->countByStatut('livree'),
+            'payee' => $this->countByStatut('payee'),
             'annule' => $this->countByStatut('annule'),
             'total' => $this->createQueryBuilder('c')
                 ->select('COUNT(c.id)')

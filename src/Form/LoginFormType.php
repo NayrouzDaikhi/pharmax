@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class LoginFormType extends AbstractType
 {
@@ -18,6 +19,9 @@ class LoginFormType extends AbstractType
         $builder
             ->add('email_username', TextType::class, [
                 'label' => 'Email',
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Email is required']),
+                ],
                 'attr' => [
                     'placeholder' => 'Enter your email',
                     'class' => 'form-control',
@@ -26,6 +30,9 @@ class LoginFormType extends AbstractType
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Password',
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Password is required']),
+                ],
                 'attr' => [
                     'placeholder' => '•••••••••••••',
                     'class' => 'form-control',
