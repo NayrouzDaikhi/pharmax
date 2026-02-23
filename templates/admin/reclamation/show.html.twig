@@ -1,0 +1,392 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block body %}
+<div class="row">
+        <div class="col-12">
+            <a href="{{ path('admin_reclamation_index') }}" class="btn btn-secondary mb-3">
+                <i class="bx bx-arrow-back"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="mb-1">{{ reclamation.titre }}</h5>
+                        <small class="text-muted">Réclamation #{{ reclamation.id }}</small>
+                    </div>
+                    {% if reclamation.statut == 'En attente' %}
+                        <span class="badge bg-label-warning">En attente</span>
+                    {% elseif reclamation.statut == 'En cours' %}
+                        <span class="badge bg-label-info">En cours</span>
+                    {% else %}
+                        <span class="badge bg-label-success">Résolu</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <!-- User Information -->
+                    {% if reclamation.user %}
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <strong>Utilisateur:</strong>
+                        <p class="mb-0">
+                            <i class="bx bx-user"></i> 
+                            {{ reclamation.user.firstName ?? 'N/A' }}
+                            <small class="text-muted">({{ reclamation.user.email ?? 'N/A' }})</small>
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <strong>Date de création:</strong>
+                        <p>{{ reclamation.dateCreation|date('d/m/Y à H:i') }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Description:</strong>
+                        <p class="text-justify">{{ reclamation.description }}</p>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <strong>Statut actuel:</strong>
+                        <p>{{ reclamation.statut }}</p>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent d-flex gap-2">
+                    <a href="{{ path('admin_reclamation_edit', {'id': reclamation.id}) }}" 
+                       class="btn btn-warning">
+                        <i class="bx bx-edit"></i> Modifier Statut
+                    </a>
+                    <!-- Dropdown personnalisé pour traduction -->
+                    <div style="position: relative; display: inline-block;">
+                        <button id="translateBtn" style="
+                            background-color: #0dcaf0;
+                            color: white;
+                            padding: 6px 16px;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                            transition: background-color 0.2s;
+                        " onmouseover="this.style.backgroundColor='#0bb5d9'" onmouseout="this.style.backgroundColor='#0dcaf0'">
+                            🌐 Traduire
+                        </button>
+                        
+                        <div id="translateDropdown" style="
+                            display: none;
+                            position: absolute;
+                            background-color: white;
+                            min-width: 220px;
+                            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+                            padding: 12px 0;
+                            z-index: 1000;
+                            border: 1px solid #ddd;
+                            border-radius: 4px;
+                            top: 100%;
+                            left: 0;
+                            margin-top: 5px;
+                        ">
+                            <a href="#" data-lang="en" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">English (Anglais)</a>
+                            
+                            <a href="#" data-lang="es" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">Español (Espagnol)</a>
+                            
+                            <a href="#" data-lang="de" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">Deutsch (Allemand)</a>
+                            
+                            <a href="#" data-lang="it" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">Italiano (Italien)</a>
+                            
+                            <a href="#" data-lang="pt" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">Português (Portugais)</a>
+                            
+                            <a href="#" data-lang="ja" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">日本語 (Japonais)</a>
+                            
+                            <a href="#" data-lang="zh" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">中文 (Chinois)</a>
+                            
+                            <a href="#" data-lang="ar" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">العربية (Arabe)</a>
+                            
+                            <a href="#" data-lang="ru" class="translate-option" style="
+                                color: black;
+                                padding: 10px 16px;
+                                text-decoration: none;
+                                display: block;
+                                transition: background-color 0.2s;
+                            " onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">Русский (Russe)</a>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ path('admin_reclamation_delete', {'id': reclamation.id}) }}" 
+                          style="display:inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                        <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('Êtes-vous sûr?')">
+                            <i class="bx bx-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Section des traductions (caché par défaut) -->
+            <div id="translationSection" style="display: none;" class="card mb-4 mt-3">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">🌐 Traduction
+                        <span id="translatedLangName" class="badge bg-primary"></span>
+                    </h5>
+                    <button type="button" class="btn-close" id="closeTranslation"></button>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Titre traduit:</strong>
+                        <p id="translatedTitre" class="bg-light p-2 rounded">-</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Description traduite:</strong>
+                        <p id="translatedDescription" class="bg-light p-2 rounded" style="max-height: 300px; overflow-y: auto;">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stockage des données pour JavaScript -->
+            <div id="translationData" 
+                 data-titre="{{ reclamation.titre|escape('html') }}"
+                 data-description="{{ reclamation.description|escape('html') }}"
+                 style="display: none;"></div>
+
+            {% if reclamation.reponses %}
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">Réponses Envoyées ({{ reclamation.reponses|length }})</h5>
+                    <a href="{{ path('admin_reponse_new', {'reclamationId': reclamation.id}) }}" 
+                       class="btn btn-success btn-sm">
+                        <i class="bx bx-plus"></i> Ajouter Réponse
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% for reponse in reclamation.reponses %}
+                    <div class="mb-3 p-3 border-start border-info rounded">
+                        <!-- Admin/User Info -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                {% if reponse.user %}
+                                    <strong>
+                                        <i class="bx bx-user-circle"></i> 
+                                        {{ reponse.user.firstName ?? 'Admin' }}
+                                    </strong>
+                                    {% if 'ROLE_SUPER_ADMIN' in reponse.user.roles %}
+                                        <span class="badge bg-danger ms-1">Super Admin</span>
+                                    {% elseif 'ROLE_ADMIN' in reponse.user.roles %}
+                                        <span class="badge bg-warning ms-1">Admin</span>
+                                    {% endif %}
+                                {% else %}
+                                    <strong><i class="bx bx-user-circle"></i> Admin</strong>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">
+                                <i class="bx bx-calendar"></i> {{ reponse.dateReponse|date('d/m/Y à H:i') }}
+                            </small>
+                        </div>
+                        <p class="mb-2">{{ reponse.contenu }}</p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('admin_reponse_edit', {'id': reponse.id}) }}" 
+                               class="btn btn-sm btn-warning" title="Éditer">
+                                <i class="bx bx-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ path('admin_reponse_delete', {'id': reponse.id}) }}" 
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Êtes-vous sûr?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                Aucune réponse pour le moment. <a href="{{ path('admin_reponse_new', {'reclamationId': reclamation.id}) }}" class="alert-link">Ajouter une réponse</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- Infos et actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Informations</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">ID Réclamation</small>
+                        <strong>#{{ reclamation.id }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Nombre de Réponses</small>
+                        <strong>{{ reclamation.reponses|length }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Date de Création</small>
+                        <strong>{{ reclamation.dateCreation|date('d/m/Y') }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ajouter une réponse -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bx bx-plus-circle"></i> Ajouter une Réponse
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <a href="{{ path('admin_reponse_new', {'reclamationId': reclamation.id}) }}" 
+                       class="btn btn-success w-100">
+                        <i class="bx bx-paper-plane"></i> Nouvelle Réponse
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript pour la traduction -->
+<script>
+document.getElementById('translateBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    const dropdown = document.getElementById('translateDropdown');
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+});
+
+document.querySelectorAll('.translate-option').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const lang = this.getAttribute('data-lang');
+        translate(lang);
+        document.getElementById('translateDropdown').style.display = 'none';
+    });
+});
+
+document.getElementById('closeTranslation').addEventListener('click', function() {
+    document.getElementById('translationSection').style.display = 'none';
+});
+
+function translate(lang) {
+    const titre = document.getElementById('translationData').getAttribute('data-titre');
+    const description = document.getElementById('translationData').getAttribute('data-description');
+    
+    // Afficher un indicateur de chargement
+    document.getElementById('translatedTitre').textContent = 'Traduction en cours...';
+    document.getElementById('translatedDescription').textContent = 'Traduction en cours...';
+    
+    // Traduire le titre
+    fetch('{{ path("api_translate") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            text: titre,
+            lang: lang
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('translatedTitre').textContent = data.translated;
+        }
+    })
+    .catch(error => {
+        document.getElementById('translatedTitre').textContent = 'Erreur de traduction';
+        console.error('Erreur:', error);
+    });
+
+    // Traduire la description
+    fetch('{{ path("api_translate") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            text: description,
+            lang: lang
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('translatedDescription').textContent = data.translated;
+        }
+    })
+    .catch(error => {
+        document.getElementById('translatedDescription').textContent = 'Erreur de traduction';
+        console.error('Erreur:', error);
+    });
+
+    // Afficher la langue
+    const langNames = {
+        'en': 'Anglais',
+        'es': 'Espagnol',
+        'de': 'Allemand',
+        'it': 'Italien',
+        'pt': 'Portugais',
+        'ja': 'Japonais',
+        'zh': 'Chinois',
+        'ar': 'Arabe',
+        'ru': 'Russe'
+    };
+    
+    document.getElementById('translatedLangName').textContent = langNames[lang] || lang.toUpperCase();
+    document.getElementById('translationSection').style.display = 'block';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends 'frontend/base.html.twig' %}
+
+{% block title %}Confirmation de Commande - Pharmax{% endblock %}
+
+{% block content %}
+<!-- Confirmation Header -->
+<section style="background: linear-gradient(135deg, #27ae60 0%, #3498db 100%); color: white; padding: 40px 0; margin-bottom: 40px;">
+    <div class="container-xxl">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bx bx-check-circle" style="font-size: 2.5rem;"></i>
+            <div>
+                <h1 class="display-5 fw-bold mb-0">Commande Confirmée!</h1>
+                <p class="fs-5 mb-0 opacity-75">Votre commande a été enregistrée avec succès</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container-xxl mb-5">
+    <div class="row g-4">
+        <!-- Colonne Principale - Détails -->
+        <div class="col-lg-7">
+            <!-- Alert Success -->
+            <div class="alert alert-success border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-left: 4px solid #28a745;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bx bx-check-circle" style="font-size: 1.5rem; color: #155724;"></i>
+                    <div>
+                        <h5 class="mb-1" style="color: #155724;">Succès!</h5>
+                        <p class="mb-0" style="color: #155724;">Merci pour votre achat. Vous recevrez un email de confirmation très bientôt.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Détails de la Commande -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-header bg-light border-bottom" style="border-radius: 12px 12px 0 0; padding: 20px;">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bx bx-box me-2"></i>Détails de la Commande #{{ commande.id }}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Infos Générales -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Numéro de Commande</p>
+                            <h6 class="fw-bold text-primary">{{ commande.id }}</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Date</p>
+                            <h6 class="fw-bold">{{ commande.createdAt|date('d/m/Y H:i') }}</h6>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Articles -->
+                    <h6 class="fw-bold mb-3">Produits Commandés</h6>
+                    
+                    {% if commande.lignes is not empty %}
+                        {% for ligne in commande.lignes %}
+                        <div class="d-flex justify-content-between align-items-center pb-3 mb-3" style="border-bottom: 1px solid #e0e0e0;">
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ ligne.nom }}</h6>
+                                <small class="text-muted">{{ ligne.quantite }}x {{ ligne.prix|number_format(2, ',', ' ') }} DT</small>
+                            </div>
+                            <h6 class="fw-bold text-primary mb-0">{{ ligne.sousTotal|number_format(2, ',', ' ') }} DT</h6>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for produit in commande.produits %}
+                        <div class="d-flex justify-content-between align-items-center pb-3 mb-3" style="border-bottom: 1px solid #e0e0e0;">
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ produit.nom|default('Produit') }}</h6>
+                                <small class="text-muted">{{ produit.quantite|default(1) }}x {{ produit.prix|default(0)|number_format(2, ',', ' ') }} DT</small>
+                            </div>
+                            <h6 class="fw-bold text-primary mb-0">{{ (produit.prix|default(0) * produit.quantite|default(1))|number_format(2, ',', ' ') }} DT</h6>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- Total -->
+                    <div class="bg-light p-3 rounded-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold" style="font-size: 1.1rem;">Total à payer</span>
+                            <div style="font-size: 1.5rem; color: #27ae60;" class="fw-bold">
+                                {{ commande.totales|number_format(2, ',', ' ') }} DT
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statut -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Statut</p>
+                            <span class="badge bg-success" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                                <i class="bx bx-check me-1"></i>{{ commande.statut|capitalize }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-header bg-light border-bottom" style="border-radius: 12px 12px 0 0; padding: 20px;">
+                    <h5 class="fw-bold mb-0">Actions</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_front_produits') }}" class="btn btn-primary">
+                            <i class="bx bx-store me-2"></i>Continuer les Achats
+                        </a>
+                        <a href="{{ path('app_frontend_commande_index') }}" class="btn btn-outline-primary">
+                            <i class="bx bx-list-check me-2"></i>Mes Commandes
+                        </a>
+                        <a href="{{ path('app_commande_pdf', {'id': commande.id}) }}" class="btn btn-info" target="_blank">
+                            <i class="bx bx-download me-2"></i>Télécharger PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne Droite - QR Code Sticky -->
+        <div class="col-lg-5">
+            {% if qrCode and qrCode is not empty %}
+            <!-- QR Code Card Sticky -->
+            <div class="card border-0 shadow-lg mb-4" style="border-radius: 12px; position: sticky; top: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                <div class="card-header bg-light border-bottom" style="border-radius: 12px 12px 0 0; padding: 20px; background: linear-gradient(135deg, #27ae60 0%, #3498db 100%); border: none;">
+                    <h5 class="fw-bold mb-0 text-white">
+                        <i class="bx bx-qr me-2"></i>Scanner votre Commande
+                    </h5>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <!-- QR Code -->
+                    <div style="background: white; padding: 20px; border-radius: 8px; border: 2px solid #e0e0e0; display: inline-block; margin-bottom: 20px;">
+                        <img src="{{ qrCode }}" 
+                             alt="QR Code" 
+                             style="width: 250px; height: 250px; display: block;">
+                    </div>
+
+                    <!-- Instructions -->
+                    <div>
+                        <p class="text-muted mb-2 fw-bold">Scannez ce code avec votre téléphone</p>
+                        <p class="small text-muted mb-0">
+                            Utilisez l'appareil photo de votre smartphone ou une application de lecteur QR pour scanner ce code et accéder aux détails de votre commande.
+                        </p>
+                    </div>
+
+                    <!-- Infos Rapides -->
+                    <hr>
+                    <div class="text-start">
+                        <div class="row mb-2">
+                            <div class="col-6 text-center">
+                                <div style="font-size: 2rem; color: #27ae60;" class="fw-bold">
+                                    {% if commande.lignes is not empty %}
+                                        {{ commande.lignes|length }}
+                                    {% else %}
+                                        {{ commande.produits|length }}
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">
+                                    Article{% if (commande.lignes is not empty ? commande.lignes|length : commande.produits|length) > 1 %}s{% endif %}
+                                </small>
+                            </div>
+                            <div class="col-6 text-center">
+                                <div style="font-size: 2rem; color: #3498db;" class="fw-bold">{{ commande.totales|number_format(0, ',', ' ') }}</div>
+                                <small class="text-muted">DT</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Infos de Support -->
+            <div class="card border-0 shadow-sm" style="border-radius: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3" style="color: #1565c0;">
+                        <i class="bx bx-support me-2"></i>Besoin d'aide?
+                    </h6>
+                    <p class="mb-3 small" style="color: #1565c0;">
+                        Si vous avez des questions sur votre commande, contactez-nous:
+                    </p>
+                    <ul class="list-unstyled small" style="color: #1565c0;">
+                        <li class="mb-2">
+                            <i class="bx bx-envelope me-2"></i>
+                            <a href="mailto:support@pharmax.tn" style="color: #1565c0; text-decoration: none; font-weight: 500;">support@pharmax.tn</a>
+                        </li>
+                        <li>
+                            <i class="bx bx-phone me-2"></i>
+                            <a href="tel:+21670000000" style="color: #1565c0; text-decoration: none; font-weight: 500;">+216 70 000 000</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

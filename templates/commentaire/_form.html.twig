@@ -13,6 +13,29 @@
                 </div>
             {% endif %}
 
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    {{ form_label(form.article, 'Article'|trans) }}
+                    {{ form_widget(form.article, {'attr': {'class': 'form-select'}}) }}
+                    {% if form.article.vars.errors %}
+                        <div class="invalid-feedback d-block">
+                            <i class="bx bx-error-circle me-1"></i>{{ form_errors(form.article) }}
+                        </div>
+                    {% endif %}
+                    <small class="form-text text-muted">{{'Select an article for this comment (optional)'|trans}}</small>
+                </div>
+                <div class="col-md-6">
+                    {{ form_label(form.produit, 'Product'|trans) }}
+                    {{ form_widget(form.produit, {'attr': {'class': 'form-select'}}) }}
+                    {% if form.produit.vars.errors %}
+                        <div class="invalid-feedback d-block">
+                            <i class="bx bx-error-circle me-1"></i>{{ form_errors(form.produit) }}
+                        </div>
+                    {% endif %}
+                    <small class="form-text text-muted">{{'Select a product for this review (optional)'|trans}}</small>
+                </div>
+            </div>
+
             <div class="mb-4">
                 {{ form_label(form.contenu, 'Comment Content'|trans) }}
                 {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': 8, 'placeholder': ('Write your comment here...'|trans)}}) }}
@@ -39,7 +62,7 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="bx bx-save me-2"></i>{{ button_label|default('Create Comment'|trans) }}
                 </button>
-                <a href="{{ path('app_commentaire_index') }}" class="btn btn-secondary">
+                <a href="{{ path('app_article_index') }}" class="btn btn-secondary">
                     <i class="bx bx-x me-2"></i>{{'Cancel'|trans}}
                 </a>
             </div>

@@ -1,0 +1,165 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Tableau de Bord{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Tableau de Bord</h1>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Total Produits</h5>
+              <h2 class="text-primary">{{ totalProduits }}</h2>
+              <small class="text-muted">Produits en catalogue</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Produits Expirés</h5>
+              <h2 class="text-danger">{{ expiredProduits }}</h2>
+              <small class="text-muted">Nécessitent attention</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">En Stock</h5>
+              <h2 class="text-success">{{ availableProduits }}</h2>
+              <small class="text-muted">Produits disponibles</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Rupture de Stock</h5>
+              <h2 class="text-warning">{{ outOfStockProduits }}</h2>
+              <small class="text-muted">Stock épuisé</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Produits les Plus Chers</h5>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Produit</th>
+                    <th class="text-end">Prix</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for produit in mostExpensive %}
+                    <tr>
+                      <td>{{ produit.nom }}</td>
+                      <td class="text-end text-success fw-bold">{{ produit.prix|number_format(2, ',', ' ') }} DTN</td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="2" class="text-center text-muted">Aucune donnée</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Produits les Moins Chers</h5>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Produit</th>
+                    <th class="text-end">Prix</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for produit in leastExpensive %}
+                    <tr>
+                      <td>{{ produit.nom }}</td>
+                      <td class="text-end text-success fw-bold">{{ produit.prix|number_format(2, ',', ' ') }} DTN</td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="2" class="text-center text-muted">Aucune donnée</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Total Catégories</h5>
+            </div>
+            <div class="card-body text-center">
+              <h2 class="text-info">{{ totalCategories }}</h2>
+              <small class="text-muted">Catégories de produits</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Catégories</h5>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Catégorie</th>
+                    <th class="text-center">Nombre de produits</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for categorie in categories %}
+                    <tr>
+                      <td>{{ categorie.nom }}</td>
+                      <td class="text-center">
+                        <span class="badge bg-primary">{{ categorie.produits|length }}</span>
+                      </td>
+                    </tr>
+                  {% else %}
+                    <tr>
+                      <td colspan="2" class="text-center text-muted">Aucune catégorie</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

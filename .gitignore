@@ -3,10 +3,15 @@
 /.env.local
 /.env.local.php
 /.env.*.local
+.env
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
 /vendor/
+.env.dev
+.env.test
+pharmax-gestion_commandes/.env
+pharmax-gestion_commandes/.env.dev
 ###< symfony/framework-bundle ###
 
 ###> phpunit/phpunit ###

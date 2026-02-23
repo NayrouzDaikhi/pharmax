@@ -1,0 +1,208 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="py-3 mb-4">🔧 Gestion des Réclamations</h4>
+    </div>
+</div>
+
+    <!-- Statistiques Cartes -->
+    <div class="row mb-4">
+        <!-- Réclamations Total -->
+        <div class="col-md-3 col-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-primary">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-file-find fs-1 text-primary"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">Réclamations Totales</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.total|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- En Attente -->
+        <div class="col-md-3 col-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-warning">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-time-five fs-1 text-warning"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">En Attente</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.en_attente|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- En Cours -->
+        <div class="col-md-3 col-6 mb-4 mb-md-0">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-info">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-loader-circle fs-1 text-info"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">En Cours</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.en_cours|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Résolu -->
+        <div class="col-md-3 col-6">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-success">
+                <div class="card-body text-center">
+                    <div class="stat-icon mb-3">
+                        <i class="bx bx-check-circle fs-1 text-success"></i>
+                    </div>
+                    <h6 class="text-muted mb-2">Résolu</h6>
+                    <h2 class="mb-0 fw-bold">{{ stats.resolu|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .stat-card {
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .stat-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 0.5rem;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card-primary .stat-icon {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        .stat-card-warning .stat-icon {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+
+        .stat-card-info .stat-icon {
+            background-color: rgba(23, 162, 184, 0.1);
+        }
+
+        .stat-card-success .stat-icon {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        .stat-card h2 {
+            font-size: 2rem;
+            line-height: 1.2;
+        }
+    </style>
+
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" id="filterForm" class="row g-3">
+                <div class="col-md-4">
+                    <label for="titre" class="form-label">Titre</label>
+                    <input type="text" class="form-control" id="titre" name="titre" 
+                           placeholder="Rechercher par titre..." value="{{ filters.titre|default('') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="statut" class="form-label">Statut</label>
+                    <select class="form-select" id="statut" name="statut">
+                        <option value="">-- Tous --</option>
+                        <option value="En attente" {% if filters.statut == 'En attente' %}selected{% endif %}>En attente</option>
+                        <option value="En cours" {% if filters.statut == 'En cours' %}selected{% endif %}>En cours</option>
+                        <option value="Resolu" {% if filters.statut == 'Resolu' %}selected{% endif %}>Résolu</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" value="{{ filters.date|default('') }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-search"></i> Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table -->
+    {% if reclamations %}
+    <div class="card">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Utilisateur</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th>Réponses</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0">
+                    {% for reclamation in reclamations %}
+                    <tr>
+                        <td><strong>#{{ reclamation.id }}</strong></td>
+                        <td>{{ reclamation.titre }}</td>
+                        <td>
+                            {% if reclamation.user %}
+                                <i class="bx bx-user"></i> {{ reclamation.user.firstName ?? 'N/A' }}<br>
+                                <small class="text-muted">{{ reclamation.user.email ?? '' }}</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if reclamation.statut == 'En attente' %}
+                                <span class="badge bg-label-warning">En attente</span>
+                            {% elseif reclamation.statut == 'En cours' %}
+                                <span class="badge bg-label-info">En cours</span>
+                            {% else %}
+                                <span class="badge bg-label-success">Résolu</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ reclamation.dateCreation|date('d/m/Y H:i') }}</td>
+                        <td><span class="badge bg-label-primary">{{ reclamation.reponses|length }}</span></td>
+                        <td>
+                            <a href="{{ path('admin_reclamation_show', {'id': reclamation.id}) }}" 
+                               class="btn btn-sm btn-info">
+                                <i class="bx bx-detail"></i> Voir
+                            </a>
+                            <a href="{{ path('admin_reclamation_edit', {'id': reclamation.id}) }}" 
+                               class="btn btn-sm btn-warning">
+                                <i class="bx bx-edit"></i> Éditer
+                            </a>
+                            <form method="POST" action="{{ path('admin_reclamation_delete', {'id': reclamation.id}) }}" 
+                                  style="display:inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" 
+                                        onclick="return confirm('Êtes-vous sûr?')">
+                                    <i class="bx bx-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="bx bx-info-circle"></i> Aucune réclamation trouvée
+    </div>
+    {% endif %}
+{% endblock %}

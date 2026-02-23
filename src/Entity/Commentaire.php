@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Article;
+use App\Entity\Produit;
 use App\Repository\CommentaireRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -21,7 +22,7 @@ class Commentaire
     #[Assert\Length(min: 2, max: 1000)]
     private ?string $contenu = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, name: 'created_at')]
     #[Assert\NotNull]
     private ?\DateTimeInterface $date_publication = null;
 
@@ -30,8 +31,16 @@ class Commentaire
     private ?string $statut = 'en_attente';
 
     #[ORM\ManyToOne(inversedBy: 'commentaires')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Article $article = null;
+
+    #[ORM\ManyToOne(inversedBy: 'avis')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Produit $produit = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
 
     public function __construct()
     {
@@ -88,7 +97,25 @@ class Commentaire
         return $this;
     }
 
-    // TODO: relation avec Utilisateur à ajouter ultérieurement
+    public function getProduit(): ?Produit
+    {
+        return $this->produit;
+    }
 
+    public function setProduit(?Produit $produit): static
+    {
+        $this->produit = $produit;
+        return $this;
+    }
 
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+        return $this;
+    }
 }

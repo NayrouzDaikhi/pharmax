@@ -228,7 +228,12 @@
         <ul class="nav nav-tabs mb-0" role="tablist">
             <li class="nav-item">
                 <button class="nav-link active" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments">
-                    {{'Active Comments'|trans}} ({{ commentaires|length }})
+                    {{'Article Comments'|trans}} ({{ commentaires|length }})
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews">
+                    <i class="bx bx-star"></i> {{'Product Reviews'|trans}} ({{ totalAvis }})
                 </button>
             </li>
             <li class="nav-item">
@@ -238,7 +243,6 @@
                 </button>
             </li>
         </ul>
-    </div>
     
     <!-- Tab Content -->
     <div class="tab-content">
@@ -277,7 +281,7 @@
                     <tbody id="commentTableBody">
                         {% if commentaires is not empty %}
                             {% for commentaire in commentaires %}
-                            <tr class="comment-row" data-comment-id="{{ commentaire.id }}" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" data-article-id="{{ commentaire.article.id }}">
+                            <tr class="comment-row" data-comment-id="{{ commentaire.id }}" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" data-article-id="{{ commentaire.article?.id ?? '' }}">
                                 <td onclick="event.stopPropagation();">
                                     <input type="checkbox" class="form-check-input comment-checkbox" value="{{ commentaire.id }}">
                                 </td>
@@ -285,7 +289,13 @@
                                     <code class="text-info">#{{ commentaire.id }}</code>
                                 </td>
                                 <td>
-                                    <span class="badge badge-light">{{ commentaire.article.titre }}</span>
+                                    {% if commentaire.article %}
+                                        <span class="badge badge-light">{{ commentaire.article.titre }}</span>
+                                    {% elseif commentaire.produit %}
+                                        <span class="badge badge-info">{{ commentaire.produit.nom }} (Avis Produit)</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">N/A</span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <p class="text-muted mb-0">
@@ -310,8 +320,8 @@
                                 </td>
                                 <td onclick="event.stopPropagation();">
                                     <div class="btn-group" role="group">
-                                        <a href="{{ path('app_commentaire_edit', {'id': commentaire.id}) }}" class="btn btn-sm btn-warning" title="{{'Edit'|trans}}">
-                                            <i class="bx bx-edit"></i>
+                                        <a href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" class="btn btn-sm btn-info" title="{{'View'|trans}}">
+                                            <i class="bx bx-show"></i>
                                         </a>
                                         <a href="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this comment?'|trans}}');">
                                             <i class="bx bx-trash"></i>
@@ -332,6 +342,104 @@
                 </table>
             </div>
         </div>
+
+        <!-- Product Reviews Tab -->
+        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+            <!-- Selection Actions Bar -->
+            <div id="reviewsSelectionActionsBar" class="alert alert-info d-none mb-3 mx-3" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="reviewsSelectionCount">0 {{'reviews selected'|trans}}</span>
+                    <div class="btn-group" role="group">
+                        <button type="button" id="deleteReviewsSelectedBtn" class="btn btn-danger btn-sm">
+                            <i class="bx bx-trash"></i> {{'Delete Selected'|trans}}
+                        </button>
+                        <button type="button" id="cancelReviewsSelectionBtn" class="btn btn-secondary btn-sm">
+                            <i class="bx bx-x"></i> {{'Cancel'|trans}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectAllReviewsCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                            </th>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'Product'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Published'|trans}}</th>
+                            <th>{{'Status'|trans}}</th>
+                            <th>{{'Actions'|trans}}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewTableBody">
+                        {% if avis is not empty %}
+                            {% for commentaire in avis %}
+                            <tr class="review-row" data-review-id="{{ commentaire.id }}" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}">
+                                <td onclick="event.stopPropagation();">
+                                    <input type="checkbox" class="form-check-input review-checkbox" value="{{ commentaire.id }}">
+                                </td>
+                                <td>
+                                    <code class="text-info">#{{ commentaire.id }}</code>
+                                </td>
+                                <td>
+                                    {% if commentaire.produit %}
+                                        <span class="badge badge-info">{{ commentaire.produit.nom }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if commentaire.contenu|length > 50 %}
+                                            {{ commentaire.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ commentaire.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    {% if commentaire.statut|lower == 'valide' %}
+                                        <span class="badge badge-success"><i class="bx bx-check"></i> {{'Published'|trans}}</span>
+                                    {% elseif commentaire.statut|lower == 'en_attente' %}
+                                        <span class="badge badge-warning"><i class="bx bx-time"></i> {{'Pending'|trans}}</span>
+                                    {% elseif commentaire.statut|lower == 'bloque' %}
+                                        <span class="badge badge-danger"><i class="bx bx-block"></i> {{'Blocked'|trans}}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ commentaire.statut }}</span>
+                                    {% endif %}
+                                </td>
+                                <td onclick="event.stopPropagation();">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" class="btn btn-sm btn-info" title="{{'View'|trans}}">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this review?'|trans}}');">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No reviews found.'|trans}}</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Archived Comments Tab -->
         <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
             <!-- Archive Selection Actions Bar -->
@@ -985,6 +1093,126 @@
                 deleteArchiveSelectedBtn.disabled = false;
                 deleteArchiveSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
             }
+        });
+
+        // Setup mass selection functionality for product reviews
+        const selectAllReviewsCheckbox = document.getElementById('selectAllReviewsCheckbox');
+        const reviewCheckboxes = document.querySelectorAll('.review-checkbox');
+        const reviewsSelectionActionsBar = document.getElementById('reviewsSelectionActionsBar');
+        const deleteReviewsSelectedBtn = document.getElementById('deleteReviewsSelectedBtn');
+        const cancelReviewsSelectionBtn = document.getElementById('cancelReviewsSelectionBtn');
+        const reviewsSelectionCount = document.getElementById('reviewsSelectionCount');
+        const reviewTableBody = document.getElementById('reviewTableBody');
+        const reviewRows = document.querySelectorAll('.review-row');
+        
+        // Update selection count and visibility of action bar for reviews
+        function updateReviewsSelectionUI() {
+            const selectedCount = document.querySelectorAll('.review-checkbox:checked').length;
+            if (selectedCount > 0) {
+                reviewsSelectionActionsBar.classList.remove('d-none');
+                reviewsSelectionCount.textContent = selectedCount + ' {{'reviews selected'|trans}}';
+            } else {
+                reviewsSelectionActionsBar.classList.add('d-none');
+            }
+            
+            // Update select all checkbox state
+            const totalCheckboxes = document.querySelectorAll('.review-checkbox').length;
+            selectAllReviewsCheckbox.checked = selectedCount === totalCheckboxes && totalCheckboxes > 0;
+            selectAllReviewsCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCheckboxes;
+        }
+        
+        // Select all checkbox for reviews
+        selectAllReviewsCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.review-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateReviewsSelectionUI();
+        });
+        
+        // Individual checkboxes for reviews
+        reviewCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateReviewsSelectionUI();
+            });
+        });
+        
+        // Cancel selection for reviews
+        cancelReviewsSelectionBtn.addEventListener('click', function() {
+            selectAllReviewsCheckbox.checked = false;
+            reviewCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateReviewsSelectionUI();
+        });
+        
+        // Delete selected reviews
+        deleteReviewsSelectedBtn.addEventListener('click', async function() {
+            const selectedIds = Array.from(document.querySelectorAll('.review-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                alert('{{'No reviews selected'|trans}}');
+                return;
+            }
+            
+            if (!confirm(selectedIds.length + ' {{'reviews will be deleted. Continue?'|trans}}')) {
+                return;
+            }
+            
+            deleteReviewsSelectedBtn.disabled = true;
+            deleteReviewsSelectedBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> {{'Deleting...'|trans}}';
+            
+            try {
+                const response = await fetch('/api/commentaires/delete-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove rows from table
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-review-id="${id}"]`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-20px)';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    
+                    // Reset UI
+                    setTimeout(() => {
+                        updateReviewsSelectionUI();
+                        
+                        // Show success message
+                        alert(data.message || '{{'Reviews deleted successfully'|trans}}');
+                    }, 300);
+                } else {
+                    alert(data.message || '{{'Error deleting reviews'|trans}}');
+                }
+            } catch (error) {
+                console.error('Error deleting reviews:', error);
+                alert('{{'Error deleting reviews'|trans}}');
+            } finally {
+                deleteReviewsSelectedBtn.disabled = false;
+                deleteReviewsSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
+            }
+        });
+        
+        // Click row to navigate for reviews (unless checkbox was clicked)
+        reviewRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('.review-checkbox') || e.target.closest('.btn-group')) {
+                    return;
+                }
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
         });
     });
 </script>

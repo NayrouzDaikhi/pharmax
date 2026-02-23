@@ -1,0 +1,144 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Gestion des Catégories{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Gestion des Catégories</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">Catégories</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_categorie_new') }}" class="btn btn-primary">
+        <i class="bx bx-plus"></i> Nouvelle Catégorie
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Liste des Catégories</h5>
+        </div>
+
+        <!-- Filtres -->
+        <div class="card-body border-bottom">
+          <form method="GET" class="row g-3">
+            <div class="col-md-6">
+              <input 
+                type="text" 
+                name="search" 
+                class="form-control form-control-sm" 
+                placeholder="Rechercher par nom..."
+                value="{{ search }}"
+              >
+            </div>
+
+            <div class="col-md-4">
+              <select name="sortBy" class="form-select form-select-sm">
+                <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
+                <option value="nom" {% if sortBy == 'nom' %}selected{% endif %}>Nom</option>
+              </select>
+            </div>
+
+            <div class="col-md-2">
+              <select name="sortOrder" class="form-select form-select-sm">
+                <option value="DESC" {% if sortOrder == 'DESC' %}selected{% endif %}>Descendant</option>
+                <option value="ASC" {% if sortOrder == 'ASC' %}selected{% endif %}>Ascendant</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-sm btn-outline-primary">
+                <i class="bx bx-search"></i> Rechercher
+              </button>
+              <a href="{{ path('app_categorie_index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bx bx-reset"></i> Réinitialiser
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tableau -->
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Nombre de produits</th>
+                <th>Date création</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if categories|length > 0 %}
+                {% for categorie in categories %}
+                  <tr>
+                    <td>
+                      <strong>{{ categorie.name }}</strong>
+                    </td>
+                    <td>
+                      {% if categorie.description %}
+                        <small class="text-muted">{{ categorie.description|slice(0, 50) }}...</small>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="badge bg-primary">{{ categorie.produits|length }}</span>
+                    </td>
+                    <td>
+                      <small>{{ categorie.createdAt|date('d/m/Y') }}</small>
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <a 
+                          href="{{ path('app_categorie_show', {'id': categorie.id}) }}" 
+                          class="btn btn-sm btn-outline-info"
+                          title="Voir"
+                        >
+                          <i class="bx bx-show"></i>
+                        </a>
+                        <a 
+                          href="{{ path('app_categorie_edit', {'id': categorie.id}) }}" 
+                          class="btn btn-sm btn-outline-warning"
+                          title="Modifier"
+                        >
+                          <i class="bx bx-edit"></i>
+                        </a>
+                        <form 
+                          method="POST" 
+                          action="{{ path('app_categorie_delete', {'id': categorie.id}) }}"
+                          style="display: inline;"
+                          onsubmit="return confirm('Êtes-vous sûr?');"
+                        >
+                          <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.id) }}">
+                          <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                            <i class="bx bx-trash"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    <i class="bx bx-inbox"></i> Aucune catégorie trouvée
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

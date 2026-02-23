@@ -27,8 +27,6 @@ class ArticleType extends AbstractType
                     ])
                 ],
                 ])
-            ->add('date_creation')
-            ->add('date_modification')
         ;
     }
 
