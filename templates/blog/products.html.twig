@@ -19,42 +19,6 @@
         </h1>
         {% endif %}
         
-        <!-- Recommendations -->
-        {% if app.user and recommendations is defined and recommendations|length > 0 %}
-        <div style="margin-bottom: 25px; padding: 15px; border-radius: 8px; background: #f8fffa; border: 1px solid #d4edda;">
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #2c3e50;">
-                🔍 Recommandation pour vous
-            </h3>
-            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
-                Ces produits apparaissent souvent dans vos commandes récentes.
-            </p>
-            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
-                {% for produit in recommendations %}
-                    <div style="background-color: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                        <div style="height: 90px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            {% if produit.image %}
-                                <img src="{{ asset('uploads/images/' ~ produit.image) }}" alt="{{ produit.nom }}" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <i class="fas fa-box" style="font-size: 1.5rem; color: #ccc;"></i>
-                            {% endif %}
-                        </div>
-                        <div style="padding: 8px 10px;">
-                            <div style="font-size: 12px; font-weight: 700; color: #2c3e50; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                {{ produit.nom }}
-                            </div>
-                            <div style="font-size: 12px; color: #5ea96b; font-weight: 700; margin-bottom: 6px;">
-                                {{ produit.prix|number_format(2, ',', ' ') }} DTN
-                            </div>
-                            <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" style="display: block; text-align: center; background-color: #5ea96b; color: white; padding: 4px 0; font-size: 11px; font-weight: 700; border-radius: 4px; text-decoration: none;">
-                                Voir le produit
-                            </a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
         <!-- Products Meta -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #5ea96b; padding-bottom: 20px; margin-bottom: 30px; font-size: 13px; color: #999;">
             <div style="display: flex; gap: 20px;">
@@ -81,11 +45,7 @@
                     {% endif %}
                     
                     <!-- Status Badge -->
-                    {% if produit.isEnPromotion %}
-                        <span style="position: absolute; top: 5px; right: 5px; background-color: #f0ad4e; color: #000; padding: 3px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 4px;">
-                            <i class="fas fa-tag"></i> Promotion -{{ produit.promotionPourcentage }}%
-                        </span>
-                    {% elseif produit.isStatut() %}
+                    {% if produit.isStatut() %}
                         <span style="position: absolute; top: 5px; right: 5px; background-color: #5ea96b; color: white; padding: 3px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 4px;">
                             <i class="fas fa-check"></i> Stock
                         </span>
@@ -108,12 +68,9 @@
                     
                     <!-- Price -->
                     <div style="margin-bottom: 8px;">
-                        {% if produit.isEnPromotion %}
-                            <span style="color: #5ea96b; font-weight: 700; font-size: 14px;">{{ produit.prixPromo|number_format(2, ',', ' ') }} DTN</span>
-                            <span style="color: #999; font-size: 12px; text-decoration: line-through; margin-left: 6px;">{{ produit.prix|number_format(2, ',', ' ') }} DTN</span>
-                        {% else %}
-                            <span style="color: #5ea96b; font-weight: 700; font-size: 14px;">{{ produit.prix|number_format(2, ',', ' ') }} DTN</span>
-                        {% endif %}
+                        <span style="color: #5ea96b; font-weight: 700; font-size: 14px;">
+                            {{ produit.prix }} DTN
+                        </span>
                     </div>
                     
                     <div style="display: flex; gap: 8px; margin-bottom: 8px;">

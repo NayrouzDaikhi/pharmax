@@ -16,37 +16,32 @@ class ProduitRepository extends ServiceEntityRepository
         parent::__construct($registry, Produit::class);
     }
 
-    public function createFilteredQueryBuilder(?string $search = '', ?string $categorie = '', ?string $sortBy = 'createdAt', ?string $sortOrder = 'DESC')
+    public function findByFilters(?string $search = '', ?string $categorie = '', ?string $sortBy = 'createdAt', ?string $sortOrder = 'DESC'): array
     {
         $qb = $this->createQueryBuilder('p')
             ->leftJoin('p.categorie', 'c', 'WITH', 'c.id IS NOT NULL')
             ->select('p', 'c');
 
+        // Recherche par nom ou description
         if (!empty($search)) {
             $qb->andWhere('p.nom LIKE :search OR p.description LIKE :search')
                 ->setParameter('search', '%' . $search . '%');
         }
 
+        // Filtrage par catégorie
         if (!empty($categorie) && $categorie !== '0') {
             $qb->andWhere('c.id = :categorie')
                 ->setParameter('categorie', $categorie);
         }
 
-        $allowedSortFields = ['p.nom', 'p.prix', 'p.createdAt', 'p.dateExpiration', 'p.quantite', 'nom', 'prix', 'createdAt', 'dateExpiration', 'quantite'];
-        $sortBy = in_array($sortBy, $allowedSortFields, true) ? $sortBy : 'p.createdAt';
+        // Tri
+        $allowedSortFields = ['nom', 'prix', 'createdAt', 'dateExpiration'];
+        $sortBy = in_array($sortBy, $allowedSortFields) ? $sortBy : 'createdAt';
         $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
 
-        $orderField = str_contains($sortBy, '.') ? $sortBy : 'p.' . $sortBy;
-        $qb->orderBy($orderField, $sortOrder);
+        $qb->orderBy('p.' . $sortBy, $sortOrder);
 
-        return $qb;
-    }
-
-    public function findByFilters(?string $search = '', ?string $categorie = '', ?string $sortBy = 'createdAt', ?string $sortOrder = 'DESC'): array
-    {
-        return $this->createFilteredQueryBuilder($search, $categorie, $sortBy, $sortOrder)
-            ->getQuery()
-            ->getResult();
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -71,24 +66,6 @@ class ProduitRepository extends ServiceEntityRepository
             ->setParameter('today', new \DateTime())
             ->getQuery()
             ->getSingleScalarResult();
-    }
-
-    /**
-     * Produits dont la date d'expiration est aujourd'hui
-     */
-    public function findExpiringToday(): array
-    {
-        $todayStart = (new \DateTime())->setTime(0, 0, 0);
-        $todayEnd = (clone $todayStart)->modify('+1 day');
-
-        return $this->createQueryBuilder('p')
-            ->where('p.dateExpiration >= :todayStart')
-            ->andWhere('p.dateExpiration < :todayEnd')
-            ->setParameter('todayStart', $todayStart)
-            ->setParameter('todayEnd', $todayEnd)
-            ->orderBy('p.nom', 'ASC')
-            ->getQuery()
-            ->getResult();
     }
 
     /**

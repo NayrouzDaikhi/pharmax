@@ -1,0 +1,58 @@
+{% extends "frontend/base.html.twig" %}
+
+{% block title %}Mes Commandes - Pharmax{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Mes Commandes</h1>
+
+{% if commandes|length == 0 %}
+<div class="alert alert-info text-center py-4">
+    <p>Vous n'avez pas encore de commandes.</p>
+    <a href="{{ path('app_produit_index') }}" class="btn btn-primary">Voir les Produits</a>
+</div>
+{% else %}
+<div class="row g-3">
+    {% for commande in commandes %}
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title">Commande #{{ commande.id }}</h5>
+                    <span class="badge 
+                        {% if commande.statut == 'en_attente' %}bg-warning
+                        {% elseif commande.statut == 'confirmee' %}bg-info
+                        {% elseif commande.statut == 'expediee' %}bg-primary
+                        {% elseif commande.statut == 'livree' %}bg-success
+                        {% else %}bg-secondary{% endif %}
+                    ">
+                        {% if commande.statut == 'en_attente' %}En Attente
+                        {% elseif commande.statut == 'confirmee' %}Confirmée
+                        {% elseif commande.statut == 'expediee' %}Expédiée
+                        {% elseif commande.statut == 'livree' %}Livrée
+                        {% else %}{{ commande.statut }}{% endif %}
+                    </span>
+                </div>
+
+                <p class="text-muted">
+                    <strong>Date:</strong> {{ commande.createdAt|date('d/m/Y H:i') }}
+                </p>
+
+                <p class="text-muted">
+                    <strong>Produits:</strong> {{ commande.produits|length }}
+                </p>
+
+                <p class="text-muted">
+                    <strong>Montant:</strong> 
+                    <span class="text-success fw-bold">{{ commande.totales|number_format(2, ',', ' ') }} DT</span>
+                </p>
+
+                <a href="{{ path('app_frontend_commande_show', {'id': commande.id}) }}" class="btn btn-sm btn-outline-primary">
+                    Voir Détails
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

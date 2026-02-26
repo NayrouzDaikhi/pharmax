@@ -238,14 +238,12 @@ class BlogController extends AbstractController
     // ========== FRONT PRODUITS ==========
 
     #[Route('/produits', name: 'app_front_produits', methods: ['GET'])]
-    public function listProduits(
-        Request $request,
-        ProduitRepository $produitRepository,
-        \App\Service\ProductRecommender $productRecommender,
-    ): Response {
+    public function listProduits(Request $request, ProduitRepository $produitRepository): Response
+    {
         $search = $request->query->get('search', '');
         
         if ($search) {
+            // Search for products matching the query in name or description
             $produits = $produitRepository->createQueryBuilder('p')
                 ->where('p.nom LIKE :search OR p.description LIKE :search')
                 ->setParameter('search', '%' . $search . '%')
@@ -255,16 +253,9 @@ class BlogController extends AbstractController
             $produits = $produitRepository->findAll();
         }
 
-        $recommendations = [];
-        $user = $this->getUser();
-        if ($user instanceof \App\Entity\User) {
-            $recommendations = $productRecommender->getRecommendationsForUser($user, 3);
-        }
-
         return $this->render('blog/products.html.twig', [
             'produits' => $produits,
             'search' => $search,
-            'recommendations' => $recommendations,
         ]);
     }
 

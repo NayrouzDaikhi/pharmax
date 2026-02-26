@@ -28,34 +28,25 @@ class CategorieRepository extends ServiceEntityRepository
     }
 
     /**
-     * Rechercher et filtrer les catégories (QueryBuilder pour pagination)
+     * Rechercher et filtrer les catégories
      */
-    public function createFilteredQueryBuilder(?string $search = '', ?string $sortBy = 'createdAt', ?string $sortOrder = 'DESC')
+    public function findByFilters(?string $search = '', ?string $sortBy = 'createdAt', ?string $sortOrder = 'DESC'): array
     {
         $qb = $this->createQueryBuilder('c');
 
+        // Recherche par nom ou description
         if (!empty($search)) {
             $qb->andWhere('c.nom LIKE :search OR c.description LIKE :search')
                 ->setParameter('search', '%' . $search . '%');
         }
 
-        $allowedSortFields = ['c.nom', 'c.createdAt', 'nom', 'createdAt'];
-        $sortBy = in_array($sortBy, $allowedSortFields, true) ? $sortBy : 'c.createdAt';
+        // Tri
+        $allowedSortFields = ['nom', 'createdAt'];
+        $sortBy = in_array($sortBy, $allowedSortFields) ? $sortBy : 'createdAt';
         $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
 
-        $orderField = str_contains($sortBy, '.') ? $sortBy : 'c.' . $sortBy;
-        $qb->orderBy($orderField, $sortOrder);
+        $qb->orderBy('c.' . $sortBy, $sortOrder);
 
-        return $qb;
-    }
-
-    /**
-     * Version non paginée (compatibilité éventuelle)
-     */
-    public function findByFilters(?string $search = '', ?string $sortBy = 'createdAt', ?string $sortOrder = 'DESC'): array
-    {
-        return $this->createFilteredQueryBuilder($search, $sortBy, $sortOrder)
-            ->getQuery()
-            ->getResult();
+        return $qb->getQuery()->getResult();
     }
 }

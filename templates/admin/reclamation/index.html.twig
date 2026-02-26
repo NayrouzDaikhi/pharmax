@@ -110,11 +110,11 @@
         <div class="card-body">
             <form method="GET" id="filterForm" class="row g-3">
                 <div class="col-md-4">
-                    <label for="search" class="form-label">Titre / Utilisateur</label>
-                    <input type="text" class="form-control" id="search" name="search" 
-                           placeholder="Rechercher par titre ou utilisateur..." value="{{ filters.search|default('') }}">
+                    <label for="titre" class="form-label">Titre</label>
+                    <input type="text" class="form-control" id="titre" name="titre" 
+                           placeholder="Rechercher par titre..." value="{{ filters.titre|default('') }}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label for="statut" class="form-label">Statut</label>
                     <select class="form-select" id="statut" name="statut">
                         <option value="">-- Tous --</option>
@@ -123,29 +123,13 @@
                         <option value="Resolu" {% if filters.statut == 'Resolu' %}selected{% endif %}>Résolu</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label for="date" class="form-label">Date</label>
                     <input type="date" class="form-control" id="date" name="date" value="{{ filters.date|default('') }}">
                 </div>
-                <div class="col-md-2">
-                    <label for="sortBy" class="form-label">Trier par</label>
-                    <select class="form-select" id="sortBy" name="sortBy">
-                        <option value="r.dateCreation" {% if sortBy == 'r.dateCreation' %}selected{% endif %}>Date (défaut)</option>
-                        <option value="r.titre" {% if sortBy == 'r.titre' %}selected{% endif %}>Titre</option>
-                        <option value="u.firstName" {% if sortBy == 'u.firstName' %}selected{% endif %}>Utilisateur</option>
-                        <option value="r.statut" {% if sortBy == 'r.statut' %}selected{% endif %}>Statut</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label for="sortOrder" class="form-label">Ordre</label>
-                    <select class="form-select" id="sortOrder" name="sortOrder">
-                        <option value="DESC" {% if sortOrder == 'DESC' %}selected{% endif %}>↓ DESC</option>
-                        <option value="ASC" {% if sortOrder == 'ASC' %}selected{% endif %}>↑ ASC</option>
-                    </select>
-                </div>
-                <div class="col-md-1 d-flex align-items-end">
+                <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bx bx-search"></i> 
+                        <i class="bx bx-search"></i> Rechercher
                     </button>
                 </div>
             </form>
@@ -159,70 +143,19 @@
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>
-                            <a href="{{ path('admin_reclamation_index', {
-                                search: filters.search,
-                                statut: filters.statut,
-                                date: filters.date,
-                                sortBy: 'r.titre',
-                                sortOrder: (sortBy == 'r.titre' ? nextSortOrder : 'ASC')
-                            }) }}" style="text-decoration: none; color: inherit;">
-                                Titre
-                                {% if sortBy == 'titre' %}
-                                    <i class="bx bx-{{ sortOrder == 'ASC' ? 'up' : 'down' }}"></i>
-                                {% endif %}
-                            </a>
-                        </th>
-                        <th>
-                            <a href="{{ path('admin_reclamation_index', {
-                                search: filters.search,
-                                statut: filters.statut,
-                                date: filters.date,
-                                sortBy: 'u.firstName',
-                                sortOrder: (sortBy == 'u.firstName' ? nextSortOrder : 'ASC')
-                            }) }}" style="text-decoration: none; color: inherit;">
-                                Utilisateur
-                                {% if sortBy == 'utilisateur' %}
-                                    <i class="bx bx-{{ sortOrder == 'ASC' ? 'up' : 'down' }}"></i>
-                                {% endif %}
-                            </a>
-                        </th>
-                        <th>
-                            <a href="{{ path('admin_reclamation_index', {
-                                search: filters.search,
-                                statut: filters.statut,
-                                date: filters.date,
-                                sortBy: 'r.statut',
-                                sortOrder: (sortBy == 'r.statut' ? nextSortOrder : 'ASC')
-                            }) }}" style="text-decoration: none; color: inherit;">
-                                Statut
-                                {% if sortBy == 'statut' %}
-                                    <i class="bx bx-{{ sortOrder == 'ASC' ? 'up' : 'down' }}"></i>
-                                {% endif %}
-                            </a>
-                        </th>
-                        <th>
-                            <a href="{{ path('admin_reclamation_index', {
-                                search: filters.search,
-                                statut: filters.statut,
-                                date: filters.date,
-                                sortBy: 'r.dateCreation',
-                                sortOrder: (sortBy == 'r.dateCreation' ? nextSortOrder : 'ASC')
-                            }) }}" style="text-decoration: none; color: inherit;">
-                                Date
-                                {% if sortBy == 'dateCreation' %}
-                                    <i class="bx bx-{{ sortOrder == 'ASC' ? 'up' : 'down' }}"></i>
-                                {% endif %}
-                            </a>
-                        </th>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Utilisateur</th>
+                        <th>Statut</th>
+                        <th>Date</th>
                         <th>Réponses</th>
-                        <th>Message de réponse</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
                     {% for reclamation in reclamations %}
                     <tr>
+                        <td><strong>#{{ reclamation.id }}</strong></td>
                         <td>{{ reclamation.titre }}</td>
                         <td>
                             {% if reclamation.user %}
@@ -243,16 +176,6 @@
                         </td>
                         <td>{{ reclamation.dateCreation|date('d/m/Y H:i') }}</td>
                         <td><span class="badge bg-label-primary">{{ reclamation.reponses|length }}</span></td>
-                        <td>
-                            {% if reclamation.statut == 'Resolu' and reclamation.reponses|length > 0 %}
-                                {% set reponseResolu = reclamation.reponses|first %}
-                                <span class="text-muted" title="{{ reponseResolu.contenu }}" style="font-size: 0.9rem; max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    {{ reponseResolu.contenu|slice(0, 80) }}{% if reponseResolu.contenu|length > 80 %}...{% endif %}
-                                </span>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
                         <td>
                             <a href="{{ path('admin_reclamation_show', {'id': reclamation.id}) }}" 
                                class="btn btn-sm btn-info">
@@ -275,87 +198,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-        
-        <!-- Pagination -->
-        <div class="card-footer">
-            <nav aria-label="pagination" class="d-flex justify-content-between align-items-center">
-                <div class="pagination">
-                    {% set currentPage = reclamations.currentPageNumber %}
-                    {% set itemsPerPage = reclamations.itemNumberPerPage %}
-                    {% set totalItems = reclamations.totalItemCount %}
-                    {% set totalPages = (totalItems / itemsPerPage)|round(0, 'ceil') %}
-
-                    {# Lien Précédent #}
-                    {% if currentPage > 1 %}
-                        <a class="page-link" href="{{ path('admin_reclamation_index', {
-                            search: filters.search,
-                            statut: filters.statut,
-                            date: filters.date,
-                            sortBy: sortBy,
-                            sortOrder: sortOrder,
-                            page: currentPage - 1
-                        }) }}">
-                            <i class="bx bx-chevron-left"></i> Précédent
-                        </a>
-                    {% else %}
-                        <span class="page-link disabled">
-                            <i class="bx bx-chevron-left"></i> Précédent
-                        </span>
-                    {% endif %}
-
-                    {# Numéros de pages #}
-                    {% for page_num in reclamations.paginationData.pageRange %}
-                        {% if page_num %}
-                            {% if page_num == currentPage %}
-                                <span class="page-link active">
-                                    {{ page_num }}
-                                </span>
-                            {% else %}
-                                <a class="page-link" href="{{ path('admin_reclamation_index', {
-                                    search: filters.search,
-                                    statut: filters.statut,
-                                    date: filters.date,
-                                    sortBy: sortBy,
-                                    sortOrder: sortOrder,
-                                    page: page_num
-                                }) }}">
-                                    {{ page_num }}
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <span class="page-link disabled">...</span>
-                        {% endif %}
-                    {% endfor %}
-
-                    {# Lien Suivant #}
-                    {% if currentPage < totalPages %}
-                        <a class="page-link" href="{{ path('admin_reclamation_index', {
-                            search: filters.search,
-                            statut: filters.statut,
-                            date: filters.date,
-                            sortBy: sortBy,
-                            sortOrder: sortOrder,
-                            page: currentPage + 1
-                        }) }}">
-                            Suivant <i class="bx bx-chevron-right"></i>
-                        </a>
-                    {% else %}
-                        <span class="page-link disabled">
-                            Suivant <i class="bx bx-chevron-right"></i>
-                        </span>
-                    {% endif %}
-                </div>
-
-                <div class="text-muted">
-                    <small>
-                        {% set firstItemNumber = ((currentPage - 1) * itemsPerPage) + 1 %}
-                        {% set lastItemNumber = currentPage * itemsPerPage > totalItems ? totalItems : currentPage * itemsPerPage %}
-                        Affichage {{ firstItemNumber }} à {{ lastItemNumber }} 
-                        sur {{ totalItems }} résultats
-                    </small>
-                </div>
-            </nav>
         </div>
     </div>
     {% else %}

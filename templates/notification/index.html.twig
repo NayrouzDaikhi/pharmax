@@ -1,232 +1,113 @@
-{% extends 'base_simple.html.twig' %}
+{% extends "base.html.twig" %}
 
-{% block title %}Notifications{% endblock %}
-
-{% block page_header %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="mb-2">Centre de Notifications</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
-                <li class="breadcrumb-item active">Notifications</li>
-            </ol>
-        </nav>
-    </div>
-    {# Bouton "marquer tout comme lu" désactivé pour l'instant
-    <div class="text-end">
-        <a href="#" class="btn btn-sm btn-outline-primary notif-mark-all" data-url="{{ path('app_notifications_mark_all_read') }}">
-            <i class="bx bx-check-double"></i> Marquer tout comme lu
-        </a>
-    </div>
-    #}
-</div>
-{% endblock %}
+{% block title %}Notifications d'Expiration{% endblock %}
 
 {% block body %}
-<div class="row">
-    <!-- Statistiques -->
-    <div class="col-12 mb-4">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card border-left-primary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted mb-2">Notifications Non Lues</h6>
-                                <h4 class="mb-0">{{ notifications|length }}</h4>
-                            </div>
-                            <i class="bx bx-bell text-primary" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-left-danger">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted mb-2">Produits en Expiration</h6>
-                                <h4 class="mb-0">{{ expiringProducts|length }}</h4>
-                            </div>
-                            <i class="bx bx-time text-danger" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Statistiques 
-            <div class="col-md-4">
-                <div class="card border-left-success">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted mb-2">Statut Global</h6>
-                                <h4 class="mb-0" style="color: #28a745;">
-                                    {% if expiringProducts|length == 0 and notifications|length == 0 %}
-                                        Optimal
-                                    {% elseif expiringProducts|length == 0 %}
-                                        Bon
-                                    {% else %}
-                                        Alerte
-                                    {% endif %}
-                                </h4>
-                            </div>
-                            <i class="bx bx-check-circle text-success" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                        </div>
-                    </div>
-                </div>-->
-            </div>
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>🔔 Notifications d'Expiration de Produits</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="badge bg-danger">{{ unreadCount }} non lue(s)</span>
         </div>
     </div>
 
-    <!-- Contenu Principal -->
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bx bx-inbox"></i> Historique des Notifications
-                </h5>
-                <form method="get" class="input-group input-group-sm" style="max-width:300px;">
-                    <span class="input-group-text"><i class="bx bx-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ search|default('') }}">
-                    <button class="btn btn-outline-primary" type="submit">Chercher</button>
-                </form>
-            </div>
-
-            <div class="card-body p-0">
-                <!-- Section Expiration Produits -->
-                {% if expiringProducts|length > 0 %}
-                    <div class="alert alert-danger m-3 mb-4 alert-dismissible fade show" role="alert">
-                        <div class="d-flex align-items-start">
-                            <i class="bx bx-time me-3" style="font-size: 1.5rem;"></i>
-                            <div class="flex-grow-1">
-                                <h5 class="alert-heading mb-2">
-                                    <strong>⚠️ {{ expiringProducts|length }} Produit(s) Expirant Bientôt</strong>
-                                </h5>
-                                <p class="mb-2 text-muted">Veuillez vérifier et mettre à jour les dates d'expiration.</p>
-                                <div class="list-group">
-                                    {% for p in expiringProducts %}
-                                        <div class="list-group-item">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="flex-grow-1">
-                                                    <h6 class="mb-1">
-                                                        <span class="badge bg-danger">{{ p.getNom() }}</span>
-                                                    </h6>
-                                                    <small class="text-muted">
-                                                        <i class="bx bx-calendar"></i>
-                                                        Date d'expiration: 
-                                                        <strong>{{ p.getDateExpiration() ? p.getDateExpiration().format('d/m/Y') : 'Non définie' }}</strong>
-                                                        {% if p.getDateExpiration() %}
-                                                            {% set daysLeft = ((p.getDateExpiration()|date('U') - 'now'|date('U')) / 86400)|round %}
-                                                            {% if daysLeft < 0 %}
-                                                                <span class="badge bg-dark ms-2">EXPIRÉ</span>
-                                                            {% elseif daysLeft <= 7 %}
-                                                                <span class="badge bg-warning ms-2">{{ daysLeft|abs }} jours</span>
-                                                            {% endif %}
-                                                        {% endif %}
-                                                    </small>
-                                                </div>
-                                                <a href="{{ path('app_produit_show', {'id': p.getId()}) }}" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bx bx-show"></i> Consulter
-                                                </a>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <!-- Section Notifications Utilisateur -->
-                <div class="list-group list-group-flush">
-                    {% if notifications|length > 0 %}
-                        {% for n in notifications %}
-                            {% set unread = not n.getIsRead() %}
-                            <div class="list-group-item {{ unread ? 'bg-light' : '' }}">
-                                <div class="d-flex w-100 justify-content-between align-items-start mb-2">
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex align-items-center gap-2">
-                                            {% if unread %}
-                                                <span class="badge bg-primary">NOUVEAU</span>
-                                            {% endif %}
-                                            <h6 class="mb-0">{{ n.getMessage()|replace({'\\"':'"'})|raw }}</h6>
-                                        </div>
-                                    </div>
-                                    <small class="text-muted text-nowrap ms-3">
-                                        <i class="bx bx-time"></i>
-                                        {{ n.getCreatedAt() ? n.getCreatedAt().format('d/m/Y H:i') : '-' }}
-                                    </small>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center gap-2">
-                                    <div>
-                                        {% if not n.getIsRead() %}
-                                            <span class="badge bg-info">Non lu</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Lu</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        {% if not n.getIsRead() %}
-                                            <form method="POST" action="{{ path('notification_mark_as_read', {'id': n.getId()}) }}" style="display:inline;">
-                                                <button type="submit" class="btn btn-outline-success btn-sm" title="Marquer comme lu">
-                                                    <i class="bx bx-check"></i> Marquer lu
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                        <form method="POST" action="{{ path('notification_delete', {'id': n.getId()}) }}" style="display:inline;" onsubmit="return confirm('Supprimer cette notification ?');">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Supprimer">
-                                                <i class="bx bx-trash"></i> Supprimer
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% elseif expiringProducts|length == 0 %}
-                        <div class="text-center py-5">
-                            <i class="bx bx-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                            <p class="text-muted mt-3">
-                                <strong>Aucune notification</strong><br>
-                                Vous êtes à jour ! 🎉
-                            </p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            {% if notifications|length > 0 %}
-                <div class="card-footer bg-light text-muted text-center py-2">
-                    <small>
-                        <i class="bx bx-info-circle"></i>
-                        {{ notifications|length }} notification(s) à traiter
-                    </small>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>Produits arrivant à expiration (30 jours)</h3>
+            {% if expiringProducts is empty %}
+                <div class="alert alert-secondary">Aucun produit n'arrive à expiration dans les 30 prochains jours.</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Date d'expiration</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in expiringProducts %}
+                                <tr>
+                                    <td>{{ p.id }}</td>
+                                    <td>{{ p.nom }}</td>
+                                    <td>{{ p.dateExpiration ? p.dateExpiration|date('d/m/Y') : '—' }}</td>
+                                    <td>{% if p.statut %}<span class="badge bg-success">Valable</span>{% else %}<span class="badge bg-warning">Hors stock</span>{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             {% endif %}
         </div>
     </div>
+
+    {% if notifications is empty %}
+        <div class="alert alert-info">
+            ✅ Aucune notification pour le moment. Tous vos produits sont à jour!
+        </div>
+    {% else %}
+        <div class="row">
+            {% for notification in notifications %}
+                <div class="col-md-12 mb-3">
+                    <div class="card {% if notification.isRead %}bg-light{% else %}border-danger{% endif %}">
+                        <div class="card-header {% if notification.isRead %}bg-light{% else %}bg-danger{% endif %} text-{% if notification.isRead %}dark{% else %}white{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title mb-0">
+                                        {% if not notification.isRead %}
+                                            🔴 Notification Non Lue
+                                        {% else %}
+                                            ✅ Notification Lue
+                                        {% endif %}
+                                    </h5>
+                                    <small class="text-muted">{{ notification.createdAt|date('d/m/Y H:i:s') }}</small>
+                                </div>
+                                {% if not notification.isRead %}
+                                    <form method="POST" action="{{ path('notification_mark_as_read', {id: notification.id}) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-light">
+                                            Marquer comme lue
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <pre class="mb-0" style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; font-size: 0.9em;">{{ notification.message }}</pre>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <small class="text-muted">ID: {{ notification.id }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 
 <style>
-    .border-left-primary {
-        border-left: 4px solid #007bff !important;
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
     }
-    .border-left-danger {
-        border-left: 4px solid #dc3545 !important;
+    
+    .card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-    .border-left-success {
-        border-left: 4px solid #28a745 !important;
+    
+    .card-header {
+        border-bottom: 2px solid rgba(0,0,0,0.1);
     }
-    .list-group-item {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #e9edef;
-    }
-    .list-group-item:last-child {
-        border-bottom: none;
-    }
-    .list-group-item.bg-light {
-        background-color: #e9eeef !important;
+    
+    pre {
+        color: #333;
+        white-space: pre-wrap;
+        word-wrap: break-word;
     }
 </style>
 {% endblock %}

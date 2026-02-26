@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Repository\ArticleRepository;
 use App\Repository\ProduitRepository;
 use App\Repository\CommentaireRepository;
-use App\Repository\CommandeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -13,7 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class DashboardController extends AbstractController
 {
     #[Route('/dashboard', name: 'app_dashboard', methods: ['GET'])]
-    public function index(ArticleRepository $articleRepository, ProduitRepository $produitRepository, CommentaireRepository $commentaireRepository, CommandeRepository $commandeRepository): Response
+    public function index(ArticleRepository $articleRepository, ProduitRepository $produitRepository, CommentaireRepository $commentaireRepository): Response
     {
         $articles = $articleRepository->findAll();
         $produits = $produitRepository->findAll();
@@ -34,14 +33,10 @@ class DashboardController extends AbstractController
             'total' => count($commentaires),
         ];
 
-        $commandeStats = $commandeRepository->getStatistics();
-        $blockedCount = $commandeStats['bloquee'] ?? 0;
-
         return $this->render('dashboard/index.html.twig', [
             'statsArticles' => $statsArticles,
             'statsProduits' => $statsProduits,
             'statsCommentaires' => $statsCommentaires,
-            'blockedCount' => $blockedCount,
             'articles' => array_slice($articles, 0, 5),
             'produits' => array_slice($produits, 0, 5),
         ]);

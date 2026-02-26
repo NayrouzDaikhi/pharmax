@@ -11,25 +11,6 @@
 {% block body %}
 <div class="row">
     <div class="col-12">
-      {% if produitsExpirantAujourdhui|length > 0 %}
-      <div class="alert alert-warning alert-dismissible fade show d-flex align-items-start mb-4" role="alert">
-        <i class="bx bx-error-circle me-2" style="font-size: 1.5rem;"></i>
-        <div class="flex-grow-1">
-          <h6 class="alert-heading mb-2"><strong>Attention : produits expirant aujourd'hui</strong></h6>
-          <p class="mb-2">Les produits suivants ont une date d'expiration égale à la date du jour ({{ "now"|date("d/m/Y") }}) :</p>
-          <ul class="mb-2 mb-0">
-            {% for produit in produitsExpirantAujourdhui %}
-              <li><strong>{{ produit.nom }}</strong> — Expire le {{ produit.dateExpiration|date('d/m/Y') }}</li>
-            {% endfor %}
-          </ul>
-          <a href="{{ path('app_produit_index') }}" class="btn btn-sm btn-warning mt-2">
-            <i class="bx bx-package"></i> Voir les produits
-          </a>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-      </div>
-      {% endif %}
-
       <div class="row mb-4">
         <div class="col-md-3">
           <div class="card text-center">

@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Reponse;
 use App\Entity\Reclamation;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,47 +13,23 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/reponses')]
 class AdminReponseController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em, private PaginatorInterface $paginator)
+    public function __construct(private EntityManagerInterface $em)
     {
     }
 
     #[Route('', name: 'admin_reponse_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $search = $request->query->get('search');
+        $contenu = $request->query->get('contenu');
         $date = $request->query->get('date');
-        $sortBy = $request->query->get('sortBy', 'r.dateReponse');
-        $sortOrder = $request->query->get('sortOrder', 'DESC');
-        $page = $request->query->get('page', 1);
-
-        // Valider l'ordre de tri
-        $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
-        
-        // Normaliser la colonne de tri
-        $mapping = [
-            'id' => 'r.id',
-            'contenu' => 'r.contenu',
-            'reclamation' => 'rec.titre',
-            'dateReponse' => 'r.dateReponse',
-        ];
-        if (isset($mapping[$sortBy])) {
-            $sortField = $mapping[$sortBy];
-        } elseif (str_contains($sortBy, '.')) {
-            $sortField = $sortBy;
-        } else {
-            $sortField = $mapping['dateReponse'];
-        }
 
         $qb = $this->em->getRepository(Reponse::class)
-                   ->createQueryBuilder('r')
-                   ->select('r')
-                   ->leftJoin('r.reclamation', 'rec')
-                   ->addSelect('rec');
+                       ->createQueryBuilder('r');
 
-        // 🔍 Recherche combinée Contenu + Réclamation
-        if (!empty($search)) {
-            $qb->andWhere('(r.contenu LIKE :search OR rec.titre LIKE :search OR CAST(rec.id AS string) LIKE :search)')
-               ->setParameter('search', '%' . $search . '%');
+        // 🔍 Filtre par contenu
+        if (!empty($contenu)) {
+            $qb->andWhere('r.contenu LIKE :contenu')
+               ->setParameter('contenu', '%' . $contenu . '%');
         }
 
         // 📅 Filtre par date
@@ -68,28 +43,16 @@ class AdminReponseController extends AbstractController
                ->setParameter('end', $end);
         }
 
-        // Appliquer le tri en utilisant le champ normalisé
-        $qb->orderBy($sortField, $sortOrder);
+        $qb->orderBy('r.dateReponse', 'DESC');
 
-        // Paginer les résultats (10 éléments par page)
-        $reponses = $this->paginator->paginate(
-            $qb,
-            $page,
-            10
-        );
-
-        // Déterminer l'ordre opposé pour les liens de tri
-        $nextSortOrder = $sortOrder === 'ASC' ? 'DESC' : 'ASC';
+        $reponses = $qb->getQuery()->getResult();
 
         return $this->render('admin/reponse/index.html.twig', [
             'reponses' => $reponses,
             'filters' => [
-                'search' => $search,
+                'contenu' => $contenu,
                 'date' => $date,
-            ],
-            'sortBy' => $sortBy,
-            'sortOrder' => $sortOrder,
-            'nextSortOrder' => $nextSortOrder,
+            ]
         ]);
     }
 

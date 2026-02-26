@@ -1,6 +1,6 @@
 {% extends 'base_simple.html.twig' %}
 
-{% block title %}Éditer Réponse - Pharmax Admin{% endblock %}
+{% block title %}Éditer Réponse #{{ reponse.id }} - Pharmax Admin{% endblock %}
 
 {% block body %}
 <div class="row">
@@ -16,13 +16,13 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bx bx-edit"></i> Éditer Réponse
+                        <i class="bx bx-edit"></i> Éditer Réponse #{{ reponse.id }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info mb-4" role="alert">
                         <i class="bx bx-info-circle"></i>
-                        <strong>Réclamation :</strong> {{ reponse.reclamation.titre }}
+                        <strong>Réclamation :</strong> #{{ reponse.reclamation.id }} - {{ reponse.reclamation.titre }}
                     </div>
 
                     <div class="mb-3 pb-3 border-bottom">

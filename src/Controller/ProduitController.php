@@ -7,7 +7,6 @@ use App\Form\Produit1Type;
 use App\Repository\ProduitRepository;
 use App\Repository\CategorieRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,32 +18,14 @@ use Symfony\Component\Filesystem\Filesystem;
 final class ProduitController extends AbstractController
 {
     #[Route(name: 'app_produit_index', methods: ['GET'])]
-    public function index(
-        Request $request,
-        ProduitRepository $produitRepository,
-        CategorieRepository $categorieRepository,
-        PaginatorInterface $paginator
-    ): Response {
+    public function index(Request $request, ProduitRepository $produitRepository, CategorieRepository $categorieRepository): Response
+    {
         $search = $request->query->get('search', '');
         $categorie = $request->query->get('categorie', '');
-        $sortBy = $request->query->get('sortBy', 'p.createdAt');
+        $sortBy = $request->query->get('sortBy', 'createdAt');
         $sortOrder = $request->query->get('sortOrder', 'DESC');
 
-        $qb = $produitRepository->createFilteredQueryBuilder($search, $categorie, $sortBy, $sortOrder);
-
-        $page = max(1, (int) $request->query->get('page', 1));
-        // 2 produits par page
-        $limit = 2;
-
-        $produits = $paginator->paginate(
-            $qb,
-            $page,
-            $limit,
-            [
-                \Knp\Component\Pager\PaginatorInterface::SORT_FIELD_ALLOW_LIST => ['p.nom', 'p.prix', 'p.createdAt', 'p.dateExpiration', 'p.quantite'],
-            ]
-        );
-
+        $produits = $produitRepository->findByFilters($search, $categorie, $sortBy, $sortOrder);
         $categories = $categorieRepository->findAll();
 
         return $this->render('produit/sneat_index.html.twig', [

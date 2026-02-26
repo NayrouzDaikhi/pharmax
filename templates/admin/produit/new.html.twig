@@ -69,17 +69,11 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            {{ form_label(form.etatStock, 'État du Stock') }}
-                            {{ form_widget(form.etatStock, {'attr': {'class': 'form-select', 'id': 'produit_etatStock'}}) }}
-                            {{ form_errors(form.etatStock) }}
+                            {{ form_label(form.statut, 'Statut du Stock') }}
+                            {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.statut) }}
                         </div>
                     </div>
-                </div>
-
-                <div id="promotionPourcentageWrapper" class="mb-3" style="display: none;">
-                    {{ form_label(form.promotionPourcentage, 'Pourcentage de promotion (%)') }}
-                    {{ form_widget(form.promotionPourcentage, {'attr': {'class': 'form-control', 'min': 1, 'max': 100, 'placeholder': 'Ex: 20'}}) }}
-                    {{ form_errors(form.promotionPourcentage) }}
                 </div>
 
                 <div class="mb-3">
@@ -111,18 +105,4 @@
         </div>
     </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var etatSelect = document.getElementById('produit_etatStock') || document.getElementById('produit1_etatStock') || document.querySelector('select[name*="etatStock"]');
-  var promoWrapper = document.getElementById('promotionPourcentageWrapper');
-  function togglePromo() {
-    if (!promoWrapper) return;
-    promoWrapper.style.display = (etatSelect && etatSelect.value === 'en_promotion') ? 'block' : 'none';
-  }
-  if (etatSelect) {
-    etatSelect.addEventListener('change', togglePromo);
-    togglePromo();
-  }
-});
-</script>
 {% endblock %}

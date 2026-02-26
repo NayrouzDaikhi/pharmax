@@ -16,6 +16,7 @@ class ArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, Article::class);
     }
 
+<<<<<<< HEAD
     //    /**
     //     * @return Article[] Returns an array of Article objects
     //     */
@@ -40,4 +41,38 @@ class ArticleRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+=======
+    /**
+     * Chercher les articles par mots-clés
+     */
+    public function searchByKeywords(array $keywords, int $limit = 5): array
+    {
+        if (empty($keywords)) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('a');
+        
+        // Créer les conditions OR pour chaque mot-clé
+        $orConditions = [];
+        foreach ($keywords as $index => $keyword) {
+            $param = 'keyword_' . $index;
+            $orConditions[] = $qb->expr()->orX(
+                $qb->expr()->like('a.titre', ':' . $param),
+                $qb->expr()->like('a.contenu', ':' . $param),
+                $qb->expr()->like('a.contenuEn', ':' . $param)
+            );
+            $qb->setParameter($param, '%' . $keyword . '%');
+        }
+
+        if (!empty($orConditions)) {
+            $qb->where($qb->expr()->orX(...$orConditions));
+        }
+
+        return $qb->orderBy('a.date_creation', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+>>>>>>> gestion-article
 }

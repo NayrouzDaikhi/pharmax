@@ -4,17 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Commande;
 use App\Entity\LigneCommande;
-use App\Entity\Livraison;
-use App\Service\FraudDetectionService;
-use App\Form\LivraisonType;
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/panier')]
@@ -38,29 +33,9 @@ class PanierController extends AbstractController
             $total += $item['prix'] * $item['quantite'];
         }
 
-        $livraison = new Livraison();
-        $user = $this->getUser();
-        if ($user) {
-            if (method_exists($user, 'getFirstName')) {
-                $livraison->setFirstName($user->getFirstName() ?? '');
-            }
-            if (method_exists($user, 'getLastName')) {
-                $livraison->setLastName($user->getLastName() ?? '');
-            }
-            if (method_exists($user, 'getEmail')) {
-                $livraison->setEmail($user->getEmail() ?? '');
-            }
-        }
-
-        $form = $this->createForm(LivraisonType::class, $livraison, [
-            'action' => $this->generateUrl('app_panier_commander'),
-            'method' => 'POST',
-        ]);
-
         return $this->render('frontend/panier/index.html.twig', [
             'panier' => $panier,
             'total' => $total,
-            'livraisonForm' => $form->createView(),
         ]);
     }
 
@@ -94,7 +69,7 @@ class PanierController extends AbstractController
             $panier[$id] = [
                 'id' => $id,
                 'nom' => $produit->getNom(),
-                'prix' => $produit->getPrixPromo(),
+                'prix' => $produit->getPrix(),
                 'image' => $produit->getImage(),
                 'quantite' => 1,
             ];
@@ -204,13 +179,7 @@ class PanierController extends AbstractController
     }
 
     #[Route('/commander', name: 'app_panier_commander', methods: ['POST'])]
-    public function commander(
-        Request $request,
-        EntityManagerInterface $em,
-        ProduitRepository $produitRepository,
-        MailerInterface $mailer,
-        FraudDetectionService $fraudDetectionService,
-    ): Response
+    public function commander(Request $request, EntityManagerInterface $em, ProduitRepository $produitRepository): Response
     {
         // Require user to be authenticated
         $this->denyAccessUnlessGranted('ROLE_USER');
@@ -230,34 +199,6 @@ class PanierController extends AbstractController
         }
 
         $total = 0;
-
-        $livraison = new Livraison();
-        if ($user) {
-            if (method_exists($user, 'getFirstName')) {
-                $livraison->setFirstName($user->getFirstName() ?? '');
-            }
-            if (method_exists($user, 'getLastName')) {
-                $livraison->setLastName($user->getLastName() ?? '');
-            }
-            if (method_exists($user, 'getEmail')) {
-                $livraison->setEmail($user->getEmail() ?? '');
-            }
-        }
-
-        $form = $this->createForm(LivraisonType::class, $livraison);
-        $form->handleRequest($request);
-
-        if (!$form->isSubmitted() || !$form->isValid()) {
-            foreach ($panier as $item) {
-                $total += $item['prix'] * $item['quantite'];
-            }
-
-            return $this->render('frontend/panier/index.html.twig', [
-                'panier' => $panier,
-                'total' => $total,
-                'livraisonForm' => $form->createView(),
-            ]);
-        }
 
         // Créer la commande
         $commande = new Commande();
@@ -281,65 +222,12 @@ class PanierController extends AbstractController
         $commande->setProduits($panier);
         $commande->setTotales($total);
 
-        // Calcul du risque de fraude
-        $risk = $fraudDetectionService->calculateRisk($commande);
-        if ($risk >= 70) {
-            // commande bloquée pour vérification par un administrateur
-            $commande->setStatut('bloquee');
-        }
-
         $em->persist($commande);
-
-        // Associer et enregistrer la livraison
-        $livraison->setCommande($commande);
-        $em->persist($livraison);
-
         $em->flush();
-
-        if ($risk >= 70) {
-            // Alerte visible côté client
-            $this->addFlash('warning', sprintf(
-                'Votre commande a été bloquée pour vérification (score de risque %d%%). Un administrateur va la vérifier.',
-                $risk
-            ));
-
-            // Optionnel : envoyer un email à l’admin pour l’alerter
-            $adminEmail = (new \Symfony\Component\Mailer\Mime\Email())
-                ->from('no-reply@pharmax.com')
-                ->to('admin@pharmax.com')
-                ->subject('Alerte fraude – commande bloquée')
-                ->text(sprintf(
-                    "Une commande à risque élevé a été détectée.\nUtilisateur : %s\nID commande : %d\nMontant total : %.2f TND\nScore de risque : %d%%",
-                    $user?->getEmail() ?? 'inconnu',
-                    $commande->getId(),
-                    $commande->getTotales() ?? 0,
-                    $risk
-                ));
-
-            $mailer->send($adminEmail);
-
-            // Ne pas lancer le paiement, laisser la commande bloquée pour admin
-            $session->set('panier', []);
-
-            return $this->redirectToRoute('app_commande_show', ['id' => $commande->getId()]);
-        }
-
-        // Cas normal : confirmation + paiement Stripe
-        $email = (new TemplatedEmail())
-            ->from('no-reply@pharmax.com')
-            ->to($user->getEmail())
-            ->subject('Confirmation de votre commande')
-            ->htmlTemplate('emails/confirmation_commande.html.twig')
-            ->context([
-                'user' => $user,
-                'commande' => $commande,
-            ]);
-
-        $mailer->send($email);
 
         // Vider le panier
         $session->set('panier', []);
 
-        return $this->redirectToRoute('stripe_create_session', ['id' => $commande->getId()]);
+        return $this->redirectToRoute('app_frontend_commande_show', ['id' => $commande->getId()]);
     }
 }

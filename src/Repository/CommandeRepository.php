@@ -18,7 +18,7 @@ class CommandeRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->andWhere('c.utilisateur = :utilisateur')
             ->setParameter('utilisateur', $utilisateur)
-            ->orderBy('c.createdAt', 'DESC')
+            ->orderBy('c.created_at', 'DESC')
             ->getQuery()
             ->getResult()
         ;
@@ -29,7 +29,7 @@ class CommandeRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->andWhere('c.statut = :statut')
             ->setParameter('statut', $statut)
-            ->orderBy('c.createdAt', 'DESC')
+            ->orderBy('c.created_at', 'DESC')
             ->getQuery()
             ->getResult()
         ;
@@ -49,7 +49,7 @@ class CommandeRepository extends ServiceEntityRepository
                ->setParameter('statut', $statut);
         }
 
-        $qb->orderBy('c.createdAt', 'DESC');
+        $qb->orderBy('c.created_at', 'DESC');
 
         return $qb->getQuery()->getResult();
     }
@@ -59,16 +59,16 @@ class CommandeRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('c');
 
         if ($start !== null) {
-            $qb->andWhere('c.createdAt >= :start')
+            $qb->andWhere('c.created_at >= :start')
                ->setParameter('start', $start);
         }
 
         if ($end !== null) {
-            $qb->andWhere('c.createdAt <= :end')
+            $qb->andWhere('c.created_at <= :end')
                ->setParameter('end', $end);
         }
 
-        $qb->orderBy('c.createdAt', 'DESC');
+        $qb->orderBy('c.created_at', 'DESC');
 
         return $qb->getQuery()->getResult();
     }
@@ -77,7 +77,7 @@ class CommandeRepository extends ServiceEntityRepository
     public function findRecentCommandes($limit = 10)
     {
         return $this->createQueryBuilder('c')
-            ->orderBy('c.createdAt', 'DESC')
+            ->orderBy('c.created_at', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult()
@@ -102,28 +102,10 @@ class CommandeRepository extends ServiceEntityRepository
             'en_attente' => $this->countByStatut('en_attente'),
             'payee' => $this->countByStatut('payee'),
             'annule' => $this->countByStatut('annule'),
-            'bloquee' => $this->countByStatut('bloquee'),
             'total' => $this->createQueryBuilder('c')
                 ->select('COUNT(c.id)')
                 ->getQuery()
                 ->getSingleScalarResult(),
         ];
-    }
-
-    /**
-     * Nombre de commandes passées aujourd'hui par un utilisateur.
-     */
-    public function countUserOrdersToday(\App\Entity\User $user): int
-    {
-        $start = (new \DateTime())->setTime(0, 0, 0);
-
-        return (int) $this->createQueryBuilder('c')
-            ->select('COUNT(c.id)')
-            ->where('c.utilisateur = :user')
-            ->andWhere('c.createdAt >= :start')
-            ->setParameter('user', $user)
-            ->setParameter('start', $start)
-            ->getQuery()
-            ->getSingleScalarResult();
     }
 }

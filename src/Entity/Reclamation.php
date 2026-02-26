@@ -32,8 +32,7 @@ class Reclamation
     #[ORM\Column(type: "string", length: 50)]
     private ?string $statut = null;
 
-    #[ORM\OneToMany(mappedBy: "reclamation", targetEntity: Reponse::class, cascade: ["persist", "remove"], orphanRemoval: true)]
-    #[ORM\OrderBy(["dateReponse" => "DESC"])]
+    #[ORM\OneToMany(mappedBy: "reclamation", targetEntity: Reponse::class, cascade: ["persist", "remove"])]
     private Collection $reponses;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

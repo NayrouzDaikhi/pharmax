@@ -158,30 +158,13 @@
                         </div>
                     </div>
 
-                    <!-- Formulaire de livraison + action -->
-                    {{ form_start(livraisonForm, {'attr': {'class': 'mb-3'}}) }}
-                        <h6 class="fw-bold mb-3">Informations de livraison</h6>
-
-                        <div class="mb-3">
-                            {{ form_row(livraisonForm.firstName) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(livraisonForm.lastName) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(livraisonForm.email) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(livraisonForm.adresse) }}
-                        </div>
-                        <div class="mb-3">
-                            {{ form_row(livraisonForm.tel) }}
-                        </div>
-
+                    <!-- Boutons d'Action -->
+                    <form method="POST" action="{{ path('app_panier_commander') }}" class="mb-3">
+                        <input type="hidden" name="_token" value="{{ csrf_token('panier_commander') }}">
                         <button type="submit" class="btn btn-success w-100 py-3 fw-bold" style="font-size: 1.1rem; background: linear-gradient(135deg, #27ae60 0%, #229954 100%); border: none; box-shadow: 0 4px 8px rgba(39, 174, 96, 0.2); transition: all 0.3s ease;">
                             <i class="bx bx-check-circle"></i> Passer la Commande
                         </button>
-                    {{ form_end(livraisonForm) }}
+                    </form>
 
                     <a href="{{ path('app_panier_vider') }}" 
                        class="btn btn-outline-danger w-100 py-2"

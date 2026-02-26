@@ -6,7 +6,6 @@ use App\Entity\Categorie;
 use App\Form\CategorieType;
 use App\Repository\CategorieRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,24 +15,13 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CategorieController extends AbstractController
 {
     #[Route(name: 'app_categorie_index', methods: ['GET'])]
-    public function index(
-        Request $request,
-        CategorieRepository $categorieRepository,
-        PaginatorInterface $paginator
-    ): Response {
+    public function index(Request $request, CategorieRepository $categorieRepository): Response
+    {
         $search = $request->query->get('search', '');
-        $sortBy = $request->query->get('sortBy', 'c.createdAt');
+        $sortBy = $request->query->get('sortBy', 'createdAt');
         $sortOrder = $request->query->get('sortOrder', 'DESC');
 
-        $qb = $categorieRepository->createFilteredQueryBuilder($search, $sortBy, $sortOrder);
-
-        $page = max(1, (int) $request->query->get('page', 1));
-        // même pagination que produits : 2 éléments par page
-        $limit = 2;
-
-        $categories = $paginator->paginate($qb, $page, $limit, [
-            \Knp\Component\Pager\PaginatorInterface::SORT_FIELD_ALLOW_LIST => ['c.nom', 'c.createdAt'],
-        ]);
+        $categories = $categorieRepository->findByFilters($search, $sortBy, $sortOrder);
 
         return $this->render('categorie/sneat_index.html.twig', [
             'categories' => $categories,
@@ -92,7 +80,6 @@ final class CategorieController extends AbstractController
                 ]);
             }
 
-
             // S'assurer que createdAt est défini
             if (!$categorie->getCreatedAt()) {
                 $categorie->setCreatedAt(new \DateTime());
@@ -137,7 +124,6 @@ final class CategorieController extends AbstractController
                     'categorie' => $categorie
                 ]);
             }
-
 
             $entityManager->flush();
             $this->addFlash('success', 'Catégorie modifiée avec succès!');
