@@ -16,6 +16,11 @@
 {% endblock %}
 
 {% block body %}
+{% if blockedCount is defined and blockedCount > 0 %}
+    <div class="alert alert-warning" role="alert">
+        Il y a {{ blockedCount }} commande{{ blockedCount > 1 ? 's' }} bloquée{{ blockedCount > 1 ? 's' }} pour fraude. <a href="{{ path('app_commande_index') }}" class="alert-link">Voir la liste</a>.
+    </div>
+{% endif %}
 <!-- Statistics Cards -->
 <div class="row g-4 mb-4">
     <!-- Articles Stats -->
@@ -61,6 +66,22 @@
                         <small class="text-muted">Total</small>
                     </div>
                     <i class="bx bx-message-square-dots text-warning" style="font-size: 2rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blocked Orders Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-2">Commandes bloquées</h6>
+                        <h3 class="mb-0 text-danger fw-bold">{{ blockedCount }}</h3>
+                        <small class="text-muted">À vérifier</small>
+                    </div>
+                    <i class="bx bx-lock text-danger" style="font-size: 2rem; opacity: 0.5;"></i>
                 </div>
             </div>
         </div>

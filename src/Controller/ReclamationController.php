@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Reclamation;
+use App\Service\EmailService;
 use App\Service\GoogleTranslationService;
+use App\Service\ProfanityDetectorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,21 +17,35 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[Route('/reclamations')]
 class ReclamationController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em, private ValidatorInterface $validator)
+    public function __construct(
+        private EntityManagerInterface $em,
+        private ValidatorInterface $validator,
+        private EmailService $emailService,
+        private ProfanityDetectorService $profanityDetectorService,
+        private GoogleTranslationService $translationService,
+    )
     {
     }
 
     #[Route('', name: 'frontend_reclamation_index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        // Require user to be authenticated
         $this->denyAccessUnlessGranted('ROLE_USER');
         
         $user = $this->getUser();
-        // Get only reclamations belonging to the current user
-        $reclamations = $this->em->getRepository(Reclamation::class)->findByUser($user);
+        $query = $request->query->get('query', '');
+
+        $reclamations = $this->em->getRepository(Reclamation::class)->searchByUserAndQuery($user, $query);
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('reclamation/_reclamation_list.html.twig', [
+                'reclamations' => $reclamations,
+            ]);
+        }
+
         return $this->render('reclamation/index.html.twig', [
             'reclamations' => $reclamations,
+            'search_query' => $query,
         ]);
     }
 
@@ -53,32 +69,48 @@ class ReclamationController extends AbstractController
             if (!empty($phpErrors)) {
                 $errors = $phpErrors;
             } else {
-                // Sanitize les données (supprimer les balises HTML/scripts)
-                $titre = strip_tags($titre);
-                $description = strip_tags($description);
+                // Vérifier les mots inappropriés
+                if ($this->profanityDetectorService->containsProfanity($titre)) {
+                    $errors['titre'] = 'Le titre contient des mots inappropriés.';
+                }
+                if ($this->profanityDetectorService->containsProfanity($description)) {
+                    $errors['description'] = 'La description contient des mots inappropriés.';
+                }
 
-                // Création de l'entité
-                $reclamation = new Reclamation();
-                $reclamation->setTitre($titre);
-                $reclamation->setDescription($description);
-                $reclamation->setUser($user); // Track the logged-in user
+                if (empty($errors)) {
+                    // Sanitize les données (supprimer les balises HTML/scripts)
+                    $titre = strip_tags($titre);
+                    $description = strip_tags($description);
 
-                // Valider l'entité avec Symfony Validator
-                $violations = $this->validator->validate($reclamation);
+                    // Création de l'entité
+                    $reclamation = new Reclamation();
+                    $reclamation->setTitre($titre);
+                    $reclamation->setDescription($description);
+                    $reclamation->setUser($user); // Track the logged-in user
 
-                if (count($violations) > 0) {
-                    // Collecter les erreurs de validation
-                    foreach ($violations as $violation) {
-                        $propertyPath = $violation->getPropertyPath();
-                        $errors[$propertyPath] = $violation->getMessage();
+                    // Valider l'entité avec Symfony Validator
+                    $violations = $this->validator->validate($reclamation);
+
+                    if (count($violations) > 0) {
+                        // Collecter les erreurs de validation
+                        foreach ($violations as $violation) {
+                            $propertyPath = $violation->getPropertyPath();
+                            $errors[$propertyPath] = $violation->getMessage();
+                        }
+                    } else {
+                        // Si pas d'erreurs, créer la réclamation
+                        $reclamation->setStatut('En attente');
+                        $this->em->persist($reclamation);
+                        $this->em->flush();
+
+                        // Envoyer l'e-mail de confirmation
+                        $userEmail = $user->getEmail();
+                        if ($userEmail) {
+                            $this->emailService->sendReclamationConfirmationEmail($reclamation, $userEmail);
+                        }
+
+                        return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
                     }
-                } else {
-                    // Si pas d'erreurs, créer la réclamation
-                    $reclamation->setStatut('En attente');
-                    $this->em->persist($reclamation);
-                    $this->em->flush();
-
-                    return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
                 }
             }
         }
@@ -108,6 +140,33 @@ class ReclamationController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/translate-reponse', name: 'frontend_reclamation_translate_reponse', methods: ['POST'])]
+    public function translateReponse(Reclamation $reclamation, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        if ($reclamation->getUser() !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')) {
+            return new JsonResponse(['error' => 'Access denied'], Response::HTTP_FORBIDDEN);
+        }
+
+        $lang = $request->request->get('lang', 'en');
+        $index = (int) $request->request->get('index', 0);
+
+        $reponses = $reclamation->getReponses();
+        if (!isset($reponses[$index])) {
+            return new JsonResponse(['error' => 'Réponse introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        $contenu = $reponses[$index]->getContenu() ?? '';
+        $translated = $this->translationService->translate($contenu, $lang);
+
+        if ($translated === null) {
+            return new JsonResponse(['error' => 'Traduction indisponible'], Response::HTTP_BAD_REQUEST);
+        }
+
+        return new JsonResponse(['translated' => $translated]);
+    }
+
     #[Route('/{id}/edit', name: 'frontend_reclamation_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Reclamation $reclamation): Response
     {
@@ -134,31 +193,41 @@ class ReclamationController extends AbstractController
             if (!empty($phpErrors)) {
                 $errors = $phpErrors;
             } else {
-                // Sanitize les données (supprimer les balises HTML/scripts)
-                $titre = strip_tags($titre);
-                $description = strip_tags($description);
+                // Vérifier les mots inappropriés
+                if ($this->profanityDetectorService->containsProfanity($titre)) {
+                    $errors['titre'] = 'Le titre contient des mots inappropriés.';
+                }
+                if ($this->profanityDetectorService->containsProfanity($description)) {
+                    $errors['description'] = 'La description contient des mots inappropriés.';
+                }
 
-                // Definir les valeurs sur l'entité
-                $reclamation->setTitre($titre);
-                $reclamation->setDescription($description);
+                if (empty($errors)) {
+                    // Sanitize les données (supprimer les balises HTML/scripts)
+                    $titre = strip_tags($titre);
+                    $description = strip_tags($description);
 
-                // Valider l'entité avec Symfony Validator
-                $violations = $this->validator->validate($reclamation);
+                    // Definir les valeurs sur l'entité
+                    $reclamation->setTitre($titre);
+                    $reclamation->setDescription($description);
 
-                if (count($violations) > 0) {
-                    // Collecter les erreurs de validation
-                    foreach ($violations as $violation) {
-                        $propertyPath = $violation->getPropertyPath();
-                        $errors[$propertyPath] = $violation->getMessage();
+                    // Valider l'entité avec Symfony Validator
+                    $violations = $this->validator->validate($reclamation);
+
+                    if (count($violations) > 0) {
+                        // Collecter les erreurs de validation
+                        foreach ($violations as $violation) {
+                            $propertyPath = $violation->getPropertyPath();
+                            $errors[$propertyPath] = $violation->getMessage();
+                        }
+                        // Revenir aux anciennes valeurs pour l'affichage du formulaire
+                        $titre = $reclamation->getTitre();
+                        $description = $reclamation->getDescription();
+                    } else {
+                        // Si pas d'erreurs, mettre à jour la réclamation
+                        $this->em->flush();
+
+                        return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
                     }
-                    // Revenir aux anciennes valeurs pour l'affichage du formulaire
-                    $titre = $reclamation->getTitre();
-                    $description = $reclamation->getDescription();
-                } else {
-                    // Si pas d'erreurs, mettre à jour la réclamation
-                    $this->em->flush();
-
-                    return $this->redirectToRoute('frontend_reclamation_show', ['id' => $reclamation->getId()]);
                 }
             }
         }
@@ -190,29 +259,6 @@ class ReclamationController extends AbstractController
         }
 
         return $this->redirectToRoute('frontend_reclamation_index');
-    }
-
-    #[Route('/api/translate', name: 'app_translate', methods: ['POST'])]
-    public function translate(
-        Request $request,
-        GoogleTranslationService $translationService
-    ): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        
-        if (!isset($data['text']) || !isset($data['target_lang'])) {
-            return new JsonResponse(['error' => 'Missing text or target_lang'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $text = $data['text'];
-        $targetLang = $data['target_lang'];
-
-        try {
-            $translated = $translationService->translate($text, $targetLang);
-            return new JsonResponse(['translated' => $translated]);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'Translation failed: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
     }
 
     /**

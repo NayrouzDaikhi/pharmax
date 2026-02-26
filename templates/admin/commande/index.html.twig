@@ -17,26 +17,14 @@
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
+        
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-1 text-muted">En cours</h6>
-                            <h3 class="card-text text-primary">{{ statistics.en_cours|default(0) }}</h3>
-                        </div>
-                        <i class="bx bx-run" style="font-size:2rem; color:#007bff;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-1 text-muted">En attente</h6>
-                            <h3 class="card-text text-warning">{{ statistics.en_attente|default(0) }}</h3>
+                            <h6 class="card-title mb-1 text-muted">Annuler</h6>
+                            <h3 class="card-text text-warning">{{ statistics.annule|default(0) }}</h3>
                         </div>
                         <i class="bx bx-time" style="font-size:2rem; color:#ffc107;"></i>
                     </div>
@@ -81,23 +69,17 @@
         <div class="card-body border-bottom">
             <form method="GET" id="filterForm" class="row g-3">
                 <div class="col-md-3">
-                    <input type="text" class="form-control form-control-sm" id="id" name="id" placeholder="Rechercher par ID..." value="{{ filter_id|default('') }}">
-                </div>
-                <div class="col-md-3">
                     <select class="form-select form-select-sm" id="statut" name="statut">
                         <option value="">Tous les statuts</option>
-                        <option value="en_attente" {% if filter_statut == 'en_attente' %}selected{% endif %}>En attente</option>
-                        <option value="en_cours" {% if filter_statut == 'en_cours' %}selected{% endif %}>En cours</option>
-                        <option value="livree" {% if filter_statut == 'livree' %}selected{% endif %}>Livrée</option>
                         <option value="annule" {% if filter_statut == 'annule' %}selected{% endif %}>Annulée</option>
-                        <option value="annulée" {% if filter_statut == 'annulée' %}selected{% endif %}>Annulée (alt)</option>
+                        <option value="payee" {% if filter_statut == 'payee' %}selected{% endif %}>Payée</option>
+                        <option value="bloquee" {% if filter_statut == 'bloquee' %}selected{% endif %}>Bloquée</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <select class="form-select form-select-sm" id="sort" name="sort">
                         <option value="">Trier par</option>
                         <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Date</option>
-                        <option value="id" {% if sort == 'id' %}selected{% endif %}>ID</option>
                         <option value="totales" {% if sort == 'totales' %}selected{% endif %}>Montant</option>
                         <option value="statut" {% if sort == 'statut' %}selected{% endif %}>Statut</option>
                     </select>
@@ -129,7 +111,6 @@
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>#ID</th>
                         <th>Date</th>
                         <th>Montant</th>
                         <th>Statut</th>
@@ -145,20 +126,22 @@
                     {% else %}
                         {% for commande in commandes %}
                             <tr>
-                                <td><strong>#{{ commande.id }}</strong></td>
                                 <td>{{ commande.createdAt|date('d/m/Y H:i')|default('N/A') }}</td>
                                 <td><strong>{{ (commande.totales|default(0))|number_format(2, ',', ' ') }} TND</strong></td>
                                 <td>
-                                    {% if commande.statut|default('') == 'en_cours' %}
+                                    {% set st = commande.statut|default('') %}
+                                {% if st == 'en_cours' %}
                                         <span class="badge bg-label-primary">En cours</span>
-                                    {% elseif commande.statut|default('') == 'en_attente' %}
+                                    {% elseif st == 'en_attente' %}
                                         <span class="badge bg-label-warning">En attente</span>
-                                    {% elseif commande.statut|default('') == 'livree' %}
+                                    {% elseif st == 'livree' %}
                                         <span class="badge bg-label-success">Livrée</span>
-                                    {% elseif commande.statut|default('') == 'annule' or commande.statut|default('') == 'annulée' %}
+                                    {% elseif st == 'annule' or st == 'annulée' %}
                                         <span class="badge bg-label-danger">Annulée</span>
+                                    {% elseif st == 'bloquee' %}
+                                        <span class="badge bg-label-danger">Bloquée</span>
                                     {% else %}
-                                        <span class="badge bg-label-secondary">{{ commande.statut|default('N/A') }}</span>
+                                        <span class="badge bg-label-secondary">{{ st }}</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ commande.utilisateur.email|default('Client Anonyme') }}</td>

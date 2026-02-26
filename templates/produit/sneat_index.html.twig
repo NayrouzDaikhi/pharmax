@@ -35,7 +35,7 @@
                 type="text" 
                 name="search" 
                 class="form-control form-control-sm" 
-                placeholder="Rechercher par nom ou ref..."
+                placeholder="Rechercher par nom..."
                 value="{{ search }}"
               >
             </div>
@@ -53,10 +53,10 @@
 
             <div class="col-md-3">
               <select name="sortBy" class="form-select form-select-sm">
-                <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
-                <option value="nom" {% if sortBy == 'nom' %}selected{% endif %}>Nom</option>
-                <option value="prix" {% if sortBy == 'prix' %}selected{% endif %}>Prix</option>
-                <option value="quantite" {% if sortBy == 'quantite' %}selected{% endif %}>Stock</option>
+                <option value="p.createdAt" {% if sortBy == 'p.createdAt' or sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
+                <option value="p.nom" {% if sortBy == 'p.nom' or sortBy == 'nom' %}selected{% endif %}>Nom</option>
+                <option value="p.prix" {% if sortBy == 'p.prix' or sortBy == 'prix' %}selected{% endif %}>Prix</option>
+                <option value="p.quantite" {% if sortBy == 'p.quantite' or sortBy == 'quantite' %}selected{% endif %}>Stock</option>
               </select>
             </div>
 
@@ -85,10 +85,10 @@
               <tr>
                 <th>Image</th>
                 <th>Nom</th>
-                <th>Référence</th>
                 <th>Catégorie</th>
                 <th>Prix</th>
                 <th>Stock</th>
+                <th>État du stock</th>
                 <th>Statut</th>
                 <th>Actions</th>
               </tr>
@@ -116,7 +116,6 @@
                         <br><small class="text-muted">{{ produit.description|slice(0, 50) }}...</small>
                       {% endif %}
                     </td>
-                    <td><code>{{ produit.reference }}</code></td>
                     <td>
                       {% if produit.categorie %}
                         <span class="badge bg-info">{{ produit.categorie.name }}</span>
@@ -137,12 +136,23 @@
                       {% endif %}
                     </td>
                     <td>
-                      {% if produit.expirationDate %}
+                      {% if produit.promotionPourcentage is not null and produit.promotionPourcentage > 0 %}
+                        <span class="badge bg-info">
+                          En promotion ({{ produit.promotionPourcentage }}%)
+                        </span>
+                      {% elseif produit.statut is same as(false) %}
+                        <span class="badge bg-danger">Rupture</span>
+                      {% else %}
+                        <span class="badge bg-success">En stock</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if produit.dateExpiration is defined and produit.dateExpiration %}
                         {% set now = 'now'|date('Y-m-d') %}
                         {% set futureDate = 'now'|date_modify('+30 days')|date('Y-m-d') %}
-                        {% if produit.expirationDate|date('Y-m-d') < now %}
+                        {% if produit.dateExpiration|date('Y-m-d') < now %}
                           <span class="badge bg-danger">Expiré</span>
-                        {% elseif produit.expirationDate|date('Y-m-d') < futureDate %}
+                        {% elseif produit.dateExpiration|date('Y-m-d') < futureDate %}
                           <span class="badge bg-warning">Expire bientôt</span>
                         {% else %}
                           <span class="badge bg-success">Actif</span>
@@ -184,7 +194,7 @@
                 {% endfor %}
               {% else %}
                 <tr>
-                  <td colspan="8" class="text-center text-muted py-4">
+                  <td colspan="7" class="text-center text-muted py-4">
                     <i class="bx bx-inbox"></i> Aucun produit trouvé
                   </td>
                 </tr>
@@ -192,6 +202,20 @@
             </tbody>
           </table>
         </div>
+
+        {% if produits is defined and produits|length > 0 %}
+        <div class="card-footer">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+              Page {{ produits.currentPageNumber }} / {{ produits.pageCount }} –
+              {{ produits.getTotalItemCount }} produit(s) au total
+            </div>
+            <div>
+              {{ knp_pagination_render(produits) }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
 </div>

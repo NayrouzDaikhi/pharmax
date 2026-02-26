@@ -27,8 +27,6 @@ class Categorie
     #[Assert\Length(min: 10, minMessage: 'La description doit contenir au moins 10 caractères')]
     private ?string $description = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $image = null;
 
     #[ORM\Column(name: 'created_at')]
     private ?\DateTime $createdAt = null;
@@ -69,16 +67,9 @@ class Categorie
         return $this;
     }
 
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
 
-    public function setImage(?string $image): static
-    {
-        $this->image = $image;
-        return $this;
-    }
+   
+
 
     public function getCreatedAt(): ?\DateTime
     {

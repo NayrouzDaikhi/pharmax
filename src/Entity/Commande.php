@@ -36,12 +36,12 @@ class Commande
     #[ORM\JoinColumn(nullable: true)]
     private ?User $utilisateur = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $created_at = null;
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
+    private ?\DateTimeInterface $createdAt = null;
 
     public function __construct()
     {
-        $this->created_at = new \DateTime();
+        $this->createdAt = new \DateTime();
         $this->statut = 'en_attente';
         $this->produits = [];
         $this->lignes = new ArrayCollection();
@@ -131,12 +131,12 @@ class Commande
 
     public function getCreatedAt(): ?\DateTimeInterface
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $created_at): static
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
-        $this->created_at = $created_at;
+        $this->createdAt = $createdAt;
 
         return $this;
     }

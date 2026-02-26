@@ -44,6 +44,10 @@ class Produit
     #[Assert\NotNull(message: 'Le statut est requis')]
     private ?bool $statut = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Assert\Range(min: 1, max: 100, notInRangeMessage: 'Le pourcentage doit être entre 1 et 100')]
+    private ?int $promotionPourcentage = null;
+
     #[ORM\Column(name: 'created_at')]
     private ?\DateTime $createdAt = null;
 
@@ -121,7 +125,7 @@ class Produit
         return $this->dateExpiration;
     }
 
-    public function setDateExpiration(\DateTime $dateExpiration): static
+    public function setDateExpiration(?\DateTime $dateExpiration): static
     {
         $this->dateExpiration = $dateExpiration;
         return $this;
@@ -136,6 +140,32 @@ class Produit
     {
         $this->statut = $statut;
         return $this;
+    }
+
+    public function getPromotionPourcentage(): ?int
+    {
+        return $this->promotionPourcentage;
+    }
+
+    public function setPromotionPourcentage(?int $promotionPourcentage): static
+    {
+        $this->promotionPourcentage = $promotionPourcentage;
+        return $this;
+    }
+
+    /** Prix après réduction si en promotion, sinon le prix normal */
+    public function getPrixPromo(): float
+    {
+        $prix = (float) $this->prix;
+        if ($this->promotionPourcentage !== null && $this->promotionPourcentage > 0) {
+            return round($prix * (1 - $this->promotionPourcentage / 100), 2);
+        }
+        return $prix;
+    }
+
+    public function isEnPromotion(): bool
+    {
+        return $this->promotionPourcentage !== null && $this->promotionPourcentage > 0;
     }
 
     public function getCreatedAt(): ?\DateTime

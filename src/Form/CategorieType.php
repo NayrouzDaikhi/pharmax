@@ -16,23 +16,6 @@ class CategorieType extends AbstractType
         $builder
             ->add('nom')
             ->add('description')
-            ->add('image', FileType::class, [
-                'label' => 'Choisir image',
-                'mapped' => false,
-                'required' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                            'image/gif',
-                            'image/webp',
-                        ],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG, PNG, GIF, WebP)',
-                    ])
-                ],
-            ])
         ;
     }
 

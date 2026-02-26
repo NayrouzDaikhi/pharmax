@@ -1,11 +1,11 @@
 {% extends "base_simple.html.twig" %}
 
-{% block title %}Détails Commande #{{ commande.id|default('N/A') }}{% endblock %}
+{% block title %}Détails Commande - Pharmax Admin{% endblock %}
 
 {% block body %}
 <div class="container-fluid flex-grow-1 container-p-y">
     <h4 class="fw-bold py-3 mb-4">
-        <span class="text-muted fw-light">Commandes /</span> Détails #{{ commande.id|default('N/A') }}
+        <span class="text-muted fw-light">Commandes /</span> Détails
     </h4>
 
     <div class="card mb-4">
@@ -16,20 +16,15 @@
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="form-label"><strong>N° Commande:</strong></label>
-                    <p>#{{ commande.id|default('N/A') }}</p>
-                </div>
-                <div class="col-md-6">
                     <label class="form-label"><strong>Date:</strong></label>
                     <p>{{ commande.createdAt|date('d/m/Y H:i')|default('N/A') }}</p>
                 </div>
-            </div>
-
-            <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label"><strong>Utilisateur:</strong></label>
                     <p>{{ commande.utilisateur.email|default('Client Anonyme') }}</p>
                 </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label"><strong>Statut:</strong></label>
                     <p>

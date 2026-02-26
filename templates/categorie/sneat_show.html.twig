@@ -52,67 +52,7 @@
         </div>
       </div>
 
-      <!-- Produits de la catégorie -->
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">Produits de cette catégorie</h5>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table table-sm table-hover mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>Nom</th>
-                <th>Référence</th>
-                <th>Prix</th>
-                <th>Stock</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% if categorie.produits|length > 0 %}
-                {% for produit in categorie.produits %}
-                  <tr>
-                    <td>
-                      <strong>{{ produit.nom }}</strong>
-                    </td>
-                    <td>
-                      <code>{{ produit.reference }}</code>
-                    </td>
-                    <td>
-                      <strong class="text-success">{{ produit.prix|number_format(2, ',', ' ') }} DTN</strong>
-                    </td>
-                    <td>
-                      {% if produit.quantite <= 10 %}
-                        <span class="badge bg-danger">{{ produit.quantite }}</span>
-                      {% elseif produit.quantite <= 50 %}
-                        <span class="badge bg-warning">{{ produit.quantite }}</span>
-                      {% else %}
-                        <span class="badge bg-success">{{ produit.quantite }}</span>
-                      {% endif %}
-                    </td>
-                    <td>
-                      <a 
-                        href="{{ path('app_produit_show', {'id': produit.id}) }}" 
-                        class="btn btn-sm btn-outline-info"
-                        title="Voir"
-                      >
-                        <i class="bx bx-show"></i>
-                      </a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              {% else %}
-                <tr>
-                  <td colspan="5" class="text-center text-muted py-4">
-                    <i class="bx bx-inbox"></i> Aucun produit dans cette catégorie
-                  </td>
-                </tr>
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      
 
       <!-- Delete button -->
       <div class="row mt-4">

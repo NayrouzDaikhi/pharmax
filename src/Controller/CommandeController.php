@@ -12,18 +12,21 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/commandes')]
 class CommandeController extends AbstractController
 {
     #[Route('', name: 'app_commande_index', methods: ['GET'])]
-    public function index(Request $request, CommandeRepository $commandeRepository): Response
+    public function index(Request $request, CommandeRepository $commandeRepository, PaginatorInterface $paginator): Response
     {
-        $id = $request->query->getInt('id') ?: null;
+        $q = $request->query->get('q');
         $statut = $request->query->get('statut') ?: null;
         $all = $request->query->getBoolean('all');
         $sort = $request->query->get('sort');
         $direction = strtoupper($request->query->get('direction', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+        $page = max(1, (int)$request->query->get('page', 1));
+        $limit = (int)$request->query->get('limit', 10) ?: 10;
 
         // Allowed sort columns mapping
         $allowedSorts = [
@@ -31,44 +34,58 @@ class CommandeController extends AbstractController
             'utilisateur' => 'u.email',
             'totales' => 'c.totales',
             'statut' => 'c.statut',
-            'created_at' => 'c.created_at',
+            'created_at' => 'c.createdAt',
+            'createdAt' => 'c.createdAt',
         ];
 
-        // If ID provided, return single result (no sorting)
-        if ($id !== null) {
-            $found = $commandeRepository->find($id);
-            $commandes = $found ? [$found] : [];
-        } else {
-            // Build query with optional statut filter and sorting
-            $qb = $commandeRepository->createQueryBuilder('c')
-                ->leftJoin('c.utilisateur', 'u')
-                ->addSelect('u');
+        $qb = $commandeRepository->createQueryBuilder('c')
+            ->leftJoin('c.utilisateur', 'u')
+            ->addSelect('u');
 
-            if ($statut) {
-                $qb->andWhere('c.statut = :statut')
-                   ->setParameter('statut', $statut);
-            }
-
-            if ($sort && isset($allowedSorts[$sort])) {
-                $qb->orderBy($allowedSorts[$sort], $direction);
-            } else {
-                // Fetch all results first (without custom sort), then sort in PHP
-                $qb->orderBy('c.created_at', 'DESC');
-            }
-
-            if ($all) {
-                // no limit
-            } else {
-                // default recent limit when not requesting all
-                $qb->setMaxResults(100);
-            }
-
-            $commandes = $qb->getQuery()->getResult();
+        if ($statut) {
+            $qb->andWhere('c.statut = :statut')
+                ->setParameter('statut', $statut);
         }
 
-        return $this->render('commande/index.html.twig', [
-            'commandes' => $commandes,
-            'filter_id' => $id,
+        if ($q) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    'c.totales LIKE :q',
+                    'DATE_FORMAT(c.createdAt, \'%d/%m/%Y %H:%i\') LIKE :q',
+                    'u.email LIKE :q'
+                )
+            )
+            ->setParameter('q', '%' . $q . '%');
+        }
+
+        if ($sort && isset($allowedSorts[$sort])) {
+            $qb->orderBy($allowedSorts[$sort], $direction);
+        } else {
+            $qb->orderBy('c.createdAt', 'DESC');
+        }
+
+        if (!$all) {
+            $qb->setMaxResults(100);
+        }
+
+        $pagination = $paginator->paginate(
+            $qb,
+            $page,
+            $limit
+        );
+
+        // Si c'est une requête AJAX, on ne renvoie que la liste des commandes
+        if ($request->query->get('ajax')) {
+            return $this->render('frontend/commande/_commandes_list.html.twig', [
+                'commandes' => $pagination,
+                'pagination' => $pagination,
+            ]);
+        }
+
+        return $this->render('frontend/commande/index.html.twig', [
+            'commandes' => $pagination,
+            'pagination' => $pagination,
+            'filter_q' => $q,
             'filter_statut' => $statut,
             'filter_all' => $all,
             'sort' => $sort,
@@ -85,10 +102,11 @@ class CommandeController extends AbstractController
         }
 
         $qrCodeDataUrl = $qrCodeService->generateQrCodeDataUrl($commande);
-        
-        return $this->render('commande/show.html.twig', [
+
+        // Utiliser le template frontend existant pour l'affichage détail commande
+        return $this->render('frontend/commande/show.html.twig', [
             'commande' => $commande,
-            'qrCode' => $qrCodeDataUrl,
+            'qrCode'   => $qrCodeDataUrl,
         ]);
     }
 
@@ -170,7 +188,8 @@ class CommandeController extends AbstractController
             'utilisateur' => 'u.email',
             'totales' => 'c.totales',
             'statut' => 'c.statut',
-            'created_at' => 'c.created_at',
+            'created_at' => 'c.createdAt',
+            'createdAt' => 'c.createdAt',
         ];
 
         // If ID provided, return single result
@@ -191,7 +210,7 @@ class CommandeController extends AbstractController
             if ($sort && isset($allowedSorts[$sort])) {
                 $qb->orderBy($allowedSorts[$sort], $direction);
             } else {
-                $qb->orderBy('c.created_at', 'DESC');
+                $qb->orderBy('c.createdAt', 'DESC');
             }
 
             if (!$all) {

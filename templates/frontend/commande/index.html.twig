@@ -8,58 +8,82 @@
     <p class="text-muted">Consultez l'historique et les détails de vos commandes</p>
 </div>
 
-{% if commandes|length == 0 %}
-<div class="alert alert-info text-center py-5">
-    <i class="bx bx-inbox bx-lg mb-3" style="display: block; color: #666;"></i>
-    <p class="mb-3">Vous n'avez pas encore de commandes.</p>
-    <a href="{{ path('app_front_produits') }}" class="btn btn-primary" style="background-color: #ff0000; border: none;">
-        <i class="bx bx-package me-2"></i>Voir les Produits
-    </a>
-</div>
-{% else %}
-<div class="row g-4">
-    {% for commande in commandes %}
-    <div class="col-lg-6">
-        <div class="card h-100" style="border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h5 class="card-title mb-1">Commande #{{ commande.id }}</h5>
-                        <small class="text-muted">{{ commande.createdAt|date('d/m/Y H:i') }}</small>
-                    </div>
-                    <span class="badge 
-                        {% if commande.statut == 'en_attente' %}bg-warning
-                        {% elseif commande.statut == 'confirmee' %}bg-info
-                        {% elseif commande.statut == 'expediee' %}bg-primary
-                        {% elseif commande.statut == 'livree' %}bg-success
-                        {% else %}bg-secondary{% endif %}
-                    " style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
-                        {% if commande.statut == 'en_attente' %}En Attente
-                        {% elseif commande.statut == 'confirmee' %}Confirmée
-                        {% elseif commande.statut == 'expediee' %}Expédiée
-                        {% elseif commande.statut == 'livree' %}Livrée
-                        {% else %}{{ commande.statut }}{% endif %}
-                    </span>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <small class="text-muted d-block">Nombre d'articles</small>
-                        <strong class="d-block">{{ commande.produits|length }}</strong>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-muted d-block">Montant total</small>
-                        <strong class="d-block" style="color: #ff0000;">{{ commande.totales|number_format(2, ',', ' ') }} DT</strong>
-                    </div>
-                </div>
-
-                <a href="{{ path('app_frontend_commande_show', {'id': commande.id}) }}" class="btn btn-sm btn-primary w-100" style="background-color: #ff0000; border: none;">
-                    <i class="bx bx-chevron-right me-1"></i>Voir Détails
-                </a>
+<div class="card">
+    <div class="card-header">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <input type="text" id="search-q" class="form-control" placeholder="Rechercher par e-mail, total ou date...">
+            </div>
+            <div class="col-md-4">
+                <select id="search-statut" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="en_attente">En attente</option>
+                    <option value="payee">Payée</option>
+                    <option value="annule">Annulée</option>
+                </select>
             </div>
         </div>
     </div>
-    {% endfor %}
+    <div class="card-body" id="commandes-list">
+        {{ include('frontend/commande/_commandes_list.html.twig', {commandes: commandes}) }}
+    </div>
 </div>
-{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('search-q');
+            const searchStatutInput = document.getElementById('search-statut');
+            const commandesList = document.getElementById('commandes-list');
+
+            function fetchCommandes() {
+                const q = searchInput.value;
+                const statut = searchStatutInput.value;
+                const url = new URL('{{ url('app_commande_index') }}');
+                url.searchParams.set('ajax', '1');
+                url.searchParams.set('page', '1');
+
+                if (q) {
+                    url.searchParams.set('q', q);
+                }
+                if (statut) {
+                    url.searchParams.set('statut', statut);
+                }
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    commandesList.innerHTML = html;
+                });
+            }
+
+            searchInput.addEventListener('keyup', fetchCommandes);
+            searchStatutInput.addEventListener('change', fetchCommandes);
+
+            // Intercepter les clics sur la pagination (AJAX)
+            commandesList.addEventListener('click', function (e) {
+                const link = e.target.closest('.pagination a');
+                if (!link) return;
+                e.preventDefault();
+                const url = new URL(link.href);
+                url.searchParams.set('ajax', '1');
+                // Conserver les filtres actuels
+                const q = searchInput.value;
+                const statut = searchStatutInput.value;
+                if (q) url.searchParams.set('q', q);
+                if (statut) url.searchParams.set('statut', statut);
+                fetch(url, {
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                })
+                .then(r => r.text())
+                .then(html => { commandesList.innerHTML = html; });
+            });
+        });
+    </script>
 {% endblock %}

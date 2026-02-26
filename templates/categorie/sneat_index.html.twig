@@ -42,8 +42,8 @@
 
             <div class="col-md-4">
               <select name="sortBy" class="form-select form-select-sm">
-                <option value="createdAt" {% if sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
-                <option value="nom" {% if sortBy == 'nom' %}selected{% endif %}>Nom</option>
+                <option value="c.createdAt" {% if sortBy == 'c.createdAt' or sortBy == 'createdAt' %}selected{% endif %}>Date création</option>
+                <option value="c.nom" {% if sortBy == 'c.nom' or sortBy == 'nom' %}selected{% endif %}>Nom</option>
               </select>
             </div>
 
@@ -138,6 +138,20 @@
             </tbody>
           </table>
         </div>
+
+        {% if categories is defined and categories|length > 0 %}
+        <div class="card-footer">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+              Page {{ categories.currentPageNumber }} / {{ categories.pageCount }} –
+              {{ categories.getTotalItemCount }} catégorie(s) au total
+            </div>
+            <div>
+              {{ knp_pagination_render(categories) }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
 </div>

@@ -37,8 +37,6 @@ class CommandeType extends AbstractType
             ->add('statut', ChoiceType::class, [
                 'label' => 'Statut',
                 'choices' => [
-                    'En attente' => 'en_attente',
-                    'En cours' => 'en_cours',
                     'Payée' => 'payee',
                     'Annulée' => 'annule',
                 ],

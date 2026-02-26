@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Commande;
 use App\Form\CommandeType;
 use App\Repository\CommandeRepository;
+use App\Repository\LivraisonRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +29,8 @@ class CommandeController extends AbstractController
             'utilisateur' => 'u.email',
             'totales' => 'c.totales',
             'statut' => 'c.statut',
-            'created_at' => 'c.created_at',
+            'created_at' => 'c.createdAt',
+            'createdAt' => 'c.createdAt',
         ];
 
         if ($id !== null) {
@@ -47,7 +49,7 @@ class CommandeController extends AbstractController
             if ($sort && isset($allowedSorts[$sort])) {
                 $qb->orderBy($allowedSorts[$sort], $direction);
             } else {
-                $qb->orderBy('c.created_at', 'DESC');
+                $qb->orderBy('c.createdAt', 'DESC');
             }
 
             if (!$all) {
@@ -116,9 +118,14 @@ class CommandeController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_admin_commande_delete', methods: ['POST'])]
-    public function delete(Request $request, Commande $commande, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Commande $commande, EntityManagerInterface $entityManager, LivraisonRepository $livraisonRepository): Response
     {
         if ($this->isCsrfTokenValid('delete' . $commande->getId(), $request->request->get('_token'))) {
+            // Supprimer d'abord les livraisons liées à cette commande (contrainte FK)
+            $livraisons = $livraisonRepository->findBy(['commande' => $commande]);
+            foreach ($livraisons as $livraison) {
+                $entityManager->remove($livraison);
+            }
             $entityManager->remove($commande);
             $entityManager->flush();
             $this->addFlash('success', 'Commande supprimée avec succès!');

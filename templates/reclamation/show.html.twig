@@ -72,11 +72,11 @@
                                                         <i class="bx bx-globe"></i>
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end">
-                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="en" data-content="{{ reponse.contenu|escape('html') }}">English</a></li>
-                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="es" data-content="{{ reponse.contenu|escape('html') }}">Español</a></li>
-                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="de" data-content="{{ reponse.contenu|escape('html') }}">Deutsch</a></li>
-                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="it" data-content="{{ reponse.contenu|escape('html') }}">Italiano</a></li>
-                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="ar" data-content="{{ reponse.contenu|escape('html') }}">العربية</a></li>
+                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="en" data-index="{{ loop.index0 }}">English</a></li>
+                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="es" data-index="{{ loop.index0 }}">Español</a></li>
+                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="de" data-index="{{ loop.index0 }}">Deutsch</a></li>
+                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="it" data-index="{{ loop.index0 }}">Italiano</a></li>
+                                                        <li><a href="#" class="dropdown-item translate-response" data-lang="ar" data-index="{{ loop.index0 }}">العربية</a></li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -109,45 +109,37 @@
 </section>
 
 <script>
-document.querySelectorAll('.translate-response').forEach((link, index) => {
-    // Store the response index on the link
-    link.dataset.responseIndex = Math.floor(index / 5);
-    
-    link.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const lang = e.target.dataset.lang;
-        const content = e.target.dataset.content;
-        const responseIndex = e.target.dataset.responseIndex;
-        
-        if (!content) return;
-        
-        try {
-            const response = await fetch('{{ path("app_translate") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    text: content,
-                    target_lang: lang
-                })
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const responseContent = document.querySelector('.response-content-' + responseIndex);
-                if (responseContent) {
-                    responseContent.textContent = data.translated;
-                }
-            } else {
-                alert('Erreur lors de la traduction');
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
-            alert('Erreur lors de la traduction');
+document.addEventListener('DOMContentLoaded', function () {
+  const links = document.querySelectorAll('.translate-response');
+  links.forEach(link => {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      const lang = this.dataset.lang;
+      const index = this.dataset.index;
+
+      fetch('{{ path('frontend_reclamation_translate_reponse', {'id': reclamation.id}) }}', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ lang, index }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.translated) {
+          const target = document.querySelector('.response-content-' + index);
+          if (target) {
+            target.textContent = data.translated;
+          }
+        } else if (data.error) {
+          alert(data.error);
         }
+      })
+      .catch(() => alert('Erreur lors de la traduction'));
     });
+  });
 });
 </script>
+
 {% endblock %}

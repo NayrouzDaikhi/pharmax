@@ -15,7 +15,6 @@
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <div>
                         <h5 class="mb-1">{{ reclamation.titre }}</h5>
-                        <small class="text-muted">Réclamation #{{ reclamation.id }}</small>
                     </div>
                     {% if reclamation.statut == 'En attente' %}
                         <span class="badge bg-label-warning">En attente</span>
@@ -267,10 +266,6 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <small class="text-muted d-block">ID Réclamation</small>
-                        <strong>#{{ reclamation.id }}</strong>
-                    </div>
-                    <div class="mb-3">
                         <small class="text-muted d-block">Nombre de Réponses</small>
                         <strong>{{ reclamation.reponses|length }}</strong>
                     </div>
@@ -281,7 +276,7 @@
                 </div>
             </div>
 
-            <!-- Ajouter une réponse -->
+            <!-- Formulaire de réponse -->
             <div class="card">
                 <div class="card-header">
                     <h6 class="mb-0">
@@ -289,10 +284,19 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <a href="{{ path('admin_reponse_new', {'reclamationId': reclamation.id}) }}" 
-                       class="btn btn-success w-100">
-                        <i class="bx bx-paper-plane"></i> Nouvelle Réponse
-                    </a>
+                    {{ form_start(reponseForm, {'attr': {'id': 'reponse-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_row(reponseForm.contenu) }}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bx bx-paper-plane"></i> Envoyer la Réponse
+                            </button>
+                            <button type="button" id="generate-ai-response" class="btn btn-info" data-reclamation-id="{{ reclamation.id }}">
+                                <i class='bx bx-bot'></i> Générer avec IA
+                            </button>
+                        </div>
+                    {{ form_end(reponseForm) }}
                 </div>
             </div>
         </div>
@@ -388,5 +392,45 @@ function translate(lang) {
     document.getElementById('translatedLangName').textContent = langNames[lang] || lang.toUpperCase();
     document.getElementById('translationSection').style.display = 'block';
 }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const generateBtn = document.getElementById('generate-ai-response');
+    const responseTextarea = document.getElementById('reponse_contenu');
+
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function() {
+            const reclamationId = this.getAttribute('data-reclamation-id');
+            const url = `/admin/reclamation/${reclamationId}/generate-ai-response`;
+
+            // Désactiver le bouton et montrer un indicateur de chargement
+            this.disabled = true;
+            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Génération...';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    responseTextarea.value = data.response;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la génération de la réponse IA:', error);
+                alert('Une erreur est survenue.');
+            })
+            .finally(() => {
+                // Réactiver le bouton
+                this.disabled = false;
+                this.innerHTML = '<i class="bx bx-bot"></i> Générer avec IA';
+            });
+        });
+    }
+});
 </script>
 {% endblock %}

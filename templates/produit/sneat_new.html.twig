@@ -90,9 +90,15 @@
             </div>
 
             <div class="mb-3">
-              {{ form_label(form.statut, 'État du Stock') }}
-              {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
-              {{ form_errors(form.statut) }}
+              {{ form_label(form.etatStock, 'État du Stock') }}
+              {{ form_widget(form.etatStock, {'attr': {'class': 'form-select', 'id': 'produit_etatStock'}}) }}
+              {{ form_errors(form.etatStock) }}
+            </div>
+
+            <div id="promotionPourcentageWrapper" class="mb-3" style="display: none;">
+              {{ form_label(form.promotionPourcentage, 'Pourcentage de promotion (%)') }}
+              {{ form_widget(form.promotionPourcentage, {'attr': {'class': 'form-control', 'min': 1, 'max': 100, 'placeholder': 'Ex: 20'}}) }}
+              {{ form_errors(form.promotionPourcentage) }}
             </div>
 
             <div class="d-flex gap-2 mt-4">
@@ -110,18 +116,35 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
   // Image preview functionality
-  document.getElementById('imageInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const img = document.getElementById('previewImg');
-        img.src = event.target.result;
-        img.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+  var imageInput = document.getElementById('imageInput');
+  if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = document.getElementById('previewImg');
+          if (img) { img.src = event.target.result; img.style.display = 'block'; }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Afficher le champ pourcentage de promotion uniquement quand "En promotion" est sélectionné
+  var etatSelect = document.getElementById('produit_etatStock') || document.getElementById('produit1_etatStock') || document.querySelector('select[name*="etatStock"]');
+  var promoWrapper = document.getElementById('promotionPourcentageWrapper');
+  function togglePromo() {
+    if (!promoWrapper) return;
+    var isPromo = etatSelect && (etatSelect.value === 'en_promotion');
+    promoWrapper.style.display = isPromo ? 'block' : 'none';
+  }
+  if (etatSelect) {
+    etatSelect.addEventListener('change', togglePromo);
+    togglePromo();
+  }
+});
 </script>
 {% endblock %}
