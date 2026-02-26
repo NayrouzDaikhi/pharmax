@@ -80,6 +80,14 @@
                 <div class="menu-inner-shadow"></div>
 
                 <ul class="menu-inner py-1">
+                    <!-- Dashboard -->
+                    <li class="menu-item {{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                        <a href="{{ path('app_dashboard') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                            <div data-i18n="Dashboard">{{('Dashboard'|trans)}}</div>
+                        </a>
+                    </li>
+
                     <!-- Articles -->
                     <li class="menu-item {{ app.request.get('_route') starts with 'app_article' ? 'active' : '' }}">
                         <a href="{{ path('app_article_index') }}" class="menu-link">
