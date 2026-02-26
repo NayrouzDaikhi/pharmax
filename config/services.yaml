@@ -28,7 +28,5 @@ services:
         arguments:
             $huggingFaceApiKey: '%huggingface_api_key%'
 
-    App\Service\GeminiService:
-        arguments:
-            $apiKey: '%gemini_api_key%'
+    App\Service\OllamaService: ~
 

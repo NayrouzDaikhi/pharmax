@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\Repository\ProduitRepository;
-use App\Service\GeminiService;
+use App\Service\OllamaService;
 use App\Entity\Notification;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -20,7 +20,7 @@ class CheckExpirationCommand extends Command
 {
     public function __construct(
         private ProduitRepository $produitRepository,
-        private GeminiService $geminiService,
+        private OllamaService $ollamaService,
         private EntityManagerInterface $em
     ) {
         parent::__construct();
@@ -55,7 +55,7 @@ class CheckExpirationCommand extends Command
         foreach ($produits as $produit) {
             $io->writeln(sprintf('  - Traitement du produit : %s', $produit->getNom()));
 
-            $message = $this->geminiService->generateExpirationMessage(
+            $message = $this->ollamaService->generateExpirationMessage(
                 $produit->getNom(),
                 30
             );

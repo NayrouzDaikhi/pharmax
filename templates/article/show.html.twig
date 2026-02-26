@@ -96,9 +96,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Commentaires ({{ article.commentaires|length }})</h5>
-                <a href="{{ path('app_commentaire_new', {'article_id': article.id}) }}" class="btn btn-sm btn-primary">
-                    <i class="bx bx-plus"></i> Ajouter un commentaire
-                </a>
+                
             </div>
             <div class="card-body">
                 {% if article.commentaires|length > 0 %}
@@ -143,7 +141,7 @@
                 {% else %}
                     <div class="text-center py-5">
                         <i class="bx bx-comment-dots" style="font-size: 2rem; color: #ccc;"></i>
-                        <p class="text-muted mt-3">Aucun commentaire pour le moment. <a href="{{ path('app_commentaire_new', {'article_id': article.id}) }}">En ajouter un</a></p>
+                        <p class="text-muted mt-3">Aucun commentaire pour le moment. <a href="{{ path('app_commentaire_new', {'article_id': article.id}) }}"></a></p>
                     </div>
                 {% endif %}
             </div>

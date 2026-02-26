@@ -1,0 +1,157 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                  GEMINI AI INTEGRATION - FINAL SETUP GUIDE                 ║
+║                                                                            ║
+║  ✅ Code is now GEMINI-ONLY (NO FALLBACK SCRIPTS)                        ║
+║  ⚠️  API Key Issue Found: gemini-1.5-flash model not available           ║
+║  🔧 Follow steps below to get Gemini fully working                       ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📊 CURRENT STATUS:
+═══════════════════════════════════════════════════════════════════════════
+
+Key #1 (AIzaSyCHx...): ❌ 404 - Models not available
+Key #2 (AIzaSyBwGH...): ❌ 400 - API key EXPIRED
+
+Code Status: ✅ GEMINI-ONLY (All fallback scripts removed)
+              Any Gemini error will show error message to user
+
+
+🎯 EXACT STEPS TO FIX (Follow in order):
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Create a Fresh Google Cloud Project with Billing
+─────────────────────────────────────────────────────────
+
+1. Go to: https://console.cloud.google.com
+2. Click dropdown at top left (next to "Google Cloud")
+3. Click "NEW PROJECT"
+4. Name it: "Pharmax Chatbot" (or any name)
+5. Click "CREATE"
+6. Wait for project to be created (1-2 minutes)
+7. Click notification bell → click on the project creation notification
+8. Go to: https://console.cloud.google.com/billing/linkedaccount
+9. Click "Link billing account" or "Create billing account"
+10. Add your payment method
+11. Wait for billing to activate (5-10 minutes)
+
+
+STEP 2: Enable Generative AI API
+─────────────────────────────────
+
+1. In Google Cloud Console, go to: APIs & Services → Library
+2. Search: "Generative AI API"
+3. Click the result
+4. Click "ENABLE"
+5. Wait 3-5 minutes for it to activate
+
+
+STEP 3: Create API Key for Google AI Studio
+─────────────────────────────────────────────
+
+1. Go to: https://aistudio.google.com/app/apikey
+2. Click "Create API key"
+3. Select "Create new API key in new Google Cloud project"
+4. Copy the NEW API KEY
+5. Go to your .env file and update:
+   GEMINI_API_KEY=<YOUR_NEW_KEY_HERE>
+6. Save .env
+
+
+STEP 4: Test the Configuration
+────────────────────────────────
+
+1. Open terminal/PowerShell
+2. Run: php comprehensive_gemini_test.php
+3. Look for: ✅ 200 OK - SUCCESS!
+4. If you see it → Gemini is working!
+5. If not → Go back and check that:
+   - API is ENABLED in Google Cloud
+   - Billing is ACTIVE
+   - API key is correct
+
+
+STEP 5: Clear Cache and Test in Browser
+─────────────────────────────────────────
+
+1. Run: php bin/console cache:clear
+2. Open your Pharmax website
+3. Go to any article
+4. Click the 💬 chat button
+5. Ask a question
+6. If Gemini works → You'll get AI response ✅
+7. If Gemini fails → You'll see error message with details
+
+
+🔍 TROUBLESHOOTING:
+═══════════════════════════════════════════════════════════════════════════
+
+If you still get errors:
+
+1. "API key expired" → Get NEW key from https://aistudio.google.com/app/apikey
+
+2. "Model not available" → 
+   - Enabled the API in Google Cloud Console?
+   - Is billing ACTIVE?
+   - Wait 5-10 minutes and try again
+
+3. "Permission denied (403)" → 
+   - Add billing method to Google Cloud project
+   - Wait for billing to fully activate
+
+4. Connection timeout →
+   - Check your internet connection
+   - Make sure you're not behind a restrictive firewall
+
+5. Invalid request format →
+   - Make sure .env file is properly saved
+   - Run: php bin/console cache:clear
+   - Restart your PHP application
+
+
+⚡ QUICK VERIFICATION:
+═══════════════════════════════════════════════════════════════════════════
+
+Run this command to test your API key:
+
+    php comprehensive_gemini_test.php
+
+Look for:
+    ✅ 200 OK - SUCCESS!
+
+If you see this, Gemini is fully working!
+
+
+📝 CODE CHANGES MADE:
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Removed ALL fallback script functions
+✅ Changed error handling to show errors instead of fallback
+✅ Simplified ChatBotService to ONLY use Gemini API
+✅ Updated to try multiple Gemini model versions
+
+Now if Gemini fails, users see:
+"⚠️ Les services Gemini AI ne sont pas disponibles. 
+Vérifiez votre clé API et assurez-vous que l'API Generative AI est activée."
+
+Plus the actual error details for debugging.
+
+
+🚀 WHEN GEMINI WORKS:
+═══════════════════════════════════════════════════════════════════════════
+
+You'll get real AI responses powered by Google Gemini for:
+- Any question about articles
+- Summarizing content
+- Answering specific queries
+- Having natural conversations
+- Much more intelligent than script-based fallback
+
+
+Need help? Check the comprehensive_gemini_test.php output or run:
+php comprehensive_gemini_test.php
+
+
+═══════════════════════════════════════════════════════════════════════════
+Last Updated: February 25, 2026
+Status: GEMINI-ONLY, Ready for API activation
+═══════════════════════════════════════════════════════════════════════════

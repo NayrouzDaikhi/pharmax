@@ -95,6 +95,14 @@
                             <div data-i18n="Commentaires">{{('Commentaires'|trans)}}</div>
                         </a>
                     </li>
+
+                    <!-- ChatBot -->
+                    <li class="menu-item {{ app.request.get('_route') starts with 'chatbot' ? 'active' : '' }}">
+                        <a href="{{ path('chatbot_index') }}" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-bot"></i>
+                            <div data-i18n="ChatBot">{{ 'ChatBot' }}</div>
+                        </a>
+                    </li>
                 </ul>
             </aside>
             <!-- / Menu -->

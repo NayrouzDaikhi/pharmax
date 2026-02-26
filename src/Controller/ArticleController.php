@@ -8,23 +8,37 @@ use App\Repository\ArticleRepository;
 use App\Repository\CommentaireRepository;
 use App\Repository\CommentaireArchiveRepository;
 use App\Service\GoogleTranslationService;
+use App\Service\ArticleStatisticsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Attribute\Route;
+use Knp\Component\Pager\PaginatorInterface;
 
 #[Route('/admin/article')]
 final class ArticleController extends AbstractController
 {
+    public function __construct(
+        private ArticleStatisticsService $statisticsService,
+    ) {}
+
     #[Route(name: 'app_article_index', methods: ['GET'])]
-    public function index(Request $request, ArticleRepository $articleRepository, CommentaireRepository $commentaireRepository, CommentaireArchiveRepository $archiveRepository): Response
+    public function index(
+        Request $request, 
+        ArticleRepository $articleRepository,
+        CommentaireRepository $commentaireRepository, 
+        CommentaireArchiveRepository $archiveRepository,
+        PaginatorInterface $paginator
+    ): Response
     {
         $searchQuery = $request->query->get('search', '');
         $sortBy = $request->query->get('sort_by', 'date');
         $sortOrder = $request->query->get('sort_order', 'desc');
         $commentFilter = $request->query->get('comment_filter', '');
+        $page = $request->query->getInt('page', 1);
+        $perPage = $request->query->getInt('per_page', 20);
         
         // Validate sort parameters
         if (!in_array($sortBy, ['date', 'titre', 'likes', 'comments'])) {
@@ -78,7 +92,19 @@ final class ArticleController extends AbstractController
                 return -$compareValue;
             }
         });
-        
+
+        // Get statistics from service
+        $stats = $this->statisticsService->getDashboardStats();
+        $commentsStatusChart = $this->statisticsService->getCommentsStatusChartData();
+        $articlesDateChart = $this->statisticsService->getArticlesDateChartData();
+
+        // Apply pagination to articles
+        $pagination = $paginator->paginate(
+            $articles,
+            $page,
+            $perPage
+        );
+
         $allCommentaires = $commentaireRepository->findAll();
         
         // Separate article comments and product reviews
@@ -171,7 +197,7 @@ final class ArticleController extends AbstractController
         ksort($commentsByDate);
         
         return $this->render('article/index.html.twig', [
-            'articles' => $articles,
+            'articles' => $pagination,
             'commentaires' => $commentaires,
             'archived_commentaires' => $archiveRepository->findAllWithArticles(),
             'avis' => $avis,
@@ -184,6 +210,11 @@ final class ArticleController extends AbstractController
             'mostLikedArticleId' => $mostLikedArticleId,
             'searchQuery' => $searchQuery,
             'sortBy' => $sortBy,
+            'stats' => $stats,
+            'comments_status_chart' => $commentsStatusChart,
+            'articles_date_chart' => $articlesDateChart,
+            'page' => $page,
+            'per_page' => $perPage,
             'sortOrder' => $sortOrder,
             'commentFilter' => $commentFilter,
         ]);

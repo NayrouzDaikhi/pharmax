@@ -1,0 +1,119 @@
+# 🚀 QUICK START - GET OLLAMA RUNNING IN 5 MINUTES
+
+## ❌ You're seeing this error:
+```
+❌ Service d'IA Ollama non configuré. 
+Assurez-vous qu'Ollama est en cours d'exécution sur localhost:11434.
+```
+
+## ✅ Solution: Install & Run Ollama
+
+### Step 1: Download Ollama (2 minutes)
+1. Go to: https://ollama.com/download
+2. Click "Download for Windows"
+3. Wait for `OllamaSetup.exe` to download
+
+### Step 2: Install Ollama (1 minute)
+1. Double-click `OllamaSetup.exe`
+2. Follow the installation wizard
+3. Click "Finish"
+4. Ollama will start automatically
+
+### Step 3: Download the AI Model (5-10 minutes)
+Open Command Prompt or PowerShell and run:
+```bash
+ollama pull mistral
+```
+This downloads the AI model (~4GB). This only happens once.
+
+### Step 4: Verify Ollama is Running
+In PowerShell/Command Prompt, run:
+```bash
+curl http://localhost:11434/api/tags
+```
+
+Should return something like:
+```json
+{"models":[{"name":"mistral:latest",...}]}
+```
+✅ If you see this, Ollama is working!
+
+### Step 5: Test Your Chatbot
+Visit: http://127.0.0.1:8000/chatbot
+
+The chatbot should now work! 🎉
+
+---
+
+## 📝 Alternative: Use Setup Script
+
+If you want automatic setup (easier):
+
+### Option A: Batch Script (Windows Command Prompt)
+```bash
+cd c:\Users\Asus\Documents\pharmax
+setup_ollama.bat
+```
+
+### Option B: PowerShell Script
+```powershell
+cd c:\Users\Asus\Documents\pharmax
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+.\setup_ollama.ps1
+```
+
+---
+
+## 🆘 Troubleshooting
+
+### Problem: "ollama: command not found"
+**Solution**: Ollama not installed. Download from https://ollama.com/download
+
+### Problem: "Connection refused"
+**Solution**: 
+1. Ollama not running - start it:
+   ```bash
+   ollama serve
+   ```
+2. Keep the window open while using chatbot
+
+### Problem: "Model not found"
+**Solution**: Download model:
+```bash
+ollama pull mistral
+```
+
+### Problem: Slow responses
+**Solution**: 
+- Use lighter model: `ollama pull orca-mini`
+- Or add GPU support (see OLLAMA_SETUP_GUIDE.md)
+
+---
+
+## ⏱️ Expected Times
+
+| Task | Time |
+|------|------|
+| Download Ollama Installer | 2 min |
+| Install | 1 min |
+| Download Model (mistral) | 5-10 min |
+| First chatbot response | 2-5 sec |
+
+**Total first time: ~15-20 minutes** (mostly downloading model)
+
+---
+
+## 🎯 You're Done When:
+
+✅ You can run: `ollama list` and see mistral  
+✅ You can visit: http://127.0.0.1:8000/chatbot  
+✅ Chatbot responds to questions
+
+---
+
+## 📞 Need Help?
+
+See complete guide: `OLLAMA_SETUP_GUIDE.md`  
+Quick reference: `OLLAMA_QUICK_REFERENCE.md`
+
+**That's it! Enjoy your local AI chatbot! 🚀**
