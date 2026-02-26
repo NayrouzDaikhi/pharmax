@@ -202,19 +202,26 @@ class BlogController extends AbstractController
         Request $request,
         ProduitRepository $produitRepository,
         \App\Service\ProductRecommender $productRecommender,
+        \Knp\Component\Pager\PaginatorInterface $paginator,
     ): Response {
         $search = $request->query->get('search', '');
         
-        if ($search) {
-            $produits = $produitRepository->createQueryBuilder('p')
-                ->where('p.nom LIKE :search OR p.description LIKE :search')
-                ->setParameter('search', '%' . $search . '%')
-                ->getQuery()
-                ->getResult();
-        } else {
-            $produits = $produitRepository->findAll();
-        }
+        // Use optimized query builder with category eager loading
+        $query = $produitRepository->findSearchQueryBuilder($search)->getQuery();
 
+        // Paginate results (12 products per page)
+        $page = max(1, (int) $request->query->get('page', 1));
+        $produits = $paginator->paginate(
+            $query,
+            $page,
+            12,
+            [
+                \Knp\Component\Pager\PaginatorInterface::SORT_FIELD_ALLOW_LIST => 
+                    ['p.nom', 'p.prix', 'p.createdAt'],
+            ]
+        );
+
+        // Get recommendations for authenticated users
         $recommendations = [];
         $user = $this->getUser();
         if ($user instanceof \App\Entity\User) {
@@ -270,17 +277,20 @@ class BlogController extends AbstractController
     #[Route('/produit/{id}', name: 'app_front_detail_produit', methods: ['GET'])]
     public function detailProduit(string $id, ProduitRepository $produitRepository, CommentaireRepository $commentaireRepository): Response
     {
-        $produit = $produitRepository->find((int)$id);
+        // Use optimized query with eager loaded comments
+        $produit = $produitRepository->findWithRelations((int)$id);
 
         if (!$produit) {
             throw $this->createNotFoundException('Produit not found');
         }
 
-        // Get validated comments for the product
-        $avis = $commentaireRepository->findBy(
-            ['produit' => $produit, 'statut' => 'valide'],
-            ['date_publication' => 'DESC']
-        );
+        // Get validated comments for the product (already eager loaded in findWithRelations)
+        $avis = $produit->getCommentaires()->filter(function($com) {
+            return $com->getStatut() === 'valide';
+        })->toArray();
+
+        // Sort by date descending
+        usort($avis, fn($a, $b) => $b->getDatePublication() <=> $a->getDatePublication());
 
         return $this->render('blog/product_detail.html.twig', [
             'produit' => $produit,

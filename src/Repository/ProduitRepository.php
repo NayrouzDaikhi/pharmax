@@ -180,4 +180,108 @@ class ProduitRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find products with filters optimized with eager loading
+     * Used for front-end product listing
+     */
+    public function findSearchQueryBuilder(?string $search = ''): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.categorie', 'c', 'WITH', 'c.id IS NOT NULL')
+            ->addSelect('c');
+
+        if (!empty($search)) {
+            $qb->where('p.nom LIKE :search OR p.description LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        $qb->orderBy('p.createdAt', 'DESC');
+
+        return $qb;
+    }
+
+    /**
+     * Count available products (in stock and not expired)
+     * Used by dashboard statistics
+     */
+    public function countAvailableByCategory(?int $categoryId = null): int
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.statut = :statut')
+            ->andWhere('p.dateExpiration >= :today')
+            ->setParameter('statut', true)
+            ->setParameter('today', new \DateTime());
+
+        if ($categoryId) {
+            $qb->andWhere('p.categorie = :category')
+                ->setParameter('category', $categoryId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * Get products expiring in next X days (used for notifications)
+     * Returns products with eager loaded category
+     */
+    public function findExpiringProductsWithCategory(int $days = 7): array
+    {
+        $today = new \DateTime();
+        $endDate = (clone $today)->modify("+$days days");
+
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.categorie', 'c', 'WITH', 'c.id IS NOT NULL')
+            ->addSelect('c')
+            ->where('p.dateExpiration BETWEEN :today AND :endDate')
+            ->andWhere('p.statut = :statut')
+            ->setParameter('today', $today)
+            ->setParameter('endDate', $endDate)
+            ->setParameter('statut', true)
+            ->orderBy('p.dateExpiration', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Get product count by status (for dashboard notifications)
+     */
+    public function getStatusCounts(): array
+    {
+        $result = $this->createQueryBuilder('p')
+            ->select('p.statut, COUNT(p.id) as count')
+            ->groupBy('p.statut')
+            ->getQuery()
+            ->getResult();
+
+        $counts = ['available' => 0, 'out_of_stock' => 0];
+        foreach ($result as $row) {
+            if ($row['statut']) {
+                $counts['available'] = (int) $row['count'];
+            } else {
+                $counts['out_of_stock'] = (int) $row['count'];
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Find product with eager loaded relationships (category, comments)
+     * Used to prevent N+1 queries on product detail pages
+     */
+    public function findWithRelations(int $id): ?Produit
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.categorie', 'c', 'WITH', 'c.id IS NOT NULL')
+            ->leftJoin('p.commentaires', 'com', 'WITH', 'com.statut = :status')
+            ->addSelect('c')
+            ->addSelect('com')
+            ->setParameter('status', 'valide')
+            ->where('p.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

@@ -3,24 +3,28 @@
 namespace App\Command;
 
 use App\Repository\ProduitRepository;
-use App\Service\GeminiService;
-use App\Entity\Notification;
+use App\Repository\UserRepository;
+use App\Repository\NotificationRepository;
+use App\Service\ExpirationNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:check-expiration',
-    description: 'Check for products expiring soon and generate notifications',
+    description: 'Check for products expiring soon and send notifications',
 )]
 class CheckExpirationCommand extends Command
 {
     public function __construct(
         private ProduitRepository $produitRepository,
-        private GeminiService $geminiService,
+        private UserRepository $userRepository,
+        private NotificationRepository $notificationRepository,
+        private ExpirationNotificationService $expirationService,
         private EntityManagerInterface $em
     ) {
         parent::__construct();
@@ -28,49 +32,52 @@ class CheckExpirationCommand extends Command
 
     protected function configure(): void
     {
-        // Pas d'arguments ou d'options supplémentaires nécessaires
+        $this->addOption(
+            'days',
+            'd',
+            InputOption::VALUE_OPTIONAL,
+            'Number of days to check ahead (default: 7)',
+            7
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $days = (int) $input->getOption('days');
 
-        $io->info('Vérification des produits arrivant à expiration...');
+        $io->info(sprintf('Checking for products expiring in the next %d days...', $days));
 
-        $dateLimite = new \DateTime('+30 days');
-
-        $produits = $this->produitRepository->createQueryBuilder('p')
-            ->where('p.dateExpiration <= :date')
-            ->setParameter('date', $dateLimite)
-            ->getQuery()
-            ->getResult();
+        // Get expiring products with eager-loaded category
+        $produits = $this->produitRepository->findExpiringProductsWithCategory($days);
 
         if (empty($produits)) {
-            $io->success('Aucun produit arrivant à expiration dans les 30 prochains jours.');
+            $io->success(sprintf('No products expiring in the next %d days.', $days));
             return Command::SUCCESS;
         }
 
-        $io->info(sprintf('Traitement de %d produit(s)...', count($produits)));
+        $io->info(sprintf('Processing %d product(s)...', count($produits)));
 
-        foreach ($produits as $produit) {
-            $io->writeln(sprintf('  - Traitement du produit : %s', $produit->getNom()));
+        // Create database notifications using service (avoids duplicates)
+        $created = $this->expirationService->createDbNotificationsForExpiringProducts(
+            $this->em,
+            $this->userRepository,
+            $this->notificationRepository,
+            $days
+        );
 
-            $message = $this->geminiService->generateExpirationMessage(
-                $produit->getNom(),
-                30
-            );
-
-            $notification = new Notification();
-            $notification->setMessage($message);
-            $notification->setCreatedAt(new \DateTime());
-            $notification->setIsRead(false);
-
-            $this->em->persist($notification);
+        // Optionally send emails
+        if ($created > 0 && $input->getOption('send-emails') !== false) {
+            $io->writeln('<fg=blue>Sending email notifications...</>');
+            try {
+                $this->expirationService->sendEmailNotification($produits);
+                $io->writeln('<fg=green>✓ Emails sent successfully</>');
+            } catch (\Exception $e) {
+                $io->writeln(sprintf('<fg=red>✗ Error sending emails: %s</>', $e->getMessage()));
+            }
         }
 
-        $this->em->flush();
-
-        $io->success(sprintf('%d notification(s) créée(s) avec succès!', count($produits)));
+        $io->success(sprintf('%d notification(s) created successfully!', $created));
 
         return Command::SUCCESS;
     }
