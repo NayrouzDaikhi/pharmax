@@ -1,0 +1,187 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block title %}Produits - Pharmax{% endblock %}
+
+{% block blog_content %}
+<div style="display: grid; grid-template-columns: 1fr 280px; gap: 30px;">
+    <!-- Products List -->
+    <article style="background-color: #ffffff; padding: 30px;">
+        {% if search %}
+        <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 10px; line-height: 1.2; color: #2c3e50;">
+            Résultats de recherche pour "{{ search }}"
+        </h1>
+        <p style="color: #999; margin-bottom: 20px; font-size: 14px;">
+            <i class="fas fa-search"></i> {{ produits|length }} produit{{ produits|length != 1 ? 's' : '' }} trouvé{{ produits|length != 1 ? 's' : '' }}
+        </p>
+        {% else %}
+        <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 15px; line-height: 1.2; color: #2c3e50;">
+            Nos Produits Pharmaceutiques
+        </h1>
+        {% endif %}
+        
+        <!-- Recommendations -->
+        {% if app.user and recommendations is defined and recommendations|length > 0 %}
+        <div style="margin-bottom: 25px; padding: 15px; border-radius: 8px; background: #f8fffa; border: 1px solid #d4edda;">
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #2c3e50;">
+                🔍 Recommandation pour vous
+            </h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 15px;">
+                Ces produits apparaissent souvent dans vos commandes récentes.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+                {% for produit in recommendations %}
+                    <div style="background-color: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="height: 90px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            {% if produit.image %}
+                                <img src="{{ asset('uploads/images/' ~ produit.image) }}" alt="{{ produit.nom }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <i class="fas fa-box" style="font-size: 1.5rem; color: #ccc;"></i>
+                            {% endif %}
+                        </div>
+                        <div style="padding: 8px 10px;">
+                            <div style="font-size: 12px; font-weight: 700; color: #2c3e50; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ produit.nom }}
+                            </div>
+                            <div style="font-size: 12px; color: #5ea96b; font-weight: 700; margin-bottom: 6px;">
+                                {{ produit.prix|number_format(2, ',', ' ') }} DTN
+                            </div>
+                            <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" style="display: block; text-align: center; background-color: #5ea96b; color: white; padding: 4px 0; font-size: 11px; font-weight: 700; border-radius: 4px; text-decoration: none;">
+                                Voir le produit
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Products Meta -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #5ea96b; padding-bottom: 20px; margin-bottom: 30px; font-size: 13px; color: #999;">
+            <div style="display: flex; gap: 20px;">
+                <span><i class="fas fa-box" style="color: #5ea96b;"></i> {{ produits|length }} Produits</span>
+                <span><i class="fas fa-check" style="color: #5ea96b;"></i> Tous en Stock</span>
+            </div>
+            <a href="{{ path('app_blog_index') }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; transition: all 0.3s ease; display: inline-block;" onmouseover="this.style.color = '#4a8b5c'; this.style.transform = 'translateX(5px)'; this.style.textShadow = '0 0 8px rgba(94,169,107,0.3)';" onmouseout="this.style.color = '#5ea96b'; this.style.transform = 'translateX(0)'; this.style.textShadow = 'none';">
+                <i class="fas fa-arrow-left"></i> Retour au Blog
+            </a>
+        </div>
+
+        <!-- Products Grid -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+            {% for produit in produits %}
+            <div style="background-color: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.08);" onmouseover="this.style.boxShadow = '0 4px 12px rgba(94,169,107,0.2)'; this.style.transform = 'translateY(-3px)';" onmouseout="this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)'; this.style.transform = 'translateY(0)';">
+                <!-- Product Image -->
+                <div style="position: relative; height: 140px; overflow: hidden; background-color: #f0f0f0;">
+                    {% if produit.image %}
+                        <img src="{{ asset('uploads/images/' ~ produit.image) }}" alt="{{ produit.nom }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                            <i class="fas fa-box" style="font-size: 2rem; color: #ccc;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Status Badge -->
+                    {% if produit.isEnPromotion %}
+                        <span style="position: absolute; top: 5px; right: 5px; background-color: #f0ad4e; color: #000; padding: 3px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 4px;">
+                            <i class="fas fa-tag"></i> Promotion -{{ produit.promotionPourcentage }}%
+                        </span>
+                    {% elseif produit.isStatut() %}
+                        <span style="position: absolute; top: 5px; right: 5px; background-color: #5ea96b; color: white; padding: 3px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 4px;">
+                            <i class="fas fa-check"></i> Stock
+                        </span>
+                    {% else %}
+                        <span style="position: absolute; top: 5px; right: 5px; background-color: #d9534f; color: white; padding: 3px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 4px;">
+                            <i class="fas fa-times"></i> Rupture
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Product Info -->
+                <div style="padding: 10px;">
+                    <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 5px; font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ produit.nom }}
+                    </h4>
+                    
+                    <p style="color: #999; font-size: 11px; height: 25px; overflow: hidden; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                        {{ produit.description|slice(0, 50) }}
+                    </p>
+                    
+                    <!-- Price -->
+                    <div style="margin-bottom: 8px;">
+                        {% if produit.isEnPromotion %}
+                            <span style="color: #5ea96b; font-weight: 700; font-size: 14px;">{{ produit.prixPromo|number_format(2, ',', ' ') }} DTN</span>
+                            <span style="color: #999; font-size: 12px; text-decoration: line-through; margin-left: 6px;">{{ produit.prix|number_format(2, ',', ' ') }} DTN</span>
+                        {% else %}
+                            <span style="color: #5ea96b; font-weight: 700; font-size: 14px;">{{ produit.prix|number_format(2, ',', ' ') }} DTN</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" style="display: inline-block; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-radius: 4px; transition: background-color 0.3s ease; flex: 1; text-align: center; box-sizing: border-box;" onmouseover="this.style.backgroundColor = '#4a8b5c';" onmouseout="this.style.backgroundColor = '#5ea96b';" data-add-to-cart>
+                            <i class="fas fa-shopping-cart"></i> Ajouter
+                        </a>
+                        <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" style="display: inline-block; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-radius: 4px; transition: background-color 0.3s ease; flex: 1; text-align: center; box-sizing: border-box;" onmouseover="this.style.backgroundColor = '#4a8b5c';" onmouseout="this.style.backgroundColor = '#5ea96b';">
+                            Détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Empty State -->
+        {% if produits|length == 0 %}
+        <div style="text-align: center; padding: 40px; background-color: #f9f9f9; border-radius: 8px;">
+            <i class="fas fa-box-open" style="font-size: 3rem; color: #ccc; margin-bottom: 15px; display: block;"></i>
+            <p style="color: #999; font-size: 16px;">Aucun produit disponible pour le moment.</p>
+        </div>
+        {% endif %}
+
+        <!-- Categories -->
+        <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0f0f0;">
+            <span style="color: #5ea96b; font-weight: 700;">Catégories:</span>
+            <span style="display: inline-block; background-color: #5ea96b; color: white; padding: 5px 12px; margin-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">
+                Pharmaceutique
+            </span>
+        </div>
+    </article>
+    
+    <!-- Sidebar -->
+    <aside>
+        <!-- About Card -->
+        <div style="background-color: #ffffff; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+            <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+                À Propos
+            </h4>
+            <p style="color: #656565; font-size: 13px; line-height: 1.6; margin: 0;">
+                Pharmax vous propose une gamme complète de produits pharmaceutiques de qualité. Tous nos produits sont certifiés et respectent les normes sanitaires.
+            </p>
+        </div>
+        
+        <!-- Stats Card -->
+        <div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+            <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+                Statistiques
+            </h4>
+            <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #656565; font-size: 13px;">Total Produits</span>
+                    <strong style="color: #5ea96b;">{{ produits|length }}</strong>
+                </div>
+            </div>
+            <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #656565; font-size: 13px;">En Stock</span>
+                    <strong style="color: #5ea96b;">{{ produits|filter(p => p.isStatut())|length }}</strong>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #656565; font-size: 13px;">Prix Moyen</span>
+                    <strong style="color: #5ea96b;">{{ (produits|reduce((carry, p) => carry + p.prix, 0) / (produits|length ?: 1))|round(2) }} DTN</strong>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}

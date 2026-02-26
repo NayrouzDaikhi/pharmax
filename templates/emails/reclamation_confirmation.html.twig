@@ -1,0 +1,26 @@
+{# templates/emails/reclamation_confirmation.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation de votre réclamation</title>
+</head>
+<body>
+    <h1>Bonjour,</h1>
+
+    <p>Nous avons bien reçu votre réclamation.</p>
+
+    <h2>Détails de votre réclamation :</h2>
+    <ul>
+        <li><strong>Titre :</strong> {{ reclamation.titre }}</li>
+        <li><strong>Description :</strong> {{ reclamation.description }}</li>
+        <li><strong>Statut :</strong> {{ reclamation.statut }}</li>
+        <li><strong>Date de création :</strong> {{ reclamation.dateCreation|date('d/m/Y H:i') }}</li>
+    </ul>
+
+    <p>Nous vous remercions de votre patience. Nous traiterons votre demande dans les plus brefs délais.</p>
+
+    <p>Cordialement,</p>
+    <p>L'équipe Pharmax</p>
+</body>
+</html>

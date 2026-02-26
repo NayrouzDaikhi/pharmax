@@ -1,0 +1,203 @@
+{% extends 'front_base.html.twig' %}
+
+{% block title %}{{ produit.nom }} - Pharmax{% endblock %}
+
+{% block content %}
+<!-- Product Detail Section -->
+<section style="padding: 40px 0;">
+    <div class="container-xxl">
+        <div class="row g-4">
+            <!-- Product Image -->
+            <div class="col-lg-5">
+                <div class="card border-0 position-sticky" style="top: 20px;">
+                    {% if produit.image %}
+                        <img src="{{ asset('uploads/images/' ~ produit.image) }}" class="card-img" alt="{{ produit.nom }}" style="height: 400px; object-fit: cover; border-radius: 8px;" onerror="this.src='{{ asset('images/placeholder.png') }}'">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center" style="height: 400px; background: #f0f0f0; border-radius: 8px;">
+                            <i class="bx bx-image" style="font-size: 100px; color: #ccc;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="col-lg-7">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ path('home') }}">Accueil</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('app_front_produits') }}">Produits</a></li>
+                        {% if produit.categorie %}
+                            <li class="breadcrumb-item"><a href="{{ path('app_front_produits', {'categorie': produit.categorie.id}) }}">{{ produit.categorie.nom }}</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active">{{ produit.nom }}</li>
+                    </ol>
+                </nav>
+
+                <!-- Title -->
+                <h1 class="display-6 fw-bold mb-3">{{ produit.nom }}</h1>
+
+                <!-- Category & Status -->
+                <div class="mb-4">
+                    {% if produit.categorie %}
+                        <span class="badge bg-light text-dark me-2" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                            <i class="bx bx-folder"></i> {{ produit.categorie.nom }}
+                        </span>
+                    {% endif %}
+                    
+                    {% if produit.isEnPromotion %}
+                        <span class="badge bg-warning text-dark" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                            <i class="bx bx-purchase-tag"></i> En promotion -{{ produit.promotionPourcentage }}%
+                        </span>
+                    {% elseif produit.statut %}
+                        <span class="badge bg-success" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                            <i class="bx bx-check"></i> En Stock ({{ produit.quantite }} unités)
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                            <i class="bx bx-x"></i> Hors Stock
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Price -->
+                <div class="mb-4">
+                    {% if produit.isEnPromotion %}
+                        <h2 class="text-primary fw-bold" style="font-size: 2.5rem;">{{ produit.prixPromo|number_format(2, ',', ' ') }} DTN</h2>
+                        <p class="text-muted mb-0"><span class="text-decoration-line-through">{{ produit.prix|number_format(2, ',', ' ') }} DTN</span> <span class="badge bg-warning text-dark">-{{ produit.promotionPourcentage }}%</span></p>
+                    {% else %}
+                        <h2 class="text-primary fw-bold" style="font-size: 2.5rem;">{{ produit.prix|number_format(2, ',', ' ') }} DTN</h2>
+                    {% endif %}
+                </div>
+
+                <!-- Rating (Placeholder) -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="text-warning">
+                            <i class="bx bxs-star"></i>
+                            <i class="bx bxs-star"></i>
+                            <i class="bx bxs-star"></i>
+                            <i class="bx bxs-star"></i>
+                            <i class="bx bx-star"></i>
+                        </div>
+                        <span>(4/5 basé sur 12 avis)</span>
+                    </div>
+                </div>
+
+                <!-- Add to Cart (Placeholder) -->
+                <div class="mb-4">
+                    {% if produit.statut %}
+                        <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" class="btn btn-primary btn-lg w-100" data-add-to-cart>
+                            <i class="bx bx-cart-add"></i> Ajouter au Panier
+                        </a>
+                    {% else %}
+                        <button class="btn btn-secondary btn-lg w-100 mb-2" disabled>
+                            <i class="bx bx-x"></i> Produit Indisponible
+                        </button>
+                    {% endif %}
+                </div>
+
+                <!-- Share -->
+                <div class="mb-4">
+                    <p class="text-muted mb-2">Partager:</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <i class="bx bxl-facebook"></i> Facebook
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <i class="bx bxl-twitter"></i> Twitter
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm">
+                            <i class="bx bxl-whatsapp"></i> WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="card border-0 bg-light p-3 mb-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Date d'ajout</small>
+                            <p class="fw-bold mb-0">{{ produit.createdAt ? produit.createdAt|date('d/m/Y') : 'N/A' }}</p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Date d'expiration</small>
+                            <p class="fw-bold mb-0">{{ produit.dateExpiration ? produit.dateExpiration|date('d/m/Y') : 'N/A' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0">
+                    <div class="card-header bg-light border-bottom">
+                        <h5 class="mb-0">Description</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ produit.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4 class="fw-bold mb-4">Produits Connexes</h4>
+                <div class="row g-4">
+                    {% if related_products|length > 0 %}
+                        {% for related in related_products|slice(0, 4) %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card product-card h-100">
+                                {% if related.image %}
+                                    <img src="{{ asset('uploads/' ~ related.image) }}" class="card-img-top product-image" alt="{{ related.nom }}">
+                                {% else %}
+                                    <div class="product-image d-flex align-items-center justify-content-center">
+                                        <i class="bx bx-image" style="font-size: 50px; color: #ccc;"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if related.statut %}
+                                    <span class="badge bg-success badge">En Stock</span>
+                                {% else %}
+                                    <span class="badge bg-danger badge">Hors Stock</span>
+                                {% endif %}
+
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold">{{ related.nom }}</h5>
+                                    <p class="card-text text-muted" style="height: 50px; overflow: hidden;">{{ related.description|slice(0, 80) }}...</p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-primary fw-bold mb-0">{{ related.prix }} DTN</h6>
+                                    </div>
+
+                                    <a href="{{ path('app_front_detail_produit', {'id': related.id}) }}" class="btn btn-primary btn-sm w-100">
+                                        Voir Détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <p class="text-muted text-center">Aucun produit connexe trouvé</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <a href="{{ path('app_front_produits') }}" class="btn btn-outline-secondary">
+                    <i class="bx bx-chevron-left"></i> Retour aux produits
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

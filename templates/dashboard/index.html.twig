@@ -1,0 +1,223 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Dashboard - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Tableau de Bord</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item active">Accueil</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+{% if blockedCount is defined and blockedCount > 0 %}
+    <div class="alert alert-warning" role="alert">
+        Il y a {{ blockedCount }} commande{{ blockedCount > 1 ? 's' }} bloquée{{ blockedCount > 1 ? 's' }} pour fraude. <a href="{{ path('app_commande_index') }}" class="alert-link">Voir la liste</a>.
+    </div>
+{% endif %}
+<!-- Statistics Cards -->
+<div class="row g-4 mb-4">
+    <!-- Articles Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-2">Articles</h6>
+                        <h3 class="mb-0 text-primary fw-bold">{{ statsArticles.total }}</h3>
+                        <small class="text-success">{{ statsArticles.likes_total }} likes</small>
+                    </div>
+                    <i class="bx bx-file text-primary" style="font-size: 2rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-2">Produits</h6>
+                        <h3 class="mb-0 text-success fw-bold">{{ statsProduits.total }}</h3>
+                        <small class="text-info">{{ statsProduits.en_stock }} en stock</small>
+                    </div>
+                    <i class="bx bx-package text-success" style="font-size: 2rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-2">Commentaires</h6>
+                        <h3 class="mb-0 text-warning fw-bold">{{ statsCommentaires.total }}</h3>
+                        <small class="text-muted">Total</small>
+                    </div>
+                    <i class="bx bx-message-square-dots text-warning" style="font-size: 2rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blocked Orders Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-2">Commandes bloquées</h6>
+                        <h3 class="mb-0 text-danger fw-bold">{{ blockedCount }}</h3>
+                        <small class="text-muted">À vérifier</small>
+                    </div>
+                    <i class="bx bx-lock text-danger" style="font-size: 2rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price Stats -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-muted mb-2">Prix Moyen</h6>
+                        <h3 class="mb-0 text-info fw-bold">{{ statsProduits.prix_moyen|round(2) }} DTN</h3>
+                        <small class="text-muted">Produits</small>
+                    </div>
+                    <i class="bx bx-money text-info" style="font-size: 2rem; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Articles -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Derniers Articles</h5>
+                <a href="{{ path('app_article_index') }}" class="btn btn-sm btn-primary">Voir Tous</a>
+            </div>
+            <div class="card-body">
+                {% if articles|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Likes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for article in articles %}
+                                <tr>
+                                    <td class="fw-medium">{{ article.titre[:20] }}{% if article.titre|length > 20 %}...{% endif %}</td>
+                                    <td><span class="badge bg-success">{{ article.likes }}</span></td>
+                                    <td>
+                                        <a href="{{ path('app_article_show', {'id': article.id}) }}" class="btn btn-sm btn-info">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">Aucun article</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Products -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Derniers Produits</h5>
+                <a href="{{ path('app_produit_index') }}" class="btn btn-sm btn-primary">Voir Tous</a>
+            </div>
+            <div class="card-body">
+                {% if produits|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Prix</th>
+                                    <th>Stock</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produit in produits %}
+                                <tr>
+                                    <td class="fw-medium">{{ produit.nom[:15] }}{% if produit.nom|length > 15 %}...{% endif %}</td>
+                                    <td><span class="badge bg-info">{{ produit.prix }} DTN</span></td>
+                                    <td>
+                                        {% if produit.isStatut() %}
+                                            <span class="badge bg-success">En stock</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Hors stock</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_produit_show', {'id': produit.id}) }}" class="btn btn-sm btn-info">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">Aucun produit</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Actions Rapides</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ path('app_article_new') }}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> Nouvel Article
+                    </a>
+                    <a href="{{ path('app_produit_new') }}" class="btn btn-success">
+                        <i class="bx bx-plus"></i> Nouveau Produit
+                    </a>
+                    <a href="{{ path('app_article_index') }}" class="btn btn-info">
+                        <i class="bx bx-file"></i> Gérer Articles
+                    </a>
+                    <a href="{{ path('app_produit_index') }}" class="btn btn-warning">
+                        <i class="bx bx-package"></i> Gérer Produits
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

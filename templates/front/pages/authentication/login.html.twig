@@ -1,0 +1,87 @@
+{% extends 'front/authentication_base.html.twig' %}
+
+{% block title %}Login | Pharmax{% endblock %}
+
+{% block auth_inner_class %} py-4{% endblock %}
+
+{% block auth_content %}
+  <h4 class="mb-2">Welcome to Pharmax! 👋</h4>
+  <p class="mb-4">Please sign-in to your account and start the adventure</p>
+
+  {% for message in app.flashes('registration_success') %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+
+  {% if error is defined and error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>Login Failed!</strong> {{ error.messageKey|trans(error.messageData, 'security') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  {{ form_start(form, {'attr': {'id': 'formAuthentication', 'class': 'mb-3', 'action': path('app_login'), 'method': 'POST', 'novalidate': 'novalidate'}}) }}
+    <div class="mb-3">
+      {{ form_label(form.email_username, 'Email', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.email_username, {'attr': {'placeholder': 'Enter your email'}}) }}
+      {{ form_errors(form.email_username) }}
+    </div>
+    <div class="mb-3 form-password-toggle">
+      <div class="d-flex justify-content-between">
+        {{ form_label(form.password, 'Password', {'label_attr': {'class': 'form-label'}}) }}
+        <a href="{{ path('app_forgot_password') }}">
+          <small>Forgot Password?</small>
+        </a>
+      </div>
+      <div class="input-group input-group-merge">
+        {{ form_widget(form.password, {'attr': {'placeholder': '•••••••••••••', 'aria-describedby': 'password'}}) }}
+        <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+      </div>
+      {{ form_errors(form.password) }}
+    </div>
+    <div class="mb-3">
+      <div class="form-check">
+        {{ form_widget(form._remember_me) }}
+        {{ form_label(form._remember_me, 'Remember Me', {'label_attr': {'class': 'form-check-label'}}) }}
+      </div>
+    </div>
+
+    <div class="mb-3">
+      {{ form_label(form.captcha, 'Verify', {'label_attr': {'class': 'form-label'}}) }}
+      {{ form_widget(form.captcha) }}
+      {{ form_errors(form.captcha) }}
+    </div>
+
+    <div class="mb-3">
+      <button class="btn btn-primary d-grid w-100" type="submit">Sign in</button>
+    </div>
+  {{ form_end(form) }}
+
+  <div class="divider my-4">
+    <div class="divider-text">Or</div>
+  </div>
+
+  <div class="mb-3">
+    <a href="{{ path('connect_google_start') }}"
+       class="btn btn-light border d-grid w-100 d-flex align-items-center justify-content-center gap-2"
+       style="border-color:#dadce0; color:#3c4043; background-color:#ffffff;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.5 24.5c0-1.57-.14-3.08-.4-4.5H24v9h12.7c-.55 2.96-2.24 5.48-4.76 7.18l7.73 6c4.51-4.17 6.83-10.32 6.83-17.68z"/>
+        <path fill="#FBBC05" d="M10.54 28.41A14.5 14.5 0 0 1 9.5 24c0-1.53.26-3.01.72-4.39l-7.98-6.19C.79 16.09 0 19 0 22c0 4.91 1.77 9.41 4.74 12.9l7.8-6.49z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.73-6c-2.15 1.45-4.93 2.3-8.17 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+      <span>Sign in with Google</span>
+    </a>
+  </div>
+
+  <p class="text-center">
+    <span>New on our platform?</span>
+    <a href="{{ path('app_register') }}">
+      <span>Create an account</span>
+    </a>
+  </p>
+{% endblock %}

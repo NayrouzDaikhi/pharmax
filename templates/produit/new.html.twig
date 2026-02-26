@@ -1,0 +1,98 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Ajouter Produit - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Ajouter un Produit</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_produit_index') }}">Produits</a></li>
+                <li class="breadcrumb-item active">Ajouter</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_produit_index') }}" class="btn btn-secondary">
+        <i class="bx bx-arrow-back"></i> Retour
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Formulaire de Produit</h5>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.nom, 'Nom du produit') }}
+                    {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le nom du produit'}}) }}
+                    {{ form_errors(form.nom) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.description, 'Description') }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5, 'placeholder': 'Entrez la description du produit'}}) }}
+                    {{ form_errors(form.description) }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.prix, 'Prix') }}
+                            {{ form_widget(form.prix, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le prix'}}) }}
+                            {{ form_errors(form.prix) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.quantite, 'Quantité') }}
+                            {{ form_widget(form.quantite, {'attr': {'class': 'form-control', 'placeholder': 'Entrez la quantité'}}) }}
+                            {{ form_errors(form.quantite) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.dateExpiration, 'Date d\'expiration') }}
+                            {{ form_widget(form.dateExpiration, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.dateExpiration) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.statut, 'Statut') }}
+                            {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.statut) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.image, 'Image') }}
+                    {{ form_widget(form.image, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.image) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.categorie, 'Catégorie') }}
+                    {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.categorie) }}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bx bx-save"></i> Créer le produit
+                </button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

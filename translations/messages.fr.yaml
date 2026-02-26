@@ -1,0 +1,123 @@
+# Menu & Navigation
+Articles: Articles
+Commentaires: Commentaires
+Dashboard: Tableau de bord
+"My Profile": Mon profil
+Settings: Paramètres
+Administrator: Administrateur
+Pharmax: Pharmax
+License: Licence
+Documentation: Documentation
+Support: Support
+Blog: Blog
+Categories: Catégories
+Tags: Étiquettes
+
+# Article Management
+"Articles Management": Gestion des articles
+"New Article": Nouvel article
+"Article Information": Informations de l'article
+"Article Title": Titre de l'article
+"Featured Image": Image vedette
+"Content": Contenu
+"Create Article": Créer un article
+"Edit Article": Modifier l'article
+"Delete this article?": "Êtes-vous sûr de vouloir supprimer cet article ?"
+Title: Titre
+Image: Image
+"Comments count": Commentaires
+Created: Créé
+Modified: Modifié
+"No Image": Pas d'image
+"N/A": "S/O"
+View: Afficher
+Edit: Modifier
+Delete: Supprimer
+Cancel: Annuler
+Actions: Actions
+"No articles found.": "Aucun article trouvé."
+"Create one": Créer un
+
+# Comment Management
+"Comments Management": Gestion des commentaires
+"Comment Status Distribution": "Répartition des commentaires par statut"
+"New Comment": Nouveau commentaire
+"Comment Information": Informations du commentaire
+"Comment Content": Contenu du commentaire
+"Create Comment": Créer un commentaire
+"Delete this comment?": "Êtes-vous sûr de vouloir supprimer ce commentaire ?"
+ID: "ID"
+Article: Article
+Published: Publié
+Status: Statut
+Approved: Approuvé
+Pending: En attente
+Blocked: Bloqué
+"All Comments": "Tous les commentaires"
+"No comments found.": "Aucun commentaire trouvé."
+
+# Form Labels & Messages
+"Please fix the errors below:": "Veuillez corriger les erreurs ci-dessous :"
+"The title of your article will be displayed prominently.": "Le titre de votre article s'affichera en évidence."
+"Provide detailed content for your article.": "Fournissez un contenu détaillé pour votre article."
+"Upload a featured image for your article (JPG, PNG, max 2MB).": "Téléchargez une image vedette pour votre article (JPG, PNG, max 2 Mo)."
+"Provide detailed feedback or comments.": "Fournir des commentaires détaillés ou des retours."
+"Set the approval status for this comment.": "Définir l'état d'approbation pour ce commentaire."
+
+# Breadcrumb
+"Tableau de bord": "Tableau de bord"
+
+# Search
+"Search...": "Rechercher..."
+"Search articles...": "Rechercher des articles..."
+Search: Rechercher
+Clear: Effacer
+"Newest First": "Plus récents d'abord"
+"Oldest First": "Plus anciens d'abord"
+
+# Buttons & Actions
+Save: Enregistrer
+Submit: Soumettre
+Back: Retour
+Create: Créer
+Modify: Modifier
+
+# Messages
+"Article Management System": "Système de gestion des articles"
+"© {year}, Pharmax - Article Management System": "© {year}, Pharmax - Système de gestion des articles"
+"Home": "Accueil"
+"Contact": "Contact"
+"Admin": "Admin"
+"Follow Us": "Followez-nous"
+"All rights reserved": "Tous les droits réservés"
+"About Author": "À propos de l'auteur"
+"Recent Articles": "Articles récents"
+"Add your comment": "Ajouter votre commentaire"
+"Enter your comment...": "Entrez votre commentaire..."
+"Post comment": "Publier le commentaire"
+
+# Pagination
+"Previous": "Précédent"
+"Next": "Suivant"
+"Showing": "Affichage"
+"to": "à"
+"of": "sur"
+"articles": "articles"
+
+# Article Actions
+"Read Later": "Lire plus tard"
+"articles selected": "articles sélectionnés"
+"No articles selected": "Aucun article sélectionné"
+"articles will be deleted. Continue?": "articles seront supprimés. Continuer ?"
+"Articles deleted successfully": "Articles supprimés avec succès"
+"Error deleting articles": "Erreur lors de la suppression des articles"
+"comments selected": "commentaires sélectionnés"
+"No comments selected": "Aucun commentaire sélectionné"
+"comments will be deleted. Continue?": "commentaires seront supprimés. Continuer ?"
+"Delete Selected": "Supprimer la sélection"
+"Select all": "Sélectionner tout"
+"Article deleted": "Article supprimé"
+"archived comments selected": "commentaires archivés sélectionnés"
+"No archived comments found.": "Aucun commentaire archivé trouvé."
+"No archived comments selected": "Aucun commentaire archivé sélectionné"
+"archived comments will be deleted. Continue?": "commentaires archivés seront supprimés. Continuer ?"

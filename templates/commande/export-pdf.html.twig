@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Commandes - Pharmax</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 18pt;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 9pt;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        thead {
+            background-color: #f0f0f0;
+            border-bottom: 2px solid #007bff;
+        }
+        th {
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #ddd;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #fff;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: bold;
+        }
+        .badge-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .badge-primary {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+        .badge-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 8pt;
+            color: #999;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Liste des Commandes</h1>
+        <p>Rapport généré le {{ "now"|date('d/m/Y H:i') }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID Commande</th>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Montant (TND)</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if commandes|length > 0 %}
+                {% for commande in commandes %}
+                    <tr>
+                        <td>#{{ commande.id }}</td>
+                        <td>{{ commande.createdAt|date('d/m/Y H:i')|default('N/A') }}</td>
+                        <td>{{ commande.utilisateur.email|default('Client Anonyme') }}</td>
+                        <td style="text-align:right;">{{ (commande.totales|default(0))|number_format(2, ',', ' ') }}</td>
+                        <td>
+                            {% if commande.statut|default('') == 'en_cours' %}
+                                <span class="badge badge-primary">En cours</span>
+                            {% elseif commande.statut|default('') == 'en_attente' %}
+                                <span class="badge badge-warning">En attente</span>
+                            {% elseif commande.statut|default('') == 'livree' %}
+                                <span class="badge badge-success">Livrée</span>
+                            {% elseif commande.statut|default('') == 'annule' or commande.statut|default('') == 'annulée' %}
+                                <span class="badge badge-danger">Annulée</span>
+                            {% else %}
+                                <span class="badge badge-info">{{ commande.statut|default('N/A') }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="5" class="no-data">Aucune commande trouvée</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Pharmax - Système de Gestion des Commandes</p>
+    </div>
+</body>
+</html>

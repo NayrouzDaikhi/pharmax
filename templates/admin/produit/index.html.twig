@@ -1,0 +1,150 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Gestion Produits - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Gestion des Produits</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">Produits</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_produit_new') }}" class="btn btn-success">
+        <i class="bx bx-plus"></i> Ajouter Produit
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Total Produits</h5>
+                <h2 class="text-primary fw-bold">{{ statsProduits.total }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">En Stock</h5>
+                <h2 class="text-success fw-bold">{{ statsProduits.en_stock }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Hors Stock</h5>
+                <h2 class="text-danger fw-bold">{{ statsProduits.hors_stock }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Catégories</h5>
+                <h2 class="text-warning fw-bold">{{ categories|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Liste des Produits</h5>
+    </div>
+    <div class="card-body">
+        {% if produits|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Nom</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>Quantité</th>
+                            <th>Statut</th>
+                            <th>Date Création</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produit in produits %}
+                        <tr>
+                            <td>
+                                {% if produit.image %}
+                                    <img src="{{ asset('uploads/images/' ~ produit.image) }}" alt="{{ produit.nom }}" style="height: 40px; width: 40px; object-fit: cover; border-radius: 4px;">
+                                {% else %}
+                                    <div style="height: 40px; width: 40px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bx bx-image" style="color: #ccc;"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ produit.nom }}</strong>
+                                <br>
+                                <small class="text-muted">{{ produit.description|slice(0, 50) }}...</small>
+                            </td>
+                            <td>
+                                {% if produit.categorie %}
+                                    <span class="badge bg-light text-dark">{{ produit.categorie.nom }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ produit.prix }} DTN</strong></td>
+                            <td>
+                                <span class="badge bg-info">{{ produit.quantite }}</span>
+                            </td>
+                            <td>
+                                {% if produit.isStatut() %}
+                                    <span class="badge bg-success">En Stock</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Hors Stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ produit.createdAt|date('d M Y') }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ path('app_produit_show', {'id': produit.id}) }}" class="btn btn-info" title="Voir">
+                                        <i class="bx bx-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_produit_edit', {'id': produit.id}) }}" class="btn btn-success" title="Modifier">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <form method="post" action="{{ path('app_produit_delete', {'id': produit.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ produit.id) }}">
+                                        <button type="submit" class="btn btn-danger" title="Supprimer">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bx bx-package" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">Aucun produit disponible</p>
+                <a href="{{ path('app_produit_new') }}" class="btn btn-success mt-2">
+                    <i class="bx bx-plus"></i> Créer le premier produit
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

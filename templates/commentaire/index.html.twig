@@ -1,0 +1,293 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}{{'Comments - Pharmax'|trans}}{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">{{'Comments Management'|trans}}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">{{'Dashboard'|trans}}</a></li>
+                <li class="breadcrumb-item active">{{'Comments'|trans}}</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_commentaire_new') }}" class="btn btn-primary">
+        <i class="bx bx-plus"></i> {{'New Comment'|trans}}
+    </a>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="true">
+            <i class="bx bx-comment"></i> {{'Active Comments'|trans}} ({{ commentaires|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="archive-tab" data-bs-toggle="tab" data-bs-target="#archive" type="button" role="tab" aria-controls="archive" aria-selected="false">
+            <i class="bx bx-archive"></i> {{'Archived Comments'|trans}} 
+            {% if archived_commentaires|length > 0 %}
+                <span class="badge bg-danger">{{ archived_commentaires|length }}</span>
+            {% endif %}
+        </button>
+    </li>
+</ul>
+{% endblock %}
+
+{% block body %}
+<div class="tab-content" id="commentTabContent">
+    <!-- ACTIVE COMMENTS TAB -->
+    <div class="tab-pane fade show active" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th colspan="6">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="form-check-label" style="margin: 0;">
+                                        <input type="checkbox" class="form-check-input select-all-comments" style="cursor: pointer;">
+                                        <strong>{{'Select All'|trans}}</strong>
+                                    </label>
+                                </div>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" class="form-check-input select-all-comments" style="cursor: pointer;"></th>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'Article'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Published'|trans}}</th>
+                            <th>{{'Status'|trans}}</th>
+                            <th style="width: 80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if commentaires is not empty %}
+                            {% for commentaire in commentaires %}
+                            <tr class="table-row-clickable comment-row" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" data-article-id="{{ commentaire.article.id }}" data-comment-id="{{ commentaire.id }}" role="button">
+                                <td onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="form-check-input comment-checkbox" data-comment-id="{{ commentaire.id }}" style="cursor: pointer;">
+                                </td>
+                                <td>
+                                    <code class="text-info">#{{ commentaire.id }}</code>
+                                </td>
+                                <td>
+                                    <span class="badge badge-light">{{ commentaire.article.titre }}</span>
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if commentaire.contenu|length > 50 %}
+                                            {{ commentaire.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ commentaire.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    {% if commentaire.statut == 'VALIDE' %}
+                                        <span class="badge badge-success">{{'Approved'|trans}}</span>
+                                    {% elseif commentaire.statut == 'en attente' %}
+                                        <span class="badge badge-warning">{{'Pending'|trans}}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ commentaire.statut }}</span>
+                                    {% endif %}
+                                </td>
+                                <td onclick="event.stopPropagation()">
+                                    <button class="btn btn-sm btn-danger delete-comment-btn" data-comment-id="{{ commentaire.id }}" title="Delete">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No comments found.'|trans}} <a href="{{ path('app_commentaire_new') }}">{{'Create one'|trans}}</a></p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARCHIVED COMMENTS TAB -->
+    <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" class="form-check-input select-all-archives" style="cursor: pointer;"></th>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'User'|trans}}</th>
+                            <th>{{'Article'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Blocked Date'|trans}}</th>
+                            <th>{{'Reason'|trans}}</th>
+                            <th style="width: 80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if archived_commentaires is not empty %}
+                            {% for archive in archived_commentaires %}
+                            <tr data-archive-id="{{ archive.id }}">
+                                <td onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="form-check-input archive-checkbox" data-archive-id="{{ archive.id }}" style="cursor: pointer;">
+                                </td>
+                                <td>
+                                    <code class="text-danger">#{{ archive.id }}</code>
+                                </td>
+                                <td>
+                                    <small>{{ archive.userName ?? 'Anonymous' }}</small>
+                                    {% if archive.userEmail %}
+                                        <br><small class="text-muted">{{ archive.userEmail }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-light">{{ archive.article.titre }}</span>
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if archive.contenu|length > 50 %}
+                                            {{ archive.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ archive.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ archive.archivedAt ? archive.archivedAt|date('d M Y H:i') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-warning text-dark">{{ archive.reason }}</span>
+                                </td>
+                                <td onclick="event.stopPropagation()">
+                                    <button class="btn btn-sm btn-danger delete-archive-btn" data-archive-id="{{ archive.id }}" title="Delete">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="bx bx-check-circle" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No archived comments.'|trans}}</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete single comment
+    document.querySelectorAll('.delete-comment-btn').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const commentId = this.dataset.commentId;
+            
+            if (!confirm('Are you sure you want to delete this comment?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/commentaires/${commentId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const row = document.querySelector(`tr[data-comment-id="${commentId}"]`);
+                    if (row) {
+                        row.style.opacity = '0.5';
+                        row.style.transition = 'opacity 0.3s';
+                        setTimeout(() => {
+                            row.remove();
+                        }, 300);
+                    }
+                } else {
+                    alert('Failed to delete comment');
+                }
+            } catch(err) {
+                console.error('Delete failed:', err);
+                alert('Error deleting comment');
+            }
+        });
+    });
+
+    // Delete single archived comment
+    document.querySelectorAll('.delete-archive-btn').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const archiveId = this.dataset.archiveId;
+            
+            if (!confirm('Are you sure you want to delete this archived comment?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/commentaire-archives/${archiveId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const row = document.querySelector(`tr[data-archive-id="${archiveId}"]`);
+                    if (row) {
+                        row.style.opacity = '0.5';
+                        row.style.transition = 'opacity 0.3s';
+                        setTimeout(() => {
+                            row.remove();
+                        }, 300);
+                    }
+                } else {
+                    alert('Failed to delete archived comment');
+                }
+            } catch(err) {
+                console.error('Delete failed:', err);
+                alert('Error deleting archived comment');
+            }
+        });
+    });
+
+    // Row click navigation (only if not clicking delete button)
+    document.querySelectorAll('tr.comment-row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't navigate if delete button or checkbox was clicked
+            if (e.target.closest('.delete-comment-btn') || e.target.closest('.comment-checkbox')) {
+                return;
+            }
+            
+            const href = this.dataset.href;
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

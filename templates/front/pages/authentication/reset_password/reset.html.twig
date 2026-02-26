@@ -1,0 +1,65 @@
+{% extends 'front/authentication_base.html.twig' %}
+
+{% block title %}Reset Password | Pharmax{% endblock %}
+
+{% block auth_inner_class %} py-4{% endblock %}
+
+{% block auth_content %}
+  <h4 class="mb-2">Reset Password 🔐</h4>
+  <p class="mb-4">Choose a strong new password to secure your account.</p>
+
+  {{ form_start(resetForm, {'attr': {'id': 'formAuthentication', 'class': 'mb-3', 'novalidate': 'novalidate'}}) }}
+    <div class="mb-3">
+      {{ form_label(resetForm.plainPassword.first, 'New password', {'label_attr': {'class': 'form-label text-uppercase small text-muted mb-1'}}) }}
+      <div class="card border shadow-sm">
+        <div class="card-body pb-2">
+          <p class="mb-2 text-muted small fw-semibold">Password must contain:</p>
+          <ul class="mb-3 small text-muted ps-3">
+            <li>At least 12 characters</li>
+            <li>Mixed upper &amp; lower case letters</li>
+            <li>At least one number and one symbol</li>
+          </ul>
+          <div class="mb-3">
+            <div class="form-password-toggle">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label mb-0">New password</label>
+              </div>
+              <div class="input-group input-group-merge">
+                {{ form_widget(resetForm.plainPassword.first, {
+                  'attr': {
+                    'class': 'form-control',
+                    'placeholder': 'Enter your new password'
+                  }
+                }) }}
+                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-1">
+            <label class="form-label mb-1">Repeat password</label>
+            {{ form_widget(resetForm.plainPassword.second, {
+              'attr': {
+                'class': 'form-control',
+                'placeholder': 'Repeat your new password'
+              }
+            }) }}
+          </div>
+
+          <div class="mt-2">
+            {{ form_errors(resetForm.plainPassword) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary d-grid w-100 mt-3">Reset Password</button>
+  {{ form_end(resetForm) }}
+
+  <div class="text-center mt-3">
+    <a href="{{ path('app_login') }}" class="d-flex align-items-center justify-content-center">
+      <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm me-1"></i>
+      Back to login
+    </a>
+  </div>
+{% endblock %}

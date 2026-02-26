@@ -1,0 +1,57 @@
+{% extends "admin/base.html.twig" %}
+
+{% block title %}Tableau de bord - Backoffice{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-2 text-muted">Commandes totales</h6>
+                        <h3 class="mb-0">1,234</h3>
+                    </div>
+                    <i class="bx bx-package bx-lg text-primary opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-2 text-muted">Revenus</h6>
+                        <h3 class="mb-0">45,678 <span class="fs-6 text-muted">TND</span></h3>
+                    </div>
+                    <i class="bx bx-money bx-lg text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-2 text-muted">Clients</h6>
+                        <h3 class="mb-0">567</h3>
+                    </div>
+                    <i class="bx bx-user bx-lg text-warning opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5>Accès rapide</h5>
+    </div>
+    <div class="card-body">
+        <a href="{{ path('app_admin_commande_index') }}" class="btn btn-outline-primary">Gérer les commandes</a>
+        <a href="{{ path('app_admin_commande_new') }}" class="btn btn-outline-success">Créer une commande</a>
+    </div>
+</div>
+{% endblock %}

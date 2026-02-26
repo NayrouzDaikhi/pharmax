@@ -1,0 +1,11 @@
+
+#searchButton {
+    background-color: #2ECC71; /* Custom green color */
+    border-color: #2ECC71; /* Matching border color */
+    color: #fff; /* White text for contrast */
+}
+
+#searchButton:hover {
+    background-color: #25a25a; /* Darker shade for hover effect */
+    border-color: #25a25a;
+}

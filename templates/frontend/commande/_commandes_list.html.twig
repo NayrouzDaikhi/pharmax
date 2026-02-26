@@ -1,0 +1,38 @@
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Utilisateur</th>
+            <th>Total</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for commande in commandes %}
+            <tr>
+                <td>{{ commande.utilisateur.email }}</td>
+                <td>{{ commande.totales|number_format(2, ',', ' ') }} DT</td>
+                <td><span class="badge bg-label-{{ commande.statut == 'payee' ? 'success' : (commande.statut == 'annule' ? 'danger' : 'warning') }}">{{ commande.statut }}</span></td>
+                <td>{{ commande.createdAt|date('d/m/Y H:i') }}</td>
+                <td>
+                    <a href="{{ path('app_commande_show', {'id': commande.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5" class="text-center">Aucune commande trouvée.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-center mt-3">
+    {# Render pagination if a pagination variable is provided. The custom 'paginated' test
+       is not available; checking for definition is sufficient for KNP paginator. #}
+    {% if pagination is defined %}
+        {{ knp_pagination_render(pagination) }}
+    {% elseif commandes is defined %}
+        {{ knp_pagination_render(commandes) }}
+    {% endif %}
+</div>

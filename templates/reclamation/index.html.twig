@@ -1,0 +1,66 @@
+{% extends 'front_base.html.twig' %}
+
+{% block title %}Réclamations - Pharmax{% endblock %}
+
+{% block content %}
+<section style="padding: 40px 0;">
+    <div class="container-xxl">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-5 fw-bold mb-2">Réclamations</h1>
+                <p class="text-muted">Consultez vos réclamations et vos demandes de support</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <form action="{{ path('frontend_reclamation_index') }}" method="GET" class="input-group mb-3">
+                    <input type="text" id="search-input" name="query" class="form-control" placeholder="Rechercher par titre ou description..." value="{{ search_query }}">
+                </form>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <a href="{{ path('frontend_reclamation_new') }}" class="btn btn-primary">
+                    <i class="bx bx-plus"></i> Nouvelle Réclamation
+                </a>
+            </div>
+        </div>
+
+        <div id="reclamation-list">
+            {% include 'reclamation/_reclamation_list.html.twig' with { 'reclamations': reclamations } %}
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('search-input');
+    const listContainer = document.getElementById('reclamation-list');
+    let debounceTimer;
+
+    searchInput.addEventListener('keyup', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+            const query = searchInput.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('query', query);
+
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.text())
+            .then(html => {
+                listContainer.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Erreur lors de la recherche:', error);
+            });
+        }, 300); // Délai de 300ms pour éviter les requêtes à chaque frappe
+    });
+});
+</script>
+{% endblock %}

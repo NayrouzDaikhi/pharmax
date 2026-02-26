@@ -1,0 +1,193 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Gestion des Utilisateurs - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Gestion des Utilisateurs</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">Utilisateurs</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('admin_user_new') }}" class="btn btn-success">
+        <i class="bx bx-plus"></i> Ajouter Utilisateur
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+{# Welcome message for users who have just signed in #}
+{% for message in app.flashes('login_success') %}
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
+
+{# Generic success messages for admin actions (create/update/delete user, etc.) #}
+{% for message in app.flashes('success') %}
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endfor %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title">Tous les Utilisateurs ({{ users|length }})</h5>
+    </div>
+    <!-- Filter / Search Bar -->
+    <div class="card-body border-bottom">
+        <form id="filterForm" method="GET" action="{{ path('admin_user_index') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="searchInput" class="form-label fw-500">Recherche</label>
+                    <input 
+                        type="text" 
+                        name="q" 
+                        id="searchInput" 
+                        class="form-control" 
+                        placeholder="Nom ou email"
+                        value="{{ criteria.q ?? app.request.query.get('q') }}"
+                    >
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="statusFilter" class="form-label fw-500">Statut</label>
+                    <select name="status" id="statusFilter" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">— Tous les Statuts —</option>
+                        <option value="UNBLOCKED" {% if criteria.status == 'UNBLOCKED' %}selected{% endif %}>Actif</option>
+                        <option value="BLOCKED" {% if criteria.status == 'BLOCKED' %}selected{% endif %}>Bloqué</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="roleFilter" class="form-label fw-500">Rôle</label>
+                    <select name="role" id="roleFilter" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">— Tous les Rôles —</option>
+                        <option value="ROLE_SUPER_ADMIN" {% if criteria.role == 'ROLE_SUPER_ADMIN' %}selected{% endif %}>Super Admin</option>
+                        <option value="ROLE_ADMIN" {% if criteria.role == 'ROLE_ADMIN' %}selected{% endif %}>Admin</option>
+                        <option value="ROLE_USER" {% if criteria.role == 'ROLE_USER' %}selected{% endif %}>Utilisateur</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="sortField" class="form-label fw-500">Trier par</label>
+                    <select name="sort" id="sortField" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                        <option value="lastName" {% if sort.field == 'lastName' %}selected{% endif %}>Nom</option>
+                        <option value="firstName" {% if sort.field == 'firstName' %}selected{% endif %}>Prénom</option>
+                        <option value="email" {% if sort.field == 'email' %}selected{% endif %}>Email</option>
+                        <option value="createdAt" {% if sort.field == 'createdAt' %}selected{% endif %}>Créé le</option>
+                        <option value="updatedAt" {% if sort.field == 'updatedAt' %}selected{% endif %}>Modifié le</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-2 mt-3">
+                <div class="col-12 col-sm-auto">
+                    <button type="submit" name="dir" value="{{ sort.dir == 'ASC' ? 'DESC' : 'ASC' }}" class="btn btn-outline-secondary w-100" title="Inverser l'ordre de tri">
+                        <i class="bx bx-sort{{ sort.dir == 'ASC' ? '-up' : '-down' }}"></i>
+                        <span class="d-none d-sm-inline ms-1">{{ sort.dir == 'ASC' ? 'ASC' : 'DESC' }}</span>
+                    </button>
+                </div>
+
+                <div class="col-12 col-sm-auto">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-search"></i>
+                        <span class="d-none d-sm-inline ms-1">Recherche</span>
+                    </button>
+                </div>
+
+                {% if criteria.q or criteria.status or criteria.role or sort.dir != 'ASC' or sort.field != 'lastName' %}
+                <div class="col-12 col-sm-auto">
+                    <a href="{{ path('admin_user_index') }}" class="btn btn-warning w-100">
+                        <i class="bx bx-x"></i>
+                        <span class="d-none d-sm-inline ms-1">Effacer</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive text-nowrap overflow-visible">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Rôles</th>
+                    <th>Statut</th>
+                    <th>Date de Création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                {% if users|length > 0 %}
+                    {% for user in users %}
+                        <tr>
+                            <td><strong>#{{ user.id }}</strong></td>
+                            <td>{{ user.fullName }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% for role in user.roles %}
+                                    <span class="badge bg-label-{{ role == 'ROLE_SUPER_ADMIN' ? 'primary' : (role == 'ROLE_ADMIN' ? 'warning' : 'info') }}">
+                                        {{ role|replace({'ROLE_': ''}) }}
+                                    </span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if user.isBlocked %}
+                                    <span class="badge bg-label-danger">Bloqué</span>
+                                {% else %}
+                                    <span class="badge bg-label-success">Actif</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.createdAt %}
+                                    {{ user.createdAt|date('d/m/Y') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="align-middle">
+                                <div class="dropdown position-relative">
+                                    <button id="userActions{{ user.id }}" type="button" class="btn btn-sm btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end m-0 position-absolute" aria-labelledby="userActions{{ user.id }}" style="z-index:2000;">
+                                        <a class="dropdown-item" href="{{ path('admin_user_show', {'id': user.id}) }}">
+                                            <i class="bx bx-show me-1"></i> Voir
+                                        </a>
+                                        <a class="dropdown-item" href="{{ path('admin_user_edit', {'id': user.id}) }}">
+                                            <i class="bx bx-edit me-1"></i> Éditer
+                                        </a>
+                                        <hr class="dropdown-divider" />
+                                        <form method="POST" action="{{ path('admin_user_delete', {'id': user.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bx bx-trash me-1"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <p class="text-muted">Aucun utilisateur trouvé. <a href="{{ path('admin_user_new') }}">Créez-en un maintenant</a>.</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

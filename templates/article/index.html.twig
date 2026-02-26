@@ -1,0 +1,1220 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}{{'Articles - Pharmax'|trans}}{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">{{'Articles Management'|trans}}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">{{'Dashboard'|trans}}</a></li>
+                <li class="breadcrumb-item active">{{'Articles'|trans}}</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_article_new') }}" class="btn btn-primary">
+        <i class="bx bx-plus"></i> {{'New Article'|trans}}
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Search Section -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ path('app_article_index') }}" class="d-flex gap-2 align-items-end flex-wrap">
+            <div class="flex-grow-1">
+                <input type="text" name="search" class="form-control" placeholder="{{'Search articles...'|trans}}" value="{{ searchQuery }}">
+            </div>
+            <div>
+                <select name="sort_order" class="form-select" onchange="document.getElementById('sortBy').value='date'; this.form.submit();">
+                    <option value="" disabled selected>{{'Sort by Date'|trans}}</option>
+                    <option value="desc" {% if sortOrder == 'desc' and sortBy == 'date' %}selected{% endif %}>
+                        {{'Newest First'|trans}}
+                    </option>
+                    <option value="asc" {% if sortOrder == 'asc' and sortBy == 'date' %}selected{% endif %}>
+                        {{'Oldest First'|trans}}
+                    </option>
+                </select>
+            </div>
+            <input type="hidden" name="sort_by" id="sortBy" value="{{ sortBy }}">
+            <input type="hidden" name="sort_order" id="sortOrder" value="{{ sortOrder }}">
+            <button type="submit" class="btn btn-primary">
+                <i class="bx bx-search"></i> {{'Search'|trans}}
+            </button>
+            {% if searchQuery %}
+                <a href="{{ path('app_article_index') }}" class="btn btn-secondary">
+                    <i class="bx bx-x"></i> {{'Clear'|trans}}
+                </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<div class="row mb-4" id="statisticsSection">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Nombre total d'articles</h6>
+                <h2 id="totalArticlesCount" class="text-primary mb-0">{{ totalArticles }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Nombre total de commentaires</h6>
+                <h2 id="totalCommentsCount" class="text-info mb-0">{{ totalCommentaires }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Commentaires en attente</h6>
+                <h2 id="pendingCommentsCount" class="text-warning mb-0">{{ statsByStatus['en_attente'] }}</h2>
+                <small class="text-muted d-block mt-2">
+                    Approuvés: <span id="approvedCommentsCount" class="text-success">{{ statsByStatus['valide'] }}</span> | 
+                    Bloqués: <span id="blockedCommentsCount" class="text-danger">{{ statsByStatus['bloque'] }}</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-3">Derniers commentaires</h6>
+                <div id="lastCommentsCard">
+                    {% if commentsByDate|length > 0 %}
+                        {% set lastDate = commentsByDate|keys|last %}
+                        <h2 class="text-success mb-0">{{ commentsByDate[lastDate] }}</h2>
+                        <small class="text-muted d-block mt-2">{{ lastDate|date('d/m/Y') }}</small>
+                    {% else %}
+                        <h2 class="text-secondary mb-0">-</h2>
+                        <small class="text-muted d-block mt-2">Aucun</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Article Selection Actions Bar -->
+<div id="articleSelectionActionsBar" class="alert alert-info d-none mb-3" role="alert">
+    <div class="d-flex justify-content-between align-items-center">
+        <span id="articleSelectionCount">0 {{'articles selected'|trans}}</span>
+        <div class="btn-group" role="group">
+            <button type="button" id="deleteArticlesSelectedBtn" class="btn btn-danger btn-sm">
+                <i class="bx bx-trash"></i> {{'Delete Selected'|trans}}
+            </button>
+            <button type="button" id="cancelArticleSelectionBtn" class="btn btn-secondary btn-sm">
+                <i class="bx bx-x"></i> {{'Cancel'|trans}}
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">
+                        <input type="checkbox" id="selectArticlesAllCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                    </th>
+                    <th style="cursor: pointer;">
+                        <a href="#" class="sortable-header" data-sort="titre" style="text-decoration: none; color: inherit;">
+                            {{'Title'|trans}}
+                            {% if sortBy == 'titre' %}
+                                <i class="bx {% if sortOrder == 'asc' %}bx-up{% else %}bx-down{% endif %}" style="font-size: 12px;"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>{{'Image'|trans}}</th>
+                    <th style="cursor: pointer;">
+                        <a href="#" class="sortable-header" data-sort="comments" style="text-decoration: none; color: inherit;">
+                            {{'Comments count'|trans}}
+                            {% if sortBy == 'comments' %}
+                                <i class="bx {% if sortOrder == 'asc' %}bx-up{% else %}bx-down{% endif %}" style="font-size: 12px;"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th style="cursor: pointer;">
+                        <a href="#" class="sortable-header" data-sort="date" style="text-decoration: none; color: inherit;">
+                            {{'Created'|trans}}
+                            {% if sortBy == 'date' %}
+                                <i class="bx {% if sortOrder == 'asc' %}bx-up{% else %}bx-down{% endif %}" style="font-size: 12px;"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>{{'Modified'|trans}}</th>
+                    <th>{{'Actions'|trans}}</th>
+                </tr>
+            </thead>
+            <tbody id="articleTableBody">
+                {% if articles is not empty %}
+                    {% for article in articles %}
+                    <tr class="article-row {% if article.id == mostLikedArticleId %}table-most-liked{% endif %}" data-article-id="{{ article.id }}" data-href="{{ path('app_article_show', {'id': article.id}) }}" role="button">
+                        <td onclick="event.stopPropagation();">
+                            <input type="checkbox" class="form-check-input article-checkbox" value="{{ article.id }}">
+                        </td>
+                        <td>
+                            <strong>{{ article.titre }}</strong>
+                            {% if article.id == mostCommentedArticleId %}<i class="bx bx-star ms-2" style="color: #ffc107;"></i>{% endif %}
+                            {% if article.id == mostLikedArticleId %}<i class="fas fa-heart ms-2" style="color: #ff6b6b;"></i>{% endif %}
+                        </td>
+                        <td>
+                            {% if article.image %}
+                                <img src="{{ asset('uploads/images/' ~ article.image) }}" alt="{{ article.titre }}" style="max-height: 40px; border-radius: 4px;">
+                            {% else %}
+                                <span class="badge badge-secondary">{{'No Image'|trans}}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ article.commentaires|length }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ article.dateCreation ? article.dateCreation|date('d M Y') : 'N/A' }}</small>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ article.dateModification ? article.dateModification|date('d M Y') : '-' }}</small>
+                        </td>
+                        <td onclick="event.stopPropagation();">
+                            <div class="btn-group" role="group">
+                                <a href="{{ path('app_article_edit', {'id': article.id}) }}" class="btn btn-sm btn-warning" title="{{'Edit'|trans}}">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <a href="{{ path('app_article_delete', {'id': article.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this article?'|trans}}');">
+                                    <i class="bx bx-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                            <p class="text-muted mt-2">{{'No articles found.'|trans}}</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Comments Table -->
+<div class="card mt-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">{{'Comments Management'|trans}}</h5>
+            <form method="get" action="{{ path('app_article_index') }}" class="d-flex gap-2" style="margin-bottom: 0;">
+                <input type="hidden" name="search" value="{{ searchQuery }}">
+                <input type="hidden" name="sort_order" value="{{ sortOrder }}">
+                <select name="comment_filter" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit();">
+                    <option value="">{{'All Comments'|trans}}</option>
+                    <option value="valide" {% if commentFilter == 'valide' %}selected{% endif %}>{{'Approved'|trans}}</option>
+                    <option value="en_attente" {% if commentFilter == 'en_attente' %}selected{% endif %}>{{'Pending'|trans}}</option>
+                    <option value="bloque" {% if commentFilter == 'bloque' %}selected{% endif %}>{{'Blocked'|trans}}</option>
+                </select>
+            </form>
+        </div>
+        
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs mb-0" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments">
+                    {{'Article Comments'|trans}} ({{ commentaires|length }})
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews">
+                    <i class="bx bx-star"></i> {{'Product Reviews'|trans}} ({{ totalAvis }})
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="archive-tab" data-bs-toggle="tab" data-bs-target="#archive">
+                    {{'Archived Comments'|trans}} 
+                    <span class="badge bg-danger">{{ archived_commentaires|length }}</span>
+                </button>
+            </li>
+        </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Active Comments Tab -->
+        <div class="tab-pane fade show active" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+            <!-- Selection Actions Bar -->
+            <div id="selectionActionsBar" class="alert alert-info d-none mb-3" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="selectionCount">0 {{'comments selected'|trans}}</span>
+                    <div class="btn-group" role="group">
+                        <button type="button" id="deleteSelectedBtn" class="btn btn-danger btn-sm">
+                            <i class="bx bx-trash"></i> {{'Delete Selected'|trans}}
+                        </button>
+                        <button type="button" id="cancelSelectionBtn" class="btn btn-secondary btn-sm">
+                            <i class="bx bx-x"></i> {{'Cancel'|trans}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectAllCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                            </th>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'Article'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Published'|trans}}</th>
+                            <th>{{'Status'|trans}}</th>
+                            <th>{{'Actions'|trans}}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="commentTableBody">
+                        {% if commentaires is not empty %}
+                            {% for commentaire in commentaires %}
+                            <tr class="comment-row" data-comment-id="{{ commentaire.id }}" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" data-article-id="{{ commentaire.article?.id ?? '' }}">
+                                <td onclick="event.stopPropagation();">
+                                    <input type="checkbox" class="form-check-input comment-checkbox" value="{{ commentaire.id }}">
+                                </td>
+                                <td>
+                                    <code class="text-info">#{{ commentaire.id }}</code>
+                                </td>
+                                <td>
+                                    {% if commentaire.article %}
+                                        <span class="badge badge-light">{{ commentaire.article.titre }}</span>
+                                    {% elseif commentaire.produit %}
+                                        <span class="badge badge-info">{{ commentaire.produit.nom }} (Avis Produit)</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if commentaire.contenu|length > 50 %}
+                                            {{ commentaire.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ commentaire.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    {% if commentaire.statut|lower == 'valide' %}
+                                        <span class="badge badge-success">{{'Approved'|trans}}</span>
+                                    {% elseif commentaire.statut|lower == 'en_attente' %}
+                                        <span class="badge badge-warning">{{'Pending'|trans}}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ commentaire.statut }}</span>
+                                    {% endif %}
+                                </td>
+                                <td onclick="event.stopPropagation();">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" class="btn btn-sm btn-info" title="{{'View'|trans}}">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this comment?'|trans}}');">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No comments found.'|trans}}</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Product Reviews Tab -->
+        <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+            <!-- Selection Actions Bar -->
+            <div id="reviewsSelectionActionsBar" class="alert alert-info d-none mb-3 mx-3" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="reviewsSelectionCount">0 {{'reviews selected'|trans}}</span>
+                    <div class="btn-group" role="group">
+                        <button type="button" id="deleteReviewsSelectedBtn" class="btn btn-danger btn-sm">
+                            <i class="bx bx-trash"></i> {{'Delete Selected'|trans}}
+                        </button>
+                        <button type="button" id="cancelReviewsSelectionBtn" class="btn btn-secondary btn-sm">
+                            <i class="bx bx-x"></i> {{'Cancel'|trans}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectAllReviewsCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                            </th>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'Product'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Published'|trans}}</th>
+                            <th>{{'Status'|trans}}</th>
+                            <th>{{'Actions'|trans}}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewTableBody">
+                        {% if avis is not empty %}
+                            {% for commentaire in avis %}
+                            <tr class="review-row" data-review-id="{{ commentaire.id }}" data-href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}">
+                                <td onclick="event.stopPropagation();">
+                                    <input type="checkbox" class="form-check-input review-checkbox" value="{{ commentaire.id }}">
+                                </td>
+                                <td>
+                                    <code class="text-info">#{{ commentaire.id }}</code>
+                                </td>
+                                <td>
+                                    {% if commentaire.produit %}
+                                        <span class="badge badge-info">{{ commentaire.produit.nom }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if commentaire.contenu|length > 50 %}
+                                            {{ commentaire.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ commentaire.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ commentaire.datePublication ? commentaire.datePublication|date('d M Y') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    {% if commentaire.statut|lower == 'valide' %}
+                                        <span class="badge badge-success"><i class="bx bx-check"></i> {{'Published'|trans}}</span>
+                                    {% elseif commentaire.statut|lower == 'en_attente' %}
+                                        <span class="badge badge-warning"><i class="bx bx-time"></i> {{'Pending'|trans}}</span>
+                                    {% elseif commentaire.statut|lower == 'bloque' %}
+                                        <span class="badge badge-danger"><i class="bx bx-block"></i> {{'Blocked'|trans}}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ commentaire.statut }}</span>
+                                    {% endif %}
+                                </td>
+                                <td onclick="event.stopPropagation();">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ path('app_commentaire_show', {'id': commentaire.id}) }}" class="btn btn-sm btn-info" title="{{'View'|trans}}">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this review?'|trans}}');">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No reviews found.'|trans}}</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Archived Comments Tab -->
+        <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
+            <!-- Archive Selection Actions Bar -->
+            <div id="archiveSelectionActionsBar" class="alert alert-info d-none mb-3" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="archiveSelectionCount">0 {{'archived comments selected'|trans}}</span>
+                    <div class="btn-group" role="group">
+                        <button type="button" id="deleteArchiveSelectedBtn" class="btn btn-danger btn-sm">
+                            <i class="bx bx-trash"></i> {{'Delete Selected'|trans}}
+                        </button>
+                        <button type="button" id="cancelArchiveSelectionBtn" class="btn btn-secondary btn-sm">
+                            <i class="bx bx-x"></i> {{'Cancel'|trans}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectArchiveAllCheckbox" class="form-check-input" title="{{'Select all'|trans}}">
+                            </th>
+                            <th>{{'ID'|trans}}</th>
+                            <th>{{'User'|trans}}</th>
+                            <th>{{'Article'|trans}}</th>
+                            <th>{{'Content'|trans}}</th>
+                            <th>{{'Blocked Date'|trans}}</th>
+                            <th>{{'Reason'|trans}}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archiveTableBody">
+                        {% if archived_commentaires is not empty %}
+                            {% for archive in archived_commentaires %}
+                            <tr class="archive-row" data-archive-id="{{ archive.id }}">
+                                <td onclick="event.stopPropagation();">
+                                    <input type="checkbox" class="form-check-input archive-checkbox" value="{{ archive.id }}">
+                                </td>
+                                <td>
+                                    <code class="text-danger">#{{ archive.id }}</code>
+                                </td>
+                                <td>
+                                    <small>{{ archive.userName }}</small>
+                                    {% if archive.userEmail %}
+                                        <br><small class="text-muted">{{ archive.userEmail }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if archive.article %}
+                                        <span class="badge badge-light">{{ archive.article.titre }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{'Article deleted'|trans}}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <p class="text-muted mb-0">
+                                        {% if archive.contenu|length > 50 %}
+                                            {{ archive.contenu|slice(0, 50) }}...
+                                        {% else %}
+                                            {{ archive.contenu }}
+                                        {% endif %}
+                                    </p>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ archive.archivedAt ? archive.archivedAt|date('d M Y H:i') : 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">{{ archive.reason }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bx bx-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                                    <p class="text-muted mt-2">{{'No archived comments found.'|trans}}</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Section -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{'Comment Status Distribution'|trans}}</h5>
+            </div>
+            <div class="card-body">
+                <div class="position-relative" style="height: 300px;">
+                    <canvas id="commentStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let commentStatusChart = null;
+    
+    // Initialize chart
+    function initializeChart(statusData) {
+        const ctx = document.getElementById('commentStatusChart');
+        if (ctx) {
+            // Destroy existing chart if it exists
+            if (commentStatusChart) {
+                commentStatusChart.destroy();
+            }
+            
+            commentStatusChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: [
+                        '{{'Approved'|trans}}',
+                        '{{'Pending'|trans}}',
+                        '{{'Blocked'|trans}}'
+                    ],
+                    datasets: [{
+                        data: [
+                            statusData.approved,
+                            statusData.pending,
+                            statusData.blocked
+                        ],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.85)',    // Green for Approved
+                            'rgba(255, 193, 7, 0.85)',    // Yellow for Pending
+                            'rgba(220, 53, 69, 0.85)'     // Red for Blocked
+                        ],
+                        borderColor: [
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ],
+                        borderWidth: 3,
+                        hoverBackgroundColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(220, 53, 69, 1)'
+                        ],
+                        hoverBorderColor: [
+                            '#1e7e34',
+                            '#ffb300',
+                            '#bd2130'
+                        ],
+                        hoverBorderWidth: 4,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    const labels = data.labels;
+                                    const datasets = data.datasets;
+                                    
+                                    return labels.map((label, i) => {
+                                        const dataset = datasets[0];
+                                        const value = dataset.data[i];
+                                        const total = dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        
+                                        return {
+                                            text: label + ' - ' + value + ' (' + percentage + '%)',
+                                            fillStyle: dataset.backgroundColor[i],
+                                            hidden: false,
+                                            index: i
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '{{'Comment Status Distribution'|trans}}',
+                            font: {
+                                size: 15,
+                                weight: 'bold'
+                            },
+                            padding: 20,
+                            color: '#333'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': ' + value + ' (' + percentage + '%)';
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 13,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 12
+                            },
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            displayColors: true,
+                            boxPadding: 8
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: false,
+                        duration: 800,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+    }
+    
+    // Fetch and update statistics
+    async function updateStatistics() {
+        try {
+            const response = await fetch('/api/statistics');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update the chart
+                    initializeChart({
+                        approved: data.statistics.approved,
+                        pending: data.statistics.pending,
+                        blocked: data.statistics.blocked
+                    });
+                    
+                    // Update the statistics cards
+                    const totalComments = data.statistics.approved + data.statistics.pending + data.statistics.blocked;
+                    document.getElementById('totalCommentsCount').textContent = totalComments;
+                    document.getElementById('approvedCommentsCount').textContent = data.statistics.approved;
+                    document.getElementById('pendingCommentsCount').textContent = data.statistics.pending;
+                    document.getElementById('blockedCommentsCount').textContent = data.statistics.blocked;
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching statistics:', error);
+        }
+    }
+    
+    // Expose globally so other pages can update the chart
+    window.updateArticleStatistics = updateStatistics;
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusData = {
+            approved: {{ statsByStatus['valide'] }},
+            pending: {{ statsByStatus['en_attente'] }},
+            blocked: {{ statsByStatus['bloque'] }}
+        };
+        
+        initializeChart(statusData);
+        
+        // Handle sortable column headers
+        document.querySelectorAll('.sortable-header').forEach(header => {
+            header.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sortBy = this.dataset.sort;
+                const sortOrderInput = document.getElementById('sortOrder');
+                const sortByInput = document.getElementById('sortBy');
+                
+                // Toggle sort order if clicking same column, otherwise set to desc
+                if (sortByInput.value === sortBy) {
+                    sortOrderInput.value = sortOrderInput.value === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortOrderInput.value = 'desc';
+                }
+                sortByInput.value = sortBy;
+                
+                // Submit the form
+                this.closest('form') ? this.closest('form').submit() : document.querySelector('form[method="get"]').submit();
+            });
+        });
+        
+        // Setup mass selection functionality
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const commentCheckboxes = document.querySelectorAll('.comment-checkbox');
+        const selectionActionsBar = document.getElementById('selectionActionsBar');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const cancelSelectionBtn = document.getElementById('cancelSelectionBtn');
+        const selectionCount = document.getElementById('selectionCount');
+        const commentTableBody = document.getElementById('commentTableBody');
+        const commentRows = document.querySelectorAll('.comment-row');
+        
+        // Update selection count and visibility of action bar
+        function updateSelectionUI() {
+            const selectedCount = document.querySelectorAll('.comment-checkbox:checked').length;
+            if (selectedCount > 0) {
+                selectionActionsBar.classList.remove('d-none');
+                selectionCount.textContent = selectedCount + ' {{'comments selected'|trans}}';
+            } else {
+                selectionActionsBar.classList.add('d-none');
+            }
+            
+            // Update select all checkbox state
+            const totalCheckboxes = document.querySelectorAll('.comment-checkbox').length;
+            selectAllCheckbox.checked = selectedCount === totalCheckboxes && totalCheckboxes > 0;
+            selectAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCheckboxes;
+        }
+        
+        // Select all checkbox
+        selectAllCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.comment-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelectionUI();
+        });
+        
+        // Individual checkboxes
+        commentCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectionUI();
+            });
+        });
+        
+        // Cancel selection
+        cancelSelectionBtn.addEventListener('click', function() {
+            selectAllCheckbox.checked = false;
+            commentCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectionUI();
+        });
+        
+        // Delete selected comments
+        deleteSelectedBtn.addEventListener('click', async function() {
+            const selectedIds = Array.from(document.querySelectorAll('.comment-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                alert('{{'No comments selected'|trans}}');
+                return;
+            }
+            
+            if (!confirm(selectedIds.length + ' {{'comments will be deleted. Continue?'|trans}}')) {
+                return;
+            }
+            
+            deleteSelectedBtn.disabled = true;
+            deleteSelectedBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> {{'Deleting...'|trans}}';
+            
+            try {
+                const response = await fetch('/api/commentaires/delete-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove rows from table
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-comment-id="${id}"]`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-20px)';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    
+                    // Reset UI
+                    setTimeout(() => {
+                        updateSelectionUI();
+                        
+                        // Update statistics
+                        if (typeof window.updateArticleStatistics === 'function') {
+                            window.updateArticleStatistics();
+                        }
+                        
+                        // Show success message
+                        alert(data.message || '{{'Comments deleted successfully'|trans}}');
+                    }, 300);
+                } else {
+                    alert(data.message || '{{'Error deleting comments'|trans}}');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('{{'Error deleting comments'|trans}}');
+            } finally {
+                deleteSelectedBtn.disabled = false;
+                deleteSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
+            }
+        });
+        
+        // Click row to navigate (unless checkbox was clicked)
+        commentRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('.comment-checkbox') || e.target.closest('.btn-group')) {
+                    return;
+                }
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+
+        // Setup mass selection functionality for articles
+        const selectArticlesAllCheckbox = document.getElementById('selectArticlesAllCheckbox');
+        const articleCheckboxes = document.querySelectorAll('.article-checkbox');
+        const articleSelectionActionsBar = document.getElementById('articleSelectionActionsBar');
+        const deleteArticlesSelectedBtn = document.getElementById('deleteArticlesSelectedBtn');
+        const cancelArticleSelectionBtn = document.getElementById('cancelArticleSelectionBtn');
+        const articleSelectionCount = document.getElementById('articleSelectionCount');
+        const articleTableBody = document.getElementById('articleTableBody');
+        const articleRows = document.querySelectorAll('.article-row');
+        
+        // Update selection count and visibility of action bar for articles
+        function updateArticleSelectionUI() {
+            const selectedCount = document.querySelectorAll('.article-checkbox:checked').length;
+            if (selectedCount > 0) {
+                articleSelectionActionsBar.classList.remove('d-none');
+                articleSelectionCount.textContent = selectedCount + ' {{'articles selected'|trans}}';
+            } else {
+                articleSelectionActionsBar.classList.add('d-none');
+            }
+            
+            // Update select all checkbox state
+            const totalCheckboxes = document.querySelectorAll('.article-checkbox').length;
+            selectArticlesAllCheckbox.checked = selectedCount === totalCheckboxes && totalCheckboxes > 0;
+            selectArticlesAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCheckboxes;
+        }
+        
+        // Select all checkbox for articles
+        selectArticlesAllCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.article-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateArticleSelectionUI();
+        });
+        
+        // Individual checkboxes for articles
+        articleCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateArticleSelectionUI();
+            });
+        });
+        
+        // Cancel selection for articles
+        cancelArticleSelectionBtn.addEventListener('click', function() {
+            selectArticlesAllCheckbox.checked = false;
+            articleCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateArticleSelectionUI();
+        });
+        
+        // Delete selected articles
+        deleteArticlesSelectedBtn.addEventListener('click', async function() {
+            const selectedIds = Array.from(document.querySelectorAll('.article-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                alert('{{'No articles selected'|trans}}');
+                return;
+            }
+            
+            if (!confirm(selectedIds.length + ' {{'articles will be deleted. Continue?'|trans}}')) {
+                return;
+            }
+            
+            deleteArticlesSelectedBtn.disabled = true;
+            deleteArticlesSelectedBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> {{'Deleting...'|trans}}';
+            
+            try {
+                const response = await fetch('/api/articles/delete-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove rows from table
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-article-id="${id}"]`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-20px)';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    
+                    // Reset UI
+                    setTimeout(() => {
+                        updateArticleSelectionUI();
+                        
+                        // Reload page after deletion
+                        location.reload();
+                    }, 300);
+                } else {
+                    console.error('Error deleting articles:', data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting articles:', error);
+            } finally {
+                deleteArticlesSelectedBtn.disabled = false;
+                deleteArticlesSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
+            }
+        });
+        
+        // Click row to navigate for articles (unless checkbox was clicked)
+        articleRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('.article-checkbox') || e.target.closest('.btn-group')) {
+                    return;
+                }
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+
+        // Setup mass selection functionality for archived comments
+        const selectArchiveAllCheckbox = document.getElementById('selectArchiveAllCheckbox');
+        const archiveCheckboxes = document.querySelectorAll('.archive-checkbox');
+        const archiveSelectionActionsBar = document.getElementById('archiveSelectionActionsBar');
+        const deleteArchiveSelectedBtn = document.getElementById('deleteArchiveSelectedBtn');
+        const cancelArchiveSelectionBtn = document.getElementById('cancelArchiveSelectionBtn');
+        const archiveSelectionCount = document.getElementById('archiveSelectionCount');
+        const archiveTableBody = document.getElementById('archiveTableBody');
+        const archiveRows = document.querySelectorAll('.archive-row');
+        
+        // Update selection count and visibility of action bar for archived comments
+        function updateArchiveSelectionUI() {
+            const selectedCount = document.querySelectorAll('.archive-checkbox:checked').length;
+            if (selectedCount > 0) {
+                archiveSelectionActionsBar.classList.remove('d-none');
+                archiveSelectionCount.textContent = selectedCount + ' {{'archived comments selected'|trans}}';
+            } else {
+                archiveSelectionActionsBar.classList.add('d-none');
+            }
+            
+            // Update select all checkbox state
+            const totalCheckboxes = document.querySelectorAll('.archive-checkbox').length;
+            selectArchiveAllCheckbox.checked = selectedCount === totalCheckboxes && totalCheckboxes > 0;
+            selectArchiveAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCheckboxes;
+        }
+        
+        // Select all checkbox for archived comments
+        selectArchiveAllCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.archive-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateArchiveSelectionUI();
+        });
+        
+        // Individual checkboxes for archived comments
+        archiveCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateArchiveSelectionUI();
+            });
+        });
+        
+        // Cancel selection for archived comments
+        cancelArchiveSelectionBtn.addEventListener('click', function() {
+            selectArchiveAllCheckbox.checked = false;
+            archiveCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateArchiveSelectionUI();
+        });
+        
+        // Delete selected archived comments
+        deleteArchiveSelectedBtn.addEventListener('click', async function() {
+            const selectedIds = Array.from(document.querySelectorAll('.archive-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                alert('{{'No archived comments selected'|trans}}');
+                return;
+            }
+            
+            if (!confirm(selectedIds.length + ' {{'archived comments will be deleted. Continue?'|trans}}')) {
+                return;
+            }
+            
+            deleteArchiveSelectedBtn.disabled = true;
+            deleteArchiveSelectedBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> {{'Deleting...'|trans}}';
+            
+            try {
+                const response = await fetch('/api/commentaire-archives/delete-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove rows from table
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-archive-id="${id}"]`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-20px)';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    
+                    // Reset UI
+                    setTimeout(() => {
+                        updateArchiveSelectionUI();
+                        
+                        // Update statistics before reloading
+                        if (typeof window.updateArticleStatistics === 'function') {
+                            window.updateArticleStatistics();
+                        }
+                        
+                        // Reload page after deletion
+                        location.reload();
+                    }, 300);
+                } else {
+                    console.error('Error deleting archived comments:', data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting archived comments:', error);
+            } finally {
+                deleteArchiveSelectedBtn.disabled = false;
+                deleteArchiveSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
+            }
+        });
+
+        // Setup mass selection functionality for product reviews
+        const selectAllReviewsCheckbox = document.getElementById('selectAllReviewsCheckbox');
+        const reviewCheckboxes = document.querySelectorAll('.review-checkbox');
+        const reviewsSelectionActionsBar = document.getElementById('reviewsSelectionActionsBar');
+        const deleteReviewsSelectedBtn = document.getElementById('deleteReviewsSelectedBtn');
+        const cancelReviewsSelectionBtn = document.getElementById('cancelReviewsSelectionBtn');
+        const reviewsSelectionCount = document.getElementById('reviewsSelectionCount');
+        const reviewTableBody = document.getElementById('reviewTableBody');
+        const reviewRows = document.querySelectorAll('.review-row');
+        
+        // Update selection count and visibility of action bar for reviews
+        function updateReviewsSelectionUI() {
+            const selectedCount = document.querySelectorAll('.review-checkbox:checked').length;
+            if (selectedCount > 0) {
+                reviewsSelectionActionsBar.classList.remove('d-none');
+                reviewsSelectionCount.textContent = selectedCount + ' {{'reviews selected'|trans}}';
+            } else {
+                reviewsSelectionActionsBar.classList.add('d-none');
+            }
+            
+            // Update select all checkbox state
+            const totalCheckboxes = document.querySelectorAll('.review-checkbox').length;
+            selectAllReviewsCheckbox.checked = selectedCount === totalCheckboxes && totalCheckboxes > 0;
+            selectAllReviewsCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCheckboxes;
+        }
+        
+        // Select all checkbox for reviews
+        selectAllReviewsCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.review-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateReviewsSelectionUI();
+        });
+        
+        // Individual checkboxes for reviews
+        reviewCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateReviewsSelectionUI();
+            });
+        });
+        
+        // Cancel selection for reviews
+        cancelReviewsSelectionBtn.addEventListener('click', function() {
+            selectAllReviewsCheckbox.checked = false;
+            reviewCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateReviewsSelectionUI();
+        });
+        
+        // Delete selected reviews
+        deleteReviewsSelectedBtn.addEventListener('click', async function() {
+            const selectedIds = Array.from(document.querySelectorAll('.review-checkbox:checked')).map(cb => cb.value);
+            
+            if (selectedIds.length === 0) {
+                alert('{{'No reviews selected'|trans}}');
+                return;
+            }
+            
+            if (!confirm(selectedIds.length + ' {{'reviews will be deleted. Continue?'|trans}}')) {
+                return;
+            }
+            
+            deleteReviewsSelectedBtn.disabled = true;
+            deleteReviewsSelectedBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> {{'Deleting...'|trans}}';
+            
+            try {
+                const response = await fetch('/api/commentaires/delete-multiple', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Remove rows from table
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-review-id="${id}"]`);
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(-20px)';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    
+                    // Reset UI
+                    setTimeout(() => {
+                        updateReviewsSelectionUI();
+                        
+                        // Show success message
+                        alert(data.message || '{{'Reviews deleted successfully'|trans}}');
+                    }, 300);
+                } else {
+                    alert(data.message || '{{'Error deleting reviews'|trans}}');
+                }
+            } catch (error) {
+                console.error('Error deleting reviews:', error);
+                alert('{{'Error deleting reviews'|trans}}');
+            } finally {
+                deleteReviewsSelectedBtn.disabled = false;
+                deleteReviewsSelectedBtn.innerHTML = '<i class="bx bx-trash"></i> {{'Delete Selected'|trans}}';
+            }
+        });
+        
+        // Click row to navigate for reviews (unless checkbox was clicked)
+        reviewRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (e.target.closest('.review-checkbox') || e.target.closest('.btn-group')) {
+                    return;
+                }
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+

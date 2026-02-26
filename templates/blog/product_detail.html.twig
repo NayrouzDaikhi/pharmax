@@ -1,0 +1,443 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block title %}{{ produit.nom }} - Pharmax{% endblock %}
+
+{% block blog_content %}
+<div style="background-color: #f8f9fa; padding: 30px 0;">
+    <!-- Breadcrumb -->
+    <div style="max-width: 900px; margin: 0 auto; padding: 0 20px 15px 20px;">
+        <a href="{{ path('app_front_produits') }}" style="color: #5ea96b; text-decoration: none; font-size: 13px;">
+            <i class="fas fa-arrow-left"></i> Retour aux Produits
+        </a>
+    </div>
+
+    <!-- Product Detail Container -->
+    <div style="max-width: 900px; margin: 0 auto; padding: 0 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+            
+            <!-- Product Image Section -->
+            <div>
+                {% if produit.image %}
+                    <div style="position: relative; margin-bottom: 15px; border-radius: 6px; overflow: hidden; background-color: #f0f0f0;">
+                        <img src="{{ asset('uploads/images/' ~ produit.image) }}" alt="{{ produit.nom }}" style="width: 100%; height: auto; display: block; max-height: 350px; object-fit: cover;">
+                        
+                        <!-- Status Badge -->
+                        {% if produit.isStatut() %}
+                            <span style="position: absolute; top: 10px; right: 10px; background-color: #5ea96b; color: white; padding: 6px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                                <i class="fas fa-check-circle"></i> En Stock
+                            </span>
+                        {% else %}
+                            <span style="position: absolute; top: 10px; right: 10px; background-color: #d9534f; color: white; padding: 6px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                                <i class="fas fa-times-circle"></i> Indisponible
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Product Info Quick View -->
+                    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px;">
+                        {% if produit.categorie %}
+                            <div style="margin-bottom: 10px;">
+                                <span style="color: #999; font-size: 11px;">CATÉGORIE</span>
+                                <p style="color: #2c3e50; font-weight: 600; margin: 4px 0 0 0; font-size: 13px;">{{ produit.categorie.nom }}</p>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <span style="color: #999; font-size: 11px;">CODE PRODUIT</span>
+                            <p style="color: #2c3e50; font-weight: 600; margin: 4px 0 0 0; font-size: 13px;">PHM-{{ produit.id }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Product Details Section -->
+            <div>
+                <!-- Product Title -->
+                <h1 style="font-size: 26px; font-weight: 700; margin: 0 0 15px 0; line-height: 1.3; color: #2c3e50;">
+                    {{ produit.nom }}
+                </h1>
+
+                <!-- Product Price -->
+                <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0;">
+                    <div style="display: flex; align-items: baseline; gap: 10px;">
+                        <span style="font-size: 2.2rem; color: #5ea96b; font-weight: 700;">
+                            {{ produit.prix }}
+                        </span>
+                        <span style="font-size: 18px; color: #2c3e50; font-weight: 600;">DTN</span>
+                    </div>
+                </div>
+
+                <!-- Product Status -->
+                <div style="margin-bottom: 20px;">
+                    {% if produit.isStatut() %}
+                        <div style="display: inline-flex; align-items: center; gap: 8px; background-color: #d4edda; color: #155724; padding: 10px 15px; border-radius: 4px; border-left: 4px solid #28a745;">
+                            <i class="fas fa-check-circle" style="font-size: 15px;"></i>
+                            <span style="font-weight: 600; font-size: 12px;">Disponible en Stock</span>
+                        </div>
+                    {% else %}
+                        <div style="display: inline-flex; align-items: center; gap: 8px; background-color: #f8d7da; color: #721c24; padding: 10px 15px; border-radius: 4px; border-left: 4px solid #dc3545;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 15px;"></i>
+                            <span style="font-weight: 600; font-size: 12px;">Actuellement Indisponible</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Description -->
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #2c3e50; font-weight: 700; margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px;">
+                        Description
+                    </h3>
+                    <p style="font-size: 13px; line-height: 1.6; color: #656565; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ produit.description|nl2br }}
+                    </p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="margin-bottom: 20px; display: flex; gap: 12px;">
+                    {% if produit.isStatut() %}
+                        {% if app.user %}
+                            <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" style="flex: 1; background-color: #5ea96b; color: white; padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; text-decoration: none;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';" data-add-to-cart>
+                                <i class="fas fa-shopping-cart"></i> Ajouter au Panier
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" style="flex: 1; background-color: #5ea96b; color: white; padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; text-decoration: none;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';">
+                                <i class="fas fa-sign-in-alt"></i> Se Connecter pour Acheter
+                            </a>
+                        {% endif %}
+                        <button style="flex: 0.4; background-color: white; color: #5ea96b; padding: 12px 15px; font-weight: 700; font-size: 13px; border: 2px solid #5ea96b; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor = '#f0f8f5';" onmouseout="this.style.backgroundColor = 'white';">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    {% else %}
+                        <button style="width: 100%; background-color: #ccc; color: #666; padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; border: none; border-radius: 4px; cursor: not-allowed;" disabled>
+                            <i class="fas fa-ban"></i> Indisponible
+                        </button>
+                    {% endif %}
+                </div>
+
+                <!-- Sharing Section -->
+                <div style="padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                    <p style="color: #2c3e50; font-weight: 700; margin: 0 0 12px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">
+                        Partager
+                    </p>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="#" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background-color: #3b5998; color: white; border-radius: 50%; text-decoration: none; transition: all 0.3s ease; font-size: 15px;" onmouseover="this.style.backgroundColor = '#2d4373'; this.style.transform = 'translateY(-2px)';" onmouseout="this.style.backgroundColor = '#3b5998'; this.style.transform = 'translateY(0)';">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background-color: #1da1f2; color: white; border-radius: 50%; text-decoration: none; transition: all 0.3s ease; font-size: 15px;" onmouseover="this.style.backgroundColor = '#1a8cd8'; this.style.transform = 'translateY(-2px)';" onmouseout="this.style.backgroundColor = '#1da1f2'; this.style.transform = 'translateY(0)';">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background-color: #25d366; color: white; border-radius: 50%; text-decoration: none; transition: all 0.3s ease; font-size: 15px;" onmouseover="this.style.backgroundColor = '#1da853'; this.style.transform = 'translateY(-2px)';" onmouseout="this.style.backgroundColor = '#25d366'; this.style.transform = 'translateY(0)';">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews & Comments Section -->
+    <div style="max-width: 900px; margin: 30px auto 0; padding: 0 20px;">
+        <div style="background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+            <h3 style="color: #2c3e50; font-weight: 700; margin: 0 0 25px 0; font-size: 18px; border-bottom: 2px solid #5ea96b; padding-bottom: 15px;">
+                <i class="fas fa-comments"></i> Avis et Commentaires des Clients
+            </h3>
+
+            <!-- Add Review Form -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 30px;">
+                <h4 style="color: #2c3e50; font-weight: 700; margin: 0 0 15px 0; font-size: 14px;">Laisser un Avis</h4>
+                
+                {% if app.user %}
+                    <!-- Success Message -->
+                    <div id="avis-success-message" style="display: none; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+                        <i class="fas fa-check-circle"></i> <span id="success-text">Merci! Votre avis a été publié.</span>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="avis-error-message" style="display: none; background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-circle"></i> <span id="error-text"></span>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="avis-loading" style="display: none; text-align: center; padding: 10px; color: #5ea96b;">
+                        <i class="fas fa-spinner fa-spin"></i> Envoi en cours...
+                    </div>
+
+                    <form id="avis-form" method="POST" action="#" style="display: none;">
+                        <div style="margin-bottom: 15px;">
+                            <textarea 
+                                id="avis-contenu"
+                                name="contenu" 
+                                placeholder="Partager votre expérience avec ce produit..." 
+                                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; font-size: 13px; resize: vertical; min-height: 100px; box-sizing: border-box;"
+                                required
+                                minlength="2"
+                                maxlength="1000"></textarea>
+                            <small style="color: #999; display: block; margin-top: 5px;">Minimum 2 caractères, maximum 1000</small>
+                        </div>
+                        <button 
+                            type="submit" 
+                            id="avis-submit-btn"
+                            style="background-color: #5ea96b; color: white; padding: 10px 25px; font-weight: 700; font-size: 12px; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;"
+                            onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-1px)';"
+                            onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)';">
+                            <i class="fas fa-paper-plane"></i> Soumettre mon Avis
+                        </button>
+                    </form>
+
+                    <!-- Form toggle button (visible when not showing form) -->
+                    <button 
+                        id="avis-toggle-btn"
+                        type="button"
+                        style="background-color: #5ea96b; color: white; padding: 10px 25px; font-weight: 700; font-size: 12px; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; width: 100%;"
+                        onmouseover="this.style.backgroundColor = '#4a8b5c';"
+                        onmouseout="this.style.backgroundColor = '#5ea96b';">
+                        <i class="fas fa-edit"></i> Ajouter un Avis
+                    </button>
+                {% else %}
+                    <!-- Authentication Required Message -->
+                    <div style="padding: 20px; text-align: center; background-color: white; border: 2px dashed #5ea96b; border-radius: 4px;">
+                        <h5 style="color: #2c3e50; font-weight: 700; margin: 0 0 10px 0; font-size: 14px;">
+                            <i class="fas fa-lock" style="color: #5ea96b;"></i> Authentification Requise
+                        </h5>
+                        <p style="color: #656565; margin: 0 0 15px 0; font-size: 13px;">
+                            Vous devez être connecté pour laisser un avis sur ce produit.
+                        </p>
+                        <a href="{{ path('app_login') }}" class="btn btn-primary me-2" style="display: inline-block; background-color: #5ea96b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; font-size: 12px; transition: all 0.3s ease;">
+                            <i class="fas fa-sign-in-alt"></i> Se Connecter
+                        </a>
+                        <a href="{{ path('app_register') }}" class="btn btn-outline-primary" style="display: inline-block; background-color: transparent; color: #5ea96b; border: 2px solid #5ea96b; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; font-size: 12px; transition: all 0.3s ease;">
+                            <i class="fas fa-user-plus"></i> S'Inscrire
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Display Reviews -->
+            {% if avis|length > 0 %}
+                <div id="avis-list" style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for commentaire in avis %}
+                        <div class="avis-item" style="padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px;">
+                            <!-- Review Header -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <div>
+                                    <h5 style="color: #2c3e50; font-weight: 700; margin: 0; font-size: 13px;">
+                                        <i class="fas fa-user-circle"></i>
+                                        {% if commentaire.user %}
+                                            {{ commentaire.user.firstName ?? 'Utilisateur' }}
+                                        {% else %}
+                                            Client
+                                        {% endif %}
+                                    </h5>
+                                    <small style="color: #999; font-size: 11px;">
+                                        <i class="far fa-calendar"></i>
+                                        {{ commentaire.datePublication|date('d M Y à H:i') }}
+                                    </small>
+                                </div>
+                                <span style="background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase;">
+                                    <i class="fas fa-check-circle"></i> Validé
+                                </span>
+                            </div>
+                            <!-- Review Content -->
+                            <p style="color: #656565; margin: 0; font-size: 13px; line-height: 1.5;">
+                                {{ commentaire.contenu|nl2br }}
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div id="avis-list" style="text-align: center; padding: 40px 20px; color: #999;">
+                    <i class="fas fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i>
+                    <p style="margin: 0; font-size: 14px;">Pas encore d'avis. Soyez le premier à laisser votre avis sur ce produit.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for AJAX Form Submission -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('avis-form');
+    const toggleBtn = document.getElementById('avis-toggle-btn');
+    const submitBtn = document.getElementById('avis-submit-btn');
+    const contenuField = document.getElementById('avis-contenu');
+    const loadingDiv = document.getElementById('avis-loading');
+    const successDiv = document.getElementById('avis-success-message');
+    const errorDiv = document.getElementById('avis-error-message');
+    const errorText = document.getElementById('error-text');
+    const avisList = document.getElementById('avis-list');
+    const produitId = '{{ produit.id }}';
+
+    // Toggle form visibility
+    toggleBtn.addEventListener('click', function() {
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            toggleBtn.style.display = 'none';
+            contenuField.focus();
+        }
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const contenu = contenuField.value.trim();
+
+        // Client-side validation
+        if (!contenu || contenu.length < 2) {
+            errorText.textContent = 'L\'avis doit contenir au minimum 2 caractères';
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+            return;
+        }
+
+        if (contenu.length > 1000) {
+            errorText.textContent = 'L\'avis ne doit pas dépasser 1000 caractères';
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+            return;
+        }
+
+        // Hide messages and show loading
+        errorDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+        loadingDiv.style.display = 'block';
+        submitBtn.disabled = true;
+
+        // Send AJAX request
+        const formData = new FormData();
+        formData.append('contenu', contenu);
+
+        fetch('{{ path('app_front_add_avis', {'id': produit.id}) }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json().then(data => ({ 
+            status: response.status, 
+            data: data 
+        })))
+        .then(result => {
+            loadingDiv.style.display = 'none';
+            submitBtn.disabled = false;
+
+            // ✅ Success (201 Created)
+            if (result.status === 201 && result.data.success) {
+                // Show success message
+                successDiv.style.display = 'block';
+                
+                // Add new avis to pending list (visible immediately)
+                addPendingAvisToDOM(result.data.avis);
+
+                // Clear form
+                contenuField.value = '';
+                form.style.display = 'none';
+                toggleBtn.style.display = 'block';
+
+                // Auto-hide success message after 5 seconds
+                setTimeout(function() {
+                    successDiv.style.display = 'none';
+                }, 5000);
+            }
+            // ❌ Content blocked by AI moderation (403 Forbidden)
+            else if (result.status === 403 && result.data.status === 'BLOQUE') {
+                errorText.textContent = result.data.warning || 'Votre avis contient un langage inapproprié et ne peut pas être publié.';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+            }
+            // ❌ Validation errors (400 Bad Request)
+            else if (result.status === 400) {
+                errorText.textContent = result.data.error || 'Erreur de validation. Veuillez vérifier votre avis.';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+            }
+            // ❌ Server errors (500)
+            else if (result.status >= 500) {
+                errorText.textContent = 'Erreur serveur. Veuillez réessayer plus tard.';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+            }
+            // ❌ Unknown response
+            else {
+                errorText.textContent = result.data.error || 'Une erreur est survenue. Veuillez réessayer.';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            loadingDiv.style.display = 'none';
+            submitBtn.disabled = false;
+            errorText.textContent = error.message || 'Erreur réseau. Veuillez vérifier votre connexion et réessayer.';
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+        });
+    });
+
+    // Function to add pending avis to the DOM
+    function addPendingAvisToDOM(avis) {
+        // If the placeholder message is showing, replace it
+        const placeholder = avisList.querySelector('[style*="text-align: center"]');
+        if (placeholder) {
+            avisList.innerHTML = '';
+        }
+
+        // Create pending avis element
+        const avisElement = document.createElement('div');
+        avisElement.className = 'avis-item pending-avis';
+        avisElement.style.cssText = 'padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; border-radius: 4px; animation: slideIn 0.3s ease-in-out;';
+        avisElement.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div>
+                    <h5 style="color: #2c3e50; font-weight: 700; margin: 0; font-size: 13px;">Votre Avis</h5>
+                    <small style="color: #999; font-size: 11px;">
+                        <i class="far fa-calendar"></i>
+                        ${avis.date}
+                    </small>
+                </div>
+                <span style="background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid #c3e6cb;">
+                    <i class="fas fa-check-circle"></i> Publié
+                </span>
+            </div>
+            <p style="color: #656565; margin: 0; font-size: 13px; line-height: 1.5;">
+                ${escapeHtml(avis.contenu)}
+            </p>
+        `;
+
+        // Insert at the beginning of the avis list
+        avisList.insertBefore(avisElement, avisList.firstChild);
+
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        if (!document.head.querySelector('style[data-avis-animation]')) {
+            style.setAttribute('data-avis-animation', 'true');
+            document.head.appendChild(style);
+        }
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+});
+</script>
+{% endblock %}

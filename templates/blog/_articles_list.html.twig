@@ -1,0 +1,40 @@
+{% for article in articles %}
+    <div class="post-item" onclick="window.location.href='{{ path('app_blog_show', {'id': article.id}) }}';">
+        <div class="post-image-wrap">
+            <a href="{{ path('app_blog_show', {'id': article.id}) }}" class="post-image-link">
+                {% if article.image %}
+                    <img src="{{ asset('uploads/images/' ~ article.image) }}" alt="{{ article.titre }}" class="post-image">
+                {% else %}
+                    <div class="post-image-placeholder">
+                        <i class="fas fa-image"></i>
+                    </div>
+                {% endif %}
+            </a>
+        </div>
+        <div class="post-content">
+            <span class="post-category">Blog</span>
+            <h3 class="post-title">
+                <a href="{{ path('app_blog_show', {'id': article.id}) }}">{{ article.titre }}</a>
+            </h3>
+            <p class="post-excerpt">{{ article.contenu|slice(0, 120) }}...</p>
+            <div class="post-meta">
+                <div class="post-meta-item">
+                    <i class="fas fa-calendar"></i>
+                    {{ article.dateCreation|date('d M Y') }}
+                </div>
+                <div class="post-meta-item">
+                    <i class="fas fa-comments"></i>
+                    {{ article.commentaires|length }}
+                </div>
+            </div>
+            <div class="post-actions">
+                <button class="btn-action btn-like" data-article-id="{{ article.id }}" data-likes="{{ article.likes }}" onclick="event.stopPropagation(); toggleLike({{ article.id }}, this);">
+                    <i class="fas fa-heart"></i> <span class="like-count">{{ article.likes }}</span>
+                </button>
+                <button class="btn-action btn-read-later" data-article-id="{{ article.id }}" onclick="event.stopPropagation(); toggleReadLater({{ article.id }}, this);">
+                    <i class="fas fa-bookmark"></i> <span class="read-later-text">{{'Read Later'|trans}}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+{% endfor %}

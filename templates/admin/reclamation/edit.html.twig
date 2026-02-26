@@ -1,0 +1,52 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block body %}
+<div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bx bx-edit"></i> Éditer le Statut
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Réclamation</label>
+                            <p class="card-text text-muted">{{ reclamation.titre }}</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="statut" class="form-label fw-bold">Nouveau Statut <span class="text-danger">*</span></label>
+                            <select name="statut" id="statut" class="form-select" required>
+                                <option value="En attente" {% if reclamation.statut == 'En attente' %}selected{% endif %}>En attente</option>
+                                <option value="En cours" {% if reclamation.statut == 'En cours' %}selected{% endif %}>En cours</option>
+                                <option value="Resolu" {% if reclamation.statut == 'Resolu' %}selected{% endif %}>Résolu</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4 alert alert-info">
+                            <strong>Statut actuel :</strong>
+                            <span class="badge 
+                                {% if reclamation.statut == 'En attente' %}bg-warning
+                                {% elseif reclamation.statut == 'En cours' %}bg-info
+                                {% elseif reclamation.statut == 'Resolu' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ reclamation.statut }}
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="bx bx-save"></i> Enregistrer
+                            </button>
+                            <a href="{{ path('admin_reclamation_show', {'id': reclamation.id}) }}" class="btn btn-outline-secondary btn-lg flex-grow-1">
+                                <i class="bx bx-x"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{# Notification icon partial - rendered in navbar #}
+{% set iconPath = 'uploads/images/notification-icon-for-your-website-design-logo-app-ui-free-vector-699b118ab8c72.jpg' %}
+
+<li class="nav-item dropdown">
+    {% set count = notifications is defined ? (notifications|filter(n => not n.getIsRead())|length) : 0 %}
+    {% set expiring_count = expiringProducts is defined ? expiringProducts|length : 0 %}
+    <a class="nav-link dropdown-toggle position-relative" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+        <i class="bx bx-bell" style="font-size: 1.5rem;"></i>
+        {% if count > 0 or expiring_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge" style="font-size:0.7rem;">
+                {{ count + expiring_count }}
+            </span>
+        {% endif %}
+    </a>
+
+    <ul class="dropdown-menu dropdown-menu-end p-0 notification-dropdown" aria-labelledby="notifDropdown">
+        <li class="notification-header">
+            <div class="title">Notifications {% if count>0 %}({{ count }}){% endif %}</div>
+            {# Bouton "tout marquer comme lu" désactivé car la route peut ne pas exister
+            <a href="#" class="mark-all notif-mark-all" data-url="{{ path('app_notifications_mark_all_read') }}">Marquer tout comme lu</a>
+            #}
+        </li>
+        <li class="notification-list">
+        {% if notifications is defined and notifications|length > 0 %}
+            {% for n in notifications %}
+                {% set unread = not n.getIsRead() %}
+                <div class="notification-item {{ unread ? 'unread' : 'read' }}">
+                    <a class="d-flex align-items-start" href="#" style="text-decoration:none;display:flex;flex:1;gap:12px;">
+                        <div class="notif-content">
+                            <div class="title">{{ n.getMessage()|replace({'\\"':'"'})|raw }}</div>
+                            <div class="notif-meta"><i class="bx bx-time"></i> <span>{{ n.getCreatedAt() ? n.getCreatedAt().format('d/m/Y H:i') : '' }}</span></div>
+                        </div>
+                        <div style="flex:0 0 auto;display:flex;align-items:flex-start;gap:6px;">
+                            {% if unread %}
+                                <span class="badge badge-soon">Nouveau</span>
+                            {% endif %}
+                            <form method="POST" action="{{ path('notification_delete', {'id': n.getId()}) }}" style="margin:0;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ n.getId()) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" style="padding:2px 6px; font-size:0.8rem;">&times;</button>
+                            </form>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="notification-empty">Aucune notification</div>
+        {% endif %}
+        </li>
+
+        <!-- Section Produits en Promo 
+        <li class="notification-header" style="background-color: #ffe0f0; border-top: 2px solid #e91e63;">
+            <div class="title">🌟 Produits en Promo</div>
+        </li>
+        <li class="notification-list">
+        {% if promo_products is defined and promo_products|length > 0 %}
+            {% for p in promo_products|slice(0, 3) %}
+                <div class="notification-item" style="border-left: 4px solid #e91e63;">
+                    <a href="{{ path('app_produit_show', {'id': p.getId()}) }}" class="d-flex align-items-start" style="text-decoration:none;display:flex;flex:1;gap:12px; padding: 10px;">
+                        {% if p.getImage() %}
+                            <img src="{{ asset('uploads/images/' ~ p.getImage()) }}" alt="{{ p.getNom() }}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;">
+                        {% else %}
+                            <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 6px;"></div>
+                        {% endif %}
+                        <div class="notif-content" style="flex: 1;">
+                            <div class="title" style="color: #e91e63; font-weight: bold;">{{ p.getNom() }}</div>
+                            <div class="notif-meta" style="color: #28a745; font-weight: bold;">{{ p.getPrix()|number_format(2, ',', ' ') }} TND</div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+            {% if promo_products|length > 3 %}
+                <div style="text-align: center; padding: 8px; border-top: 1px solid #eee;">
+                    <a href="{{ path('app_front_produits') }}?statut=en%20promo" style="text-decoration: none; color: #e91e63; font-weight: bold; font-size: 0.9rem;">
+                        Voir tous les produits en promo ({{ promo_products|length }})
+                    </a>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="notification-empty">Aucun produit en promotion</div>
+        {% endif %}
+        </li>-->
+        {# Section Produits bientôt expirés #}
+        <li class="notification-header" style="background-color: #fff7e6; border-top: 2px solid #ffc107;">
+            <div class="title">
+                🕒 Produits bientôt expirés{% if expiring_count > 0 %} ({{ expiring_count }}){% endif %}
+            </div>
+        </li>
+        <li class="notification-list">
+        {% if expiringProducts is defined and expiringProducts|length > 0 %}
+            {% for p in expiringProducts|slice(0, 5) %}
+                <div class="notification-item" style="border-left: 4px solid #ffc107;">
+                    <a href="{{ path('app_produit_edit', {'id': p.getId()}) }}"
+                       class="d-flex align-items-start"
+                       style="text-decoration:none;display:flex;flex:1;gap:12px; padding: 10px;">
+                        <div class="notif-content" style="flex: 1;">
+                            <div class="title" style="font-weight: bold;">
+                                {{ p.getNom() }}
+                            </div>
+                            <div class="notif-meta">
+                                <i class="bx bx-time"></i>
+                                <span>
+                                    Expire le {{ p.getDateExpiration() ? p.getDateExpiration().format('d/m/Y') : 'bientôt' }}
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="notification-empty">Aucun produit bientôt expiré</div>
+        {% endif %}
+        </li>
+
+        <li class="notification-footer"><a href="{{ path('notification_index') }}">Historique des notifications</a></li>
+    </ul>
+</li>

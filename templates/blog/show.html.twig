@@ -1,0 +1,416 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block blog_content %}
+<div class="row" style="display: grid; grid-template-columns: 1fr 320px; gap: 30px; margin-bottom: 40px;">
+    <!-- Main Article Content (8 cols on desktop, full width on mobile) -->
+    <article style="background-color: #ffffff; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+        <!-- Article Image -->
+        {% if article.image %}
+            <div style="margin-bottom: 30px; overflow: hidden;">
+                <img src="{{ asset('uploads/images/' ~ article.image) }}" alt="{{ article.titre }}" style="width: 100%; height: auto; display: block;">
+            </div>
+        {% endif %}
+        
+        <!-- Article Title -->
+        <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 15px; line-height: 1.2; color: #2c3e50;">
+            {{ article.titre }}
+        </h1>
+        
+        <!-- Article Meta -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #5ea96b; padding-bottom: 20px; margin-bottom: 30px; font-size: 13px; color: #999;">
+            <div style="display: flex; gap: 20px;">
+                <span><i class="fas fa-user" style="color: #5ea96b;"></i> Admin</span>
+                <span><i class="fas fa-calendar" style="color: #5ea96b;"></i> {{ article.dateCreation|date('d M Y') }}</span>
+                <span><i class="fas fa-comments" style="color: #5ea96b;"></i> {{ article.commentaires|length }} {{'Comments'|trans}}</span>
+            </div>
+            <a href="{{ path('app_blog_index') }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; transition: all 0.3s ease; display: inline-block;" onmouseover="this.style.color = '#4a8b5c'; this.style.transform = 'translateX(5px)'; this.style.textShadow = '0 0 8px rgba(94,169,107,0.3)';" onmouseout="this.style.color = '#5ea96b'; this.style.transform = 'translateX(0)'; this.style.textShadow = 'none';">
+                <i class="fas fa-arrow-left"></i> {{'Back'|trans}}
+            </a>
+        </div>
+        
+        <!-- Language Switch and Translate Button -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+            {% if not article.contenuEn %}
+                <form method="post" action="{{ path('app_blog_translate', {id: article.id}) }}" style="display: inline;">
+                    <button type="submit" class="translate-btn" style="display: inline-flex; align-items: center; gap: 8px; background-color: #5ea96b; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;">
+                        <i class="fas fa-globe"></i> Translate to English
+                    </button>
+                </form>
+            {% else %}
+                <div style="display: flex; gap: 8px;">
+                    <button id="lang-fr-btn" class="lang-btn" style="display: inline-flex; align-items: center; gap: 8px; background-color: #5ea96b; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onclick="switchLanguage('fr')">
+                        <i class="fas fa-flag"></i> Français
+                    </button>
+                    <button id="lang-en-btn" class="lang-btn" style="display: inline-flex; align-items: center; gap: 8px; background-color: #d3d3d3; color: #333; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onclick="switchLanguage('en')">
+                        <i class="fas fa-globe"></i> English
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Article Content -->
+        <div id="article-content-fr" style="font-size: 15px; line-height: 1.8; color: #656565; word-wrap: break-word; margin-bottom: 30px;">
+            {{ article.contenu|nl2br }}
+        </div>
+        
+        {% if article.contenuEn %}
+        <div id="article-content-en" style="font-size: 15px; line-height: 1.8; color: #656565; word-wrap: break-word; margin-bottom: 30px; display: none;">
+            {{ article.contenuEn|nl2br }}
+        </div>
+        {% endif %}
+        
+        <!-- Article Categories -->
+        <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0f0f0;">
+            <span style="color: #5ea96b; font-weight: 700;">Categories:</span>
+            <span style="display: inline-block; background-color: #5ea96b; color: white; padding: 5px 12px; margin-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">
+                Blog
+            </span>
+        </div>
+    </article>
+    
+    <!-- Sidebar (4 cols on desktop, full width on mobile) -->
+    <aside style="display: flex; flex-direction: column; gap: 30px;">
+        <!-- About Card -->
+        <div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); height: fit-content;">
+            <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+                {{'About Author'|trans}}
+            </h4>
+            <p style="color: #656565; font-size: 13px; line-height: 1.6; margin: 0;">
+                Pharmax Content Management System for managing articles and comments with a beautiful blog interface.
+            </p>
+        </div>
+        
+        <!-- Recent Articles Card -->
+        <div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); height: fit-content;">
+            <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+                {{'Recommended Articles'|trans}}
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% if recommendedArticles|length > 0 %}
+                    {% for recentArticle in recommendedArticles %}
+                        <div style="display: flex; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+                            <!-- Article Thumbnail -->
+                            {% if recentArticle.image %}
+                                <div style="flex-shrink: 0; width: 70px; height: 70px; overflow: hidden; border-radius: 4px;">
+                                    <img src="{{ asset('uploads/images/' ~ recentArticle.image) }}" alt="{{ recentArticle.titre }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            {% else %}
+                                <div style="flex-shrink: 0; width: 70px; height: 70px; background-color: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-image" style="color: #ccc; font-size: 28px;"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Article Info -->
+                            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                                <a href="{{ path('app_blog_show', {'id': recentArticle.id}) }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; font-size: 12px; line-height: 1.3; transition: color 0.3s ease; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" onmouseover="this.style.color='#4a8b5c'" onmouseout="this.style.color='#5ea96b'">
+                                    {{ recentArticle.titre }}
+                                </a>
+                                <div style="font-size: 10px; color: #999;">
+                                    {{ recentArticle.dateCreation|date('d M Y') }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #999; font-size: 12px; margin: 0;">
+                        {{'No articles available'|trans}}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </aside>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .row {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
+<!-- Comments Section -->
+<section style="background-color: #ffffff; padding: 30px; margin-top: 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    <h3 style="color: #2c3e50; font-size: 22px; font-weight: 700; margin-bottom: 30px; border-bottom: 3px solid #5ea96b; padding-bottom: 15px;">
+        <i class="fas fa-comments" style="color: #5ea96b;"></i> {{'Comments'|trans}} ({{ article.commentaires|length }})
+    </h3>
+    
+    {% if article.commentaires|length > 0 %}
+        <div style="margin-bottom: 40px;">
+            {% set validComments = article.commentaires|filter(c => c.statut == 'VALIDE') %}
+            {% if validComments|length > 0 %}
+                {% for comment in validComments %}
+                    <div id="comment-{{ comment.id }}" style="padding: 20px; border-left: 4px solid #5ea96b; background-color: #f9f9f9; margin-bottom: 20px;" data-comment-id="{{ comment.id }}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <strong style="color: #2c3e50; font-size: 14px;">
+                                    <i class="fas fa-user-circle"></i>
+                                    {% if comment.user %}
+                                        {{ comment.user.firstName ?? 'Utilisateur' }}
+                                    {% else %}
+                                        Utilisateur
+                                    {% endif %}
+                                </strong>
+                                <span style="font-size: 12px; color: #999; margin-left: 15px;">
+                                    {{ comment.datePublication|date('d M Y H:i') }}
+                                </span>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ path('app_commentaire_edit', {'id': comment.id}) }}" style="display: inline-flex; align-items: center; gap: 5px; background-color: #5ea96b; color: white; padding: 6px 12px; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='#4a8b5c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor='#5ea96b'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                    <i class="fas fa-edit"></i> {{'Edit'|trans}}
+                                </a>
+                                <button class="delete-blog-comment-btn" data-comment-id="{{ comment.id }}" style="display: inline-flex; align-items: center; gap: 5px; background-color: #8b7b6f; color: white; padding: 6px 12px; border: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor = '#6f6559'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.3)';" onmouseout="this.style.backgroundColor = '#8b7b6f'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                    <i class="fas fa-trash"></i> {{'Delete'|trans}}
+                                </button>
+                            </div>
+                        </div>
+                        <div style="color: #656565; line-height: 1.6; margin-bottom: 12px; font-size: 13px;">
+                            {{ comment.contenu }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #999; text-align: center; padding: 40px 0; font-size: 14px;">
+                    {{'No comments found.'|trans}}
+                </p>
+            {% endif %}
+        </div>
+    {% else %}
+        <p style="color: #999; text-align: center; padding: 40px 0; font-size: 14px;">
+            {{'No comments found.'|trans}}
+        </p>
+    {% endif %}
+    
+    <!-- Add Comment Form -->
+    <div style="border-top: 2px solid #f0f0f0; padding-top: 30px; margin-top: 30px;">
+        {% if app.user %}
+            <h4 style="color: #2c3e50; font-size: 16px; font-weight: 700; margin-bottom: 20px;">
+                <i class="fas fa-plus-circle" style="color: #5ea96b;"></i> {{'Add your comment'|trans}}
+            </h4>
+            
+            <!-- Response Message Area -->
+            <div id="commentResponse" style="display: none; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-size: 14px;"></div>
+            
+            <form id="commentForm" style="display: flex; flex-direction: column; gap: 15px;">
+                <textarea id="commentContent" name="contenu" required placeholder="{{'Enter your comment...'|trans}}" style="width: 100%; padding: 15px; border: 2px solid #ddd; font-size: 14px; font-family: 'Lato', sans-serif; line-height: 1.5; min-height: 120px; resize: vertical; transition: all 0.3s ease;" onblur="this.style.borderColor = '#ddd'; this.style.boxShadow = 'none';" onfocus="this.style.borderColor = '#5ea96b'; this.style.boxShadow = '0 0 0 3px rgba(94,169,107,0.1)';"></textarea>
+                
+                <button type="submit" id="submitBtn" style="background-color: #5ea96b; color: white; padding: 12px 30px; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease; max-width: 200px;" onmouseover="this.style.backgroundColor = '#4a8b5c'; this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 4px 12px rgba(94,169,107,0.4)';" onmouseout="this.style.backgroundColor = '#5ea96b'; this.style.transform = 'translateY(0)'; this.style.boxShadow = 'none';">
+                    <i class="fas fa-paper-plane"></i> {{'Post comment'|trans}}
+                </button>
+            </form>
+        {% else %}
+            <div style="padding: 30px; text-align: center; background-color: #f9f9f9; border-radius: 4px; border: 2px dashed #5ea96b;">
+                <h4 style="color: #2c3e50; font-size: 16px; font-weight: 700; margin-bottom: 15px;">
+                    <i class="fas fa-lock" style="color: #5ea96b;"></i> Authentification Requise
+                </h4>
+                <p style="color: #656565; margin-bottom: 20px; font-size: 14px;">
+                    Vous devez être connecté pour ajouter un commentaire.
+                </p>
+                <a href="{{ path('app_login') }}" class="btn btn-primary me-2" style="display: inline-block; background-color: #5ea96b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; transition: all 0.3s ease;">
+                    <i class="fas fa-sign-in-alt"></i> Se Connecter
+                </a>
+                <a href="{{ path('app_register') }}" class="btn btn-outline-primary" style="display: inline-block; background-color: transparent; color: #5ea96b; border: 2px solid #5ea96b; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 700; transition: all 0.3s ease;">
+                    <i class="fas fa-user-plus"></i> S'Inscrire
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<script>
+document.getElementById('commentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const contentTextarea = document.getElementById('commentContent');
+    const responseDiv = document.getElementById('commentResponse');
+    const submitBtn = document.getElementById('submitBtn');
+    const articleId = {{ article.id }};
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    submitBtn.textContent = '⏳ Posting...';
+    responseDiv.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/commentaires', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contenu: contentTextarea.value,
+                article_id: articleId,
+                user_name: 'Customer',
+                user_email: null
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Reset form
+        contentTextarea.value = '';
+        
+        // Display response
+        responseDiv.style.display = 'block';
+        
+        if (response.ok && data.success) {
+            // ✅ Comment posted successfully
+            responseDiv.style.backgroundColor = '#d4edda';
+            responseDiv.style.borderLeft = '4px solid #28a745';
+            responseDiv.style.color = '#155724';
+            responseDiv.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 5px;">
+                    <i class="fas fa-check-circle"></i> Succes!
+                </div>
+                <div>${data.message}</div>
+            `;
+            
+            // Update article statistics chart if available
+            if (typeof window.updateArticleStatistics === 'function') {
+                window.updateArticleStatistics();
+            }
+            
+            // Reload page after 2 seconds to show new comment
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else if (!response.ok || !data.success) {
+            // ❌ Comment blocked
+            responseDiv.style.backgroundColor = '#f8d7da';
+            responseDiv.style.borderLeft = '4px solid #dc3545';
+            responseDiv.style.color = '#721c24';
+            responseDiv.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 5px;">
+                    <i class="fas fa-exclamation-circle"></i> Commentaire non publie
+                </div>
+                <div>${data.warning || data.message}</div>
+            `;
+            
+            // Update article statistics chart immediately for blocked comments
+            if (typeof window.updateArticleStatistics === 'function') {
+                // Call immediately for blocked comments (don't need to reload page)
+                window.updateArticleStatistics();
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        responseDiv.style.display = 'block';
+        responseDiv.style.backgroundColor = '#f8d7da';
+        responseDiv.style.borderLeft = '4px solid #dc3545';
+        responseDiv.style.color = '#721c24';
+        responseDiv.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 5px;">
+                <i class="fas fa-exclamation-circle"></i> Erreur
+            </div>
+            <div>Une erreur est survenue lors de la publication. Veuillez vérifier votre connexion et réessayer.</div>
+        `;
+    } finally {
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> {{'Post comment'|trans}}';
+    }
+});
+
+// Handle smart comment deletion without page reload
+document.querySelectorAll('.delete-blog-comment-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        const commentId = this.dataset.commentId;
+        
+        if (!confirm('Are you sure you want to delete this comment?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/commentaires/${commentId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (response.ok) {
+                const commentDiv = document.getElementById(`comment-${commentId}`);
+                if (commentDiv) {
+                    // Smooth fade out and remove
+                    commentDiv.style.opacity = '0.5';
+                    commentDiv.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => {
+                        commentDiv.style.opacity = '0';
+                        setTimeout(() => {
+                            commentDiv.remove();
+                            
+                            // Update comment count
+                            const commentsSection = document.querySelector('h3 i.fa-comments');
+                            if (commentsSection) {
+                                const countSpan = commentsSection.parentElement;
+                                const currentText = countSpan.textContent;
+                                const match = currentText.match(/\((\d+)\)/);
+                                if (match) {
+                                    const currentCount = parseInt(match[1]);
+                                    const newCount = Math.max(0, currentCount - 1);
+                                    countSpan.innerHTML = countSpan.innerHTML.replace(/\(\d+\)/, `(${newCount})`);
+                                }
+                            }
+                        }, 300);
+                    }, 50);
+                }
+            } else {
+                alert('Failed to delete comment');
+            }
+        } catch(err) {
+            console.error('Delete failed:', err);
+            alert('Error deleting comment');
+        }
+    });
+});
+
+// Language switch function
+function switchLanguage(lang) {
+    const frContent = document.getElementById('article-content-fr');
+    const enContent = document.getElementById('article-content-en');
+    const frBtn = document.getElementById('lang-fr-btn');
+    const enBtn = document.getElementById('lang-en-btn');
+    
+    if (lang === 'fr') {
+        frContent.style.display = 'block';
+        if (enContent) enContent.style.display = 'none';
+        if (frBtn) {
+            frBtn.style.backgroundColor = '#5ea96b';
+            frBtn.style.color = 'white';
+        }
+        if (enBtn) {
+            enBtn.style.backgroundColor = '#d3d3d3';
+            enBtn.style.color = '#333';
+        }
+        localStorage.setItem('articleLanguage', 'fr');
+    } else if (lang === 'en') {
+        if (frContent) frContent.style.display = 'none';
+        if (enContent) enContent.style.display = 'block';
+        if (frBtn) {
+            frBtn.style.backgroundColor = '#d3d3d3';
+            frBtn.style.color = '#333';
+        }
+        if (enBtn) {
+            enBtn.style.backgroundColor = '#5ea96b';
+            enBtn.style.color = 'white';
+        }
+        localStorage.setItem('articleLanguage', 'en');
+    }
+}
+
+// Restore language preference on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedLanguage = localStorage.getItem('articleLanguage') || 'fr';
+    const enContent = document.getElementById('article-content-en');
+    if (enContent) {
+        switchLanguage(savedLanguage);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}Ajouter Produit - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Ajouter un Produit</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_produit_index') }}">Produits</a></li>
+                <li class="breadcrumb-item active">Ajouter</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_produit_index') }}" class="btn btn-secondary">
+        <i class="bx bx-arrow-back"></i> Retour
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Formulaire de Produit</h5>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                
+                <div class="mb-3">
+                    {{ form_label(form.nom, 'Nom du produit') }}
+                    {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Paracétamol 500mg'}}) }}
+                    {{ form_errors(form.nom) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.description, 'Description') }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 5, 'placeholder': 'Décrivez le produit...'}}) }}
+                    {{ form_errors(form.description) }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.prix, 'Prix (DTN)') }}
+                            {{ form_widget(form.prix, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 5.99'}}) }}
+                            {{ form_errors(form.prix) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.quantite, 'Quantité') }}
+                            {{ form_widget(form.quantite, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 100'}}) }}
+                            {{ form_errors(form.quantite) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.dateExpiration, 'Date d\'expiration') }}
+                            {{ form_widget(form.dateExpiration, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.dateExpiration) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form_label(form.etatStock, 'État du Stock') }}
+                            {{ form_widget(form.etatStock, {'attr': {'class': 'form-select', 'id': 'produit_etatStock'}}) }}
+                            {{ form_errors(form.etatStock) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="promotionPourcentageWrapper" class="mb-3" style="display: none;">
+                    {{ form_label(form.promotionPourcentage, 'Pourcentage de promotion (%)') }}
+                    {{ form_widget(form.promotionPourcentage, {'attr': {'class': 'form-control', 'min': 1, 'max': 100, 'placeholder': 'Ex: 20'}}) }}
+                    {{ form_errors(form.promotionPourcentage) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.image, 'Image du Produit') }}
+                    {{ form_widget(form.image, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.image) }}
+                    <small class="form-text text-muted">Formats acceptés: JPEG, PNG, GIF, WebP (Max 5MB)</small>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.categorie, 'Catégorie') }}
+                    {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.categorie) }}
+                </div>
+
+                <hr>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bx bx-save"></i> Créer le produit
+                    </button>
+                    <a href="{{ path('app_produit_index') }}" class="btn btn-secondary">
+                        Annuler
+                    </a>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var etatSelect = document.getElementById('produit_etatStock') || document.getElementById('produit1_etatStock') || document.querySelector('select[name*="etatStock"]');
+  var promoWrapper = document.getElementById('promotionPourcentageWrapper');
+  function togglePromo() {
+    if (!promoWrapper) return;
+    promoWrapper.style.display = (etatSelect && etatSelect.value === 'en_promotion') ? 'block' : 'none';
+  }
+  if (etatSelect) {
+    etatSelect.addEventListener('change', togglePromo);
+    togglePromo();
+  }
+});
+</script>
+{% endblock %}
