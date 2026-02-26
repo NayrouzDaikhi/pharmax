@@ -45,7 +45,11 @@
                         </span>
                     {% endif %}
                     
-                    {% if produit.statut %}
+                    {% if produit.isEnPromotion %}
+                        <span class="badge bg-warning text-dark" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                            <i class="bx bx-purchase-tag"></i> En promotion -{{ produit.promotionPourcentage }}%
+                        </span>
+                    {% elseif produit.statut %}
                         <span class="badge bg-success" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
                             <i class="bx bx-check"></i> En Stock ({{ produit.quantite }} unités)
                         </span>
@@ -58,7 +62,12 @@
 
                 <!-- Price -->
                 <div class="mb-4">
-                    <h2 class="text-primary fw-bold" style="font-size: 2.5rem;">{{ produit.prix }} DTN</h2>
+                    {% if produit.isEnPromotion %}
+                        <h2 class="text-primary fw-bold" style="font-size: 2.5rem;">{{ produit.prixPromo|number_format(2, ',', ' ') }} DTN</h2>
+                        <p class="text-muted mb-0"><span class="text-decoration-line-through">{{ produit.prix|number_format(2, ',', ' ') }} DTN</span> <span class="badge bg-warning text-dark">-{{ produit.promotionPourcentage }}%</span></p>
+                    {% else %}
+                        <h2 class="text-primary fw-bold" style="font-size: 2.5rem;">{{ produit.prix|number_format(2, ',', ' ') }} DTN</h2>
+                    {% endif %}
                 </div>
 
                 <!-- Rating (Placeholder) -->

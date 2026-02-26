@@ -17,9 +17,6 @@
     <!-- Icons (Boxicons) -->
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
 
-    <!-- Icons (Font Awesome) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <!-- Core CSS -->
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/core.css') }}" />
     <link rel="stylesheet" href="{{ asset('sneat/assets/css/demo.css') }}" />
@@ -524,7 +521,22 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        // Si la requête a été redirigée (ex: vers la page de login), suivre la redirection
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                            throw new Error('Redirection vers ' + response.url);
+                        }
+
+                        const contentType = response.headers.get('content-type') || '';
+
+                        // Si la réponse n'est pas du JSON, ne pas essayer de la parser
+                        if (!contentType.includes('application/json')) {
+                            throw new Error('Réponse non JSON reçue du serveur');
+                        }
+
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             // Mettre à jour le badge du panier
@@ -537,8 +549,8 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Erreur:', error);
-                        showNotification('Une erreur est survenue', 'danger');
+                        console.error('Erreur lors de l\'ajout au panier:', error);
+                        showNotification('Une erreur est survenue lors de l\'ajout au panier.', 'danger');
                     });
                 });
             });

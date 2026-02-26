@@ -33,6 +33,23 @@ class NotificationController extends AbstractController
         ]);
     }
 
+    #[Route('/icon', name: 'icon')]
+    public function icon(NotificationRepository $notificationRepository, ProduitRepository $produitRepository): Response
+    {
+        // Notifications non lues (générées par la commande)
+        $unreadCount = $notificationRepository->countUnread();
+
+        // Produits qui expirent aujourd'hui (alerte du dashboard)
+        $expiringTodayCount = \count($produitRepository->findExpiringToday());
+
+        // On considère qu'il y a une "notification" si l'un ou l'autre est présent
+        $totalAlerts = $unreadCount + $expiringTodayCount;
+
+        return $this->render('notification/_icon.html.twig', [
+            'unreadCount' => $totalAlerts,
+        ]);
+    }
+
     #[Route('/{id}/mark-as-read', name: 'mark_as_read', methods: ['POST'])]
     public function markAsRead(int $id, NotificationRepository $notificationRepository, EntityManagerInterface $em): Response
     {

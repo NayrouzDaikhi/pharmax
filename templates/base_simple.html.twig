@@ -114,6 +114,13 @@
         .badge {
             color: #000 !important;
         }
+
+        /* Form validation errors in red */
+        .form-errors,
+        .form-errors li,
+        .form-error-message {
+            color: #dc3545 !important; /* red */
+        }
     </style>
     
     {% block stylesheets %}{% endblock %}
@@ -211,6 +218,7 @@
 
                     <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
                         <ul class="navbar-nav flex-row align-items-center ms-auto">
+                            {{ render(path('notification_icon')) }}
                             <!-- User -->
                             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                                 {% set fallbackAvatar = asset('back/assets/img/avatars/1.png') %}

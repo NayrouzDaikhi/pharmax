@@ -21,4 +21,9 @@
         {{ include('article/_form.html.twig', {'button_label': ('Update Article'|trans)}) }}
     </div>
 </div>
+<div class="row mt-4">
+    <div class="col-lg-8">
+        {{ include('article/_delete_form.html.twig') }}
+    </div>
+</div>
 {% endblock %}

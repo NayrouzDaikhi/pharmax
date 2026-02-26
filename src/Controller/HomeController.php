@@ -62,6 +62,7 @@ final class HomeController extends AbstractController
         return $this->render('dashboard/sneat_dashboard.html.twig', [
             'totalProduits' => $produitRepository->countTotal(),
             'expiredProduits' => $produitRepository->countExpired(),
+            'produitsExpirantAujourdhui' => $produitRepository->findExpiringToday(),
             'availableProduits' => $produitRepository->countAvailable(),
             'outOfStockProduits' => $produitRepository->countOutOfStock(),
             'mostExpensive' => $produitRepository->getMostExpensiveProducts(5),
