@@ -82,4 +82,4 @@ class ArticleRepository extends ServiceEntityRepository
             ->orderBy('a.created_at', 'DESC')
             ->getQuery()
             ->getResult();
-    }
+    }}

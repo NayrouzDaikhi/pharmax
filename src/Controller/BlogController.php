@@ -29,36 +29,16 @@ class BlogController extends AbstractController
         $page = max(1, (int)$request->query->get('page', 1));
         $itemsPerPage = 3;
         
-        $articles = $articleRepository->findAll();
+        // Use optimized repository method for database-level filtering
+        $totalArticles = $articleRepository->countBySearch($searchQuery);
+        $totalPages = (int)ceil($totalArticles / $itemsPerPage);
+        $page = min($page, max(1, $totalPages));
         
-        // Filter articles by search query
-        if (!empty($searchQuery)) {
-            $articles = array_filter($articles, function($article) use ($searchQuery) {
-                $search = strtolower($searchQuery);
-                return strpos(strtolower($article->getTitre()), $search) !== false ||
-                       strpos(strtolower($article->getContenu()), $search) !== false;
-            });
-        }
-        
-        // Sort articles by newest first
-        usort($articles, function($a, $b) {
-            $dateA = $a->getDateCreation() ? $a->getDateCreation()->getTimestamp() : 0;
-            $dateB = $b->getDateCreation() ? $b->getDateCreation()->getTimestamp() : 0;
-            return $dateB <=> $dateA;
-        });
-        
-        // Calculate pagination
-        $totalArticles = count($articles);
-        $totalPages = ceil($totalArticles / $itemsPerPage);
-        $page = min($page, $totalPages);
-        $page = max(1, $page);
-        
-        // Get articles for current page
-        $startIndex = ($page - 1) * $itemsPerPage;
-        $paginatedArticles = array_slice($articles, $startIndex, $itemsPerPage);
+        $offset = ($page - 1) * $itemsPerPage;
+        $articles = $articleRepository->findBySearch($searchQuery, $itemsPerPage, $offset);
         
         return $this->render('blog/index.html.twig', [
-            'articles' => $paginatedArticles,
+            'articles' => $articles,
             'searchQuery' => $searchQuery,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -73,36 +53,16 @@ class BlogController extends AbstractController
         $page = max(1, (int)$request->query->get('page', 1));
         $itemsPerPage = 3;
         
-        $articles = $articleRepository->findAll();
+        // Use optimized repository method for database-level filtering
+        $totalArticles = $articleRepository->countBySearch($searchQuery);
+        $totalPages = (int)ceil($totalArticles / $itemsPerPage);
+        $page = min($page, max(1, $totalPages));
         
-        // Filter articles by search query
-        if (!empty($searchQuery)) {
-            $articles = array_filter($articles, function($article) use ($searchQuery) {
-                $search = strtolower($searchQuery);
-                return strpos(strtolower($article->getTitre()), $search) !== false ||
-                       strpos(strtolower($article->getContenu()), $search) !== false;
-            });
-        }
-        
-        // Sort articles by newest first
-        usort($articles, function($a, $b) {
-            $dateA = $a->getDateCreation() ? $a->getDateCreation()->getTimestamp() : 0;
-            $dateB = $b->getDateCreation() ? $b->getDateCreation()->getTimestamp() : 0;
-            return $dateB <=> $dateA;
-        });
-        
-        // Calculate pagination
-        $totalArticles = count($articles);
-        $totalPages = ceil($totalArticles / $itemsPerPage);
-        $page = min($page, $totalPages);
-        $page = max(1, $page);
-        
-        // Get articles for current page
-        $startIndex = ($page - 1) * $itemsPerPage;
-        $paginatedArticles = array_slice($articles, $startIndex, $itemsPerPage);
+        $offset = ($page - 1) * $itemsPerPage;
+        $articles = $articleRepository->findBySearch($searchQuery, $itemsPerPage, $offset);
         
         $html = $this->renderView('blog/_articles_list.html.twig', [
-            'articles' => $paginatedArticles,
+            'articles' => $articles,
         ]);
         
         return new JsonResponse([
@@ -122,8 +82,8 @@ class BlogController extends AbstractController
             throw $this->createNotFoundException('Article not found');
         }
 
-        // Get recommended/recent articles (excluding the current article)
-        $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 5);
+        // Use optimized method to get recent articles (excluding the current one)
+        $recentArticles = $articleRepository->findRecent(5);
         $recommendedArticles = array_filter($recentArticles, function($a) use ($article) {
             return $a->getId() !== $article->getId();
         });
