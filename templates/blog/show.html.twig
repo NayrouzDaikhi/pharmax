@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function checkChatbotHealth() {
         try {
-            const response = await fetch('/chatbot/health', {
+            const response = await fetch('/api/chatbot/health', {
                 method: 'GET',
                 timeout: 5000
             });

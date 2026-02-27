@@ -105,7 +105,7 @@
                     </li>
 
                     <!-- ChatBot -->
-                    <li class="menu-item {{ app.request.get('_route') starts with 'chatbot_' ? 'active' : '' }}">
+                    <li class="menu-item {{ app.request.get('_route') == 'chatbot_index' ? 'active' : '' }}">
                         <a href="{{ path('chatbot_index') }}" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-bot"></i>
                             <div data-i18n="ChatBot">{{('ChatBot'|trans)}}</div>

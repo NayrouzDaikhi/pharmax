@@ -9,7 +9,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/chatbot', name: 'chatbot_')]
 class ChatBotController extends AbstractController
 {
     public function __construct(
@@ -20,7 +19,7 @@ class ChatBotController extends AbstractController
      * Afficher l'interface du chatbot
      * GET /chatbot
      */
-    #[Route('', name: 'index', methods: ['GET'])]
+    #[Route('/chatbot', name: 'chatbot_index', methods: ['GET'])]
     public function index(): Response
     {
         return $this->render('chatbot/index.html.twig');
@@ -30,8 +29,7 @@ class ChatBotController extends AbstractController
      * Répondre à une question
      * POST /api/chatbot/ask
      */
-    #[Route('/ask', name: 'ask', methods: ['POST'])]
-    #[Route('/api/chatbot/ask', name: 'api_ask', methods: ['POST'])]
+    #[Route('/api/chatbot/ask', name: 'chatbot_ask', methods: ['POST'])]
     public function ask(Request $request): JsonResponse
     {
         try {
@@ -64,8 +62,12 @@ class ChatBotController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
 
+            // Get article ID if provided
+            $articleId = $data['articleId'] ?? null;
+            $articleTitle = $data['articleTitle'] ?? null;
+
             // Get answer from ChatBotService
-            $response = $this->chatBotService->answerQuestion($question);
+            $response = $this->chatBotService->answerQuestion($question, $articleId, $articleTitle);
 
             if (!$response['success']) {
                 return $this->json($response, Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -86,7 +88,7 @@ class ChatBotController extends AbstractController
      * Health check endpoint
      * GET /api/chatbot/health
      */
-    #[Route('/api/chatbot/health', name: 'health', methods: ['GET'])]
+    #[Route('/api/chatbot/health', name: 'chatbot_health', methods: ['GET'])]
     public function health(): JsonResponse
     {
         return $this->json([
