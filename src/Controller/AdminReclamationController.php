@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Reclamation;
+use App\Service\GeminiService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,13 +14,16 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Reponse;
 use App\Form\ReponseType;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Psr\Log\LoggerInterface;
 
 #[Route('/admin/reclamation')]
 class AdminReclamationController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private PaginatorInterface $paginator
+        private PaginatorInterface $paginator,
+        private GeminiService $geminiService,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -123,6 +127,86 @@ class AdminReclamationController extends AbstractController
         ]);
     }
 
+    #[Route('/export/csv', name: 'admin_reclamation_export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request): Response
+    {
+        $search = $request->query->get('search', '');
+        $statut = $request->query->get('statut', '');
+        $date = $request->query->get('date', '');
+        $sortBy = $request->query->get('sortBy', 'r.dateCreation');
+        $sortOrder = $request->query->get('sortOrder', 'DESC');
+
+        $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+
+        $mapping = [
+            'id' => 'r.id',
+            'titre' => 'r.titre',
+            'utilisateur' => 'u.firstName',
+            'statut' => 'r.statut',
+            'dateCreation' => 'r.dateCreation',
+        ];
+        $sortField = $mapping[$sortBy] ?? $mapping['dateCreation'];
+
+        $qb = $this->em->getRepository(Reclamation::class)->createQueryBuilder('r')
+            ->select('r')
+            ->leftJoin('r.user', 'u')
+            ->addSelect('u');
+
+        if ($search) {
+            $qb->andWhere('(r.titre LIKE :search OR u.firstName LIKE :search OR u.lastName LIKE :search OR u.email LIKE :search)')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        if ($statut) {
+            $qb->andWhere('r.statut = :statut')
+               ->setParameter('statut', $statut);
+        }
+
+        if ($date) {
+            $dateObj = \DateTime::createFromFormat('Y-m-d', $date);
+            if ($dateObj) {
+                $dateEnd = (clone $dateObj)->modify('+1 day');
+                $qb->andWhere('r.dateCreation >= :dateStart')
+                   ->andWhere('r.dateCreation < :dateEnd')
+                   ->setParameter('dateStart', $dateObj)
+                   ->setParameter('dateEnd', $dateEnd);
+            }
+        }
+
+        $qb->orderBy($sortField, $sortOrder);
+        $reclamations = $qb->getQuery()->getResult();
+
+        // Generate CSV
+        $filename = 'reclamations_' . date('Y-m-d_H-i-s') . '.csv';
+        
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $handle = fopen('php://output', 'w');
+        
+        // Write BOM for Excel UTF-8 compatibility
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Write CSV headers
+        fputcsv($handle, ['ID', 'Titre', 'Client', 'Email', 'Statut', 'Date Création', 'Description'], ',');
+
+        // Write data
+        foreach ($reclamations as $reclamation) {
+            fputcsv($handle, [
+                $reclamation->getId(),
+                $reclamation->getTitre(),
+                $reclamation->getUser()->getFirstName() . ' ' . $reclamation->getUser()->getLastName(),
+                $reclamation->getUser()->getEmail(),
+                ucfirst(str_replace('_', ' ', $reclamation->getStatut())),
+                $reclamation->getDateCreation()->format('d/m/Y H:i'),
+                substr($reclamation->getDescription(), 0, 100),
+            ], ',');
+        }
+
+        fclose($handle);
+        exit;
+    }
+
     #[Route('/{id}', name: 'admin_reclamation_show', methods: ['GET', 'POST'])]
     public function show(Request $request, Reclamation $reclamation): Response
     {
@@ -152,22 +236,47 @@ class AdminReclamationController extends AbstractController
     #[Route('/{id}/generate-ai-response', name: 'admin_reclamation_generate_ai_response', methods: ['POST'])]
     public function generateAiResponse(Reclamation $reclamation): JsonResponse
     {
-        // Simulation d'un appel à une IA
-        $prompt = $reclamation->getDescription();
-        $shortPrompt = substr($prompt, 0, 50) . (strlen($prompt) > 50 ? '...' : '');
+        try {
+            // Generate AI-powered response using Gemini
+            $prompt = <<<PROMPT
+You are a professional customer support agent for Pharmax pharmacy. A customer has submitted a complaint:
 
-        $responseTemplates = [
-            "Bonjour, \n\nSuite à votre réclamation concernant : \"{$shortPrompt}\".\n\nNous avons le plaisir de vous informer que nous avons traité votre demande et que la situation a été résolue. \n\nN'hésitez pas à nous recontacter si le problème persiste ou si vous avez d'autres questions.\n\nCordialement,\nL'équipe Pharmax",
-            "Bonjour, \n\nNous vous confirmons que votre réclamation (sujet: \"{$shortPrompt}\") a bien été résolue par nos services. Nous restons à votre disposition pour toute autre demande.\n\nCordialement,\nL'équipe Pharmax",
-            "Bonjour, \n\nNous avons pris les mesures nécessaires concernant votre réclamation (\"{$shortPrompt}\") et nous considérons le problème comme résolu. Merci de votre patience. Si besoin, notre support reste disponible.\n\nCordialement,\nL'équipe Pharmax",
-            "Bonjour, \n\nVotre réclamation (\"{$shortPrompt}\") a retenu toute notre attention et nous sommes heureux de vous annoncer qu'une solution a été apportée. Votre satisfaction est notre priorité.\n\nCordialement,\nL'équipe Pharmax",
-            "Bonjour, \n\nCeci est une notification pour vous informer que le problème que vous avez signalé (\"{$shortPrompt}\") a été résolu. Nous vous remercions de nous avoir aidés à améliorer nos services.\n\nCordialement,\nL'équipe Pharmax",
-            "Bonjour, \n\nBonne nouvelle ! La réclamation que vous aviez soumise au sujet de \"{$shortPrompt}\" est maintenant clôturée. Tout devrait être rentré dans l'ordre. Merci de votre confiance.\n\nCordialement,\nL'équipe Pharmax",
-        ];
+**Complaint Title:** {$reclamation->getTitre()}
+**Complaint Description:** {$reclamation->getDescription()}
+**Complaint Status:** {$reclamation->getStatut()}
+**Submitted Date:** {$reclamation->getDateCreation()->format('d/m/Y')}
 
-        $suggestedResponse = $responseTemplates[array_rand($responseTemplates)];
+Please generate a professional, empathetic, and helpful response to resolve this complaint. The response should:
+1. Acknowledge the customer's concern
+2. Apologize for any inconvenience
+3. Explain what actions will be taken
+4. Provide a timeline for resolution
+5. Offer additional support if needed
 
-        return new JsonResponse(['response' => $suggestedResponse]);
+Write the response in French, professionally formatted with proper greeting and closing.
+PROMPT;
+
+            $aiResponse = $this->geminiService->generateText($prompt, [
+                'temperature' => 0.7,
+                'maxOutputTokens' => 500,
+            ]);
+
+            // Log the generated response
+            $this->logger->info('AI response generated for complaint ' . $reclamation->getId());
+
+            // Parse and clean the response
+            $response = trim($aiResponse);
+
+            return new JsonResponse(['response' => $response]);
+        } catch (\Exception $e) {
+            $this->logger->error('AI response generation failed: ' . $e->getMessage());
+
+            // Fallback to template-based response if AI fails
+            return new JsonResponse([
+                'response' => $this->generateFallbackResponse($reclamation),
+                'warning' => 'AI service unavailable, using template response',
+            ]);
+        }
     }
 
     #[Route('/{id}/edit', name: 'admin_reclamation_edit', methods: ['GET', 'POST'])]
@@ -195,5 +304,21 @@ class AdminReclamationController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_reclamation_index');
+    }
+
+    /**
+     * Generate fallback response when AI is unavailable
+     */
+    private function generateFallbackResponse(Reclamation $reclamation): string
+    {
+        $shortPrompt = substr($reclamation->getDescription(), 0, 50) . (strlen($reclamation->getDescription()) > 50 ? '...' : '');
+
+        $templates = [
+            "Bonjour,\n\nSuite à votre réclamation concernant : \"{$shortPrompt}\".\n\nNous avons le plaisir de vous informer que nous avons traité votre demande et que la situation a été résolue.\n\nN'hésitez pas à nous recontacter si le problème persiste ou si vous avez d'autres questions.\n\nCordialement,\nL'équipe Pharmax",
+            "Bonjour,\n\nNous vous confirmons que votre réclamation (sujet: \"{$shortPrompt}\") a bien été résolue par nos services. Nous restons à votre disposition pour toute autre demande.\n\nCordialement,\nL'équipe Pharmax",
+            "Bonjour,\n\nNous avons pris les mesures nécessaires concernant votre réclamation (\"{$shortPrompt}\") et nous considérons le problème comme résolu. Merci de votre patience.\n\nCordialement,\nL'équipe Pharmax",
+        ];
+
+        return $templates[array_rand($templates)];
     }
 }

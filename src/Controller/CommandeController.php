@@ -287,6 +287,69 @@ class CommandeController extends AbstractController
         );
     }
 
+    #[Route('/export/csv', name: 'app_commande_export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request, CommandeRepository $commandeRepository): Response
+    {
+        $statut = $request->query->get('statut') ?: null;
+        $sort = $request->query->get('sort');
+        $direction = strtoupper($request->query->get('direction', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+
+        $allowedSorts = [
+            'id' => 'c.id',
+            'utilisateur' => 'u.email',
+            'totales' => 'c.totales',
+            'statut' => 'c.statut',
+            'created_at' => 'c.createdAt',
+        ];
+
+        $qb = $commandeRepository->createQueryBuilder('c')
+            ->leftJoin('c.utilisateur', 'u')
+            ->addSelect('u');
+
+        if ($statut) {
+            $qb->andWhere('c.statut = :statut')
+               ->setParameter('statut', $statut);
+        }
+
+        if ($sort && isset($allowedSorts[$sort])) {
+            $qb->orderBy($allowedSorts[$sort], $direction);
+        } else {
+            $qb->orderBy('c.createdAt', 'DESC');
+        }
+
+        $commandes = $qb->getQuery()->getResult();
+
+        // Generate CSV
+        $filename = 'commandes_' . date('Y-m-d_H-i-s') . '.csv';
+        $handle = fopen('php://output', 'w');
+        
+        // Set headers
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        // Write BOM for Excel UTF-8 compatibility
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Write CSV headers
+        fputcsv($handle, ['ID', 'Client', 'Email', 'Total', 'Statut', 'Date Création', 'Nombre Articles'], ',');
+
+        // Write data
+        foreach ($commandes as $commande) {
+            fputcsv($handle, [
+                $commande->getId(),
+                $commande->getUtilisateur()->getFirstName() . ' ' . $commande->getUtilisateur()->getLastName(),
+                $commande->getUtilisateur()->getEmail(),
+                number_format($commande->getTotales(), 2, ',', ' '),
+                ucfirst(str_replace('_', ' ', $commande->getStatut())),
+                $commande->getCreatedAt()->format('d/m/Y H:i'),
+                count($commande->getLigneCommandes()),
+            ], ',');
+        }
+
+        fclose($handle);
+        exit;
+    }
+
     // ============= ROUTES FRONTEND =============
 
     #[Route('/frontend', name: 'app_frontend_commande_index')]

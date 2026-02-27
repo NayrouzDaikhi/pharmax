@@ -1,0 +1,198 @@
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section h3 {
+            background: #34495e;
+            color: white;
+            padding: 10px 15px;
+            margin: 0;
+            border-radius: 3px 3px 0 0;
+        }
+        .section-content {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .stat-box {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 12px;
+        }
+        .button {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Weekly Digest</h1>
+            <p>{{ dateStart|date('d/m/Y') }} - {{ dateEnd|date('d/m/Y') }}</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h3>📊 Weekly Summary</h3>
+                <div class="section-content">
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-number">{{ stats.totalOrders }}</div>
+                            <div class="stat-label">Total Orders</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">{{ stats.totalRevenue|number_format(0, ',', '.') }} DT</div>
+                            <div class="stat-label">Revenue</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">{{ stats.averageOrderValue|number_format(2, ',', '.') }} DT</div>
+                            <div class="stat-label">Avg Order Value</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">{{ stats.totalComplaints }}</div>
+                            <div class="stat-label">Complaints</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">{{ stats.ordersByStatus.en_attente }}</div>
+                            <div class="stat-label">Pending Orders</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number">{{ stats.complaintsByStatus['En attente'] }}</div>
+                            <div class="stat-label">Pending Complaints</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📦 Top 10 Orders This Week</h3>
+                <div class="section-content">
+                    <table>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                        {% for order in orders|slice(0, 10) %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.utilisateur.firstName }} {{ order.utilisateur.lastName }}</td>
+                            <td>{{ order.totales|number_format(2, ',', '.') }} DT</td>
+                            <td>{{ order.statut|replace('_', ' ')|title }}</td>
+                            <td>{{ order.createdAt|date('d/m/Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+
+            {% if complaints %}
+            <div class="section">
+                <h3>💬 Recent Complaints</h3>
+                <div class="section-content">
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                        {% for complaint in complaints|slice(0, 10) %}
+                        <tr>
+                            <td>#{{ complaint.id }}</td>
+                            <td>{{ complaint.titre }}</td>
+                            <td>{{ complaint.user.firstName }} {{ complaint.user.lastName }}</td>
+                            <td>{{ complaint.statut }}</td>
+                            <td>{{ complaint.dateCreation|date('d/m/Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <div style="text-align: center;">
+                <a href="{{ dashboardUrl }}" class="button">View Full Dashboard</a>
+            </div>
+
+            <div class="footer">
+                <p>This is an automated weekly digest. Do not reply to this email.</p>
+                <p>For inquiries, please log in to the admin panel.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

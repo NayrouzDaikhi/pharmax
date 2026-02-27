@@ -1,0 +1,230 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Reports Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>📊 Reports Dashboard</h1>
+            <p class="text-muted">Comprehensive analytics and business intelligence</p>
+        </div>
+    </div>
+
+    <!-- Main Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary">
+                <div class="card-body">
+                    <h6 class="card-title text-primary">Total Orders</h6>
+                    <h2 class="card-subtitle">{{ stats.orders.total }}</h2>
+                    <small class="text-muted">Revenue: {{ stats.orders.totalRevenue|number_format(2, ',', ' ') }} DT</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-success">
+                <div class="card-body">
+                    <h6 class="card-title text-success">Paid Orders</h6>
+                    <h2 class="card-subtitle">{{ stats.orders.paid }}</h2>
+                    <small class="text-muted">{{ (stats.orders.paid / stats.orders.total * 100)|number_format(1) }}% of total</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-warning">
+                <div class="card-body">
+                    <h6 class="card-title text-warning">Pending Orders</h6>
+                    <h2 class="card-subtitle">{{ stats.orders.pending }}</h2>
+                    <small class="text-muted">Awaiting payment</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-left-danger">
+                <div class="card-body">
+                    <h6 class="card-title text-danger">Complaints</h6>
+                    <h2 class="card-subtitle">{{ stats.complaints.total }}</h2>
+                    <small class="text-muted">{{ stats.complaints.resolutionRate }}% resolved</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment & Complaint Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Payment Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <h3>{{ stats.payments.successful }}</h3>
+                            <p class="text-success">Successful</p>
+                            <p>{{ stats.payments.totalSuccessful|number_format(2, ',', ' ') }} DT</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h3>{{ stats.payments.failed }}</h3>
+                            <p class="text-danger">Failed</p>
+                            <p><span class="badge badge-danger">{{ stats.payments.successRate }}% success</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5>Complaint Status Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h4 class="text-warning">{{ stats.complaints.pending }}</h4>
+                            <p>Pending</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="text-info">{{ stats.complaints.inProgress }}</h4>
+                            <p>In Progress</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="text-success">{{ stats.complaints.resolved }}</h4>
+                            <p>Resolved</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Customers -->
+    {% if customerStats.topCustomers %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>👥 Top 10 Customers</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in customerStats.topCustomers %}
+                            <tr>
+                                <td>{{ customer.email }}</td>
+                                <td><span class="badge badge-primary">{{ customer.orders }}</span></td>
+                                <td>{{ customer.spent|number_format(2, ',', ' ') }} DT</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Products -->
+    {% if topProducts %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5>🏆 Top Products by Sales</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Quantity Sold</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in topProducts %}
+                            <tr>
+                                <td>{{ product.nomProduit }}</td>
+                                <td><span class="badge badge-info">{{ product.totalQty }}</span></td>
+                                <td>{{ product.totalRevenue|number_format(2, ',', ' ') }} DT</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Reports Links -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5>📈 Quick Report Links</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <a href="{{ path('admin_reports_period') }}" class="btn btn-primary">Period Report</a>
+                        <a href="{{ path('admin_reports_trends') }}" class="btn btn-info">Trends Analysis</a>
+                        <a href="#" class="btn btn-success">Download PDF Report</a>
+                        <a href="{{ path('admin_reclamation_export_csv') }}" class="btn btn-warning">Export Complaints</a>
+                        <a href="{{ path('app_commande_export_csv') }}" class="btn btn-danger">Export Orders</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: none;
+        margin-bottom: 20px;
+    }
+    .border-left-primary {
+        border-left: 4px solid #007bff;
+    }
+    .border-left-success {
+        border-left: 4px solid #28a745;
+    }
+    .border-left-warning {
+        border-left: 4px solid #ffc107;
+    }
+    .border-left-danger {
+        border-left: 4px solid #dc3545;
+    }
+    .card-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .card-subtitle {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    h1 {
+        color: #2c3e50;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
