@@ -232,7 +232,7 @@ final class ArticleController extends AbstractController
     public function show(Article $article, ArticleRepository $articleRepository): Response
     {
         // Get recommended/recent articles (excluding the current article)
-        $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 5);
+        $recentArticles = $articleRepository->findBy([], ['created_at' => 'DESC'], 5);
         $recommendedArticles = array_filter($recentArticles, function($a) use ($article) {
             return $a->getId() !== $article->getId();
         });
