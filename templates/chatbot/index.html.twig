@@ -1,0 +1,234 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ChatBot - Pharmax{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-robot"></i> Assistant ChatBot Pharmax  
+                    </h3>
+                    <small>Posez vos questions sur nos articles et conseils de santé</small>
+                </div>
+
+                <div class="card-body" id="chat-messages" style="height: 500px; overflow-y: auto; background-color: #f8f9fa;">
+                    <!-- Messages will be inserted here -->
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Bienvenue! Posez vos questions sur la santé, les médicaments, les vitamines, etc.
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <form id="chat-form" class="d-flex gap-2">
+                        <input
+                            type="text"
+                            id="question-input"
+                            class="form-control"
+                            placeholder="Posez votre question..."
+                            autocomplete="off"
+                            minlength="3"
+                            maxlength="1000"
+                        />
+                        <button type="submit" class="btn btn-primary" id="send-btn">
+                            <i class="fas fa-paper-plane"></i> Envoyer
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Erreur affichage -->
+            <div id="error-alert" class="alert alert-danger mt-3" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <strong id="error-text"></strong>
+            </div>
+
+            <!-- Info sur les sources -->
+            <div id="sources-info" class="mt-3" style="display: none;">
+                <small class="text-muted">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Sources utilisées:</strong>
+                    <span id="sources-list"></span>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #chat-messages {
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 15px;
+    }
+
+    .message {
+        margin-bottom: 15px;
+        padding: 12px;
+        border-radius: 6px;
+        word-wrap: break-word;
+    }
+
+    .user-message {
+        background-color: #007bff;
+        color: white;
+        margin-left: 20%;
+        text-align: right;
+    }
+
+    .bot-message {
+        background-color: #e9ecef;
+        color: #333;
+        margin-right: 20%;
+        border-left: 4px solid #28a745;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    .message-time {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        margin-top: 6px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatForm = document.getElementById('chat-form');
+        const questionInput = document.getElementById('question-input');        
+        const sendBtn = document.getElementById('send-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const errorAlert = document.getElementById('error-alert');
+        const errorText = document.getElementById('error-text');
+        const sourcesInfo = document.getElementById('sources-info');
+        const sourcesList = document.getElementById('sources-list');
+
+        // Vider les anciens messages au chargement
+        chatMessages.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Bienvenue! Posez vos questions sur la santé, les médicaments, les vitamines, etc.
+            </div>
+        `;
+
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const question = questionInput.value.trim();
+
+            if (!question) {
+                showError('Veuillez entrer une question');
+                return;
+            }
+
+            // Ajouter le message de l'utilisateur
+            addMessage(question, 'user');
+
+            // Vider l'input
+            questionInput.value = '';
+            sendBtn.disabled = true;
+
+            // Afficher le spinneur de chargement
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot-message';
+            loadingDiv.innerHTML = '<span class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></span>Recherche en cours...';
+            chatMessages.appendChild(loadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chatbot/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question }),
+                });
+
+                const data = await response.json();
+
+                // Supprimer le message de chargement
+                chatMessages.removeChild(loadingDiv);
+
+                if (!response.ok || !data.success) {
+                    const error = data.error || 'Une erreur est survenue';
+                    showError(error);
+                    addMessage('Erreur: ' + error, 'bot-error');
+                } else {
+                    // Ajouter la réponse du bot
+                    addMessage(data.answer, 'bot');
+
+                    // Afficher les sources
+                    if (data.sources && data.sources.length > 0) {
+                        const sourceNames = data.sources.map(s => s.title).join(', ');
+                        sourcesList.textContent = sourceNames;
+                        sourcesInfo.style.display = 'block';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                chatMessages.removeChild(loadingDiv);
+                showError('Erreur de connexion: ' + error.message);
+                addMessage('Erreur de connexion au serveur', 'bot-error');
+            } finally {
+                sendBtn.disabled = false;
+                questionInput.focus();
+            }
+        });
+
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            if (type === 'user') {
+                messageDiv.classList.add('user-message');
+            } else if (type === 'bot') {
+                messageDiv.classList.add('bot-message');
+            } else if (type === 'bot-error') {
+                messageDiv.classList.add('bot-message');
+                messageDiv.style.borderLeft = '4px solid #dc3545';
+            }
+
+            // Formater le texte avec les sauts de ligne
+            const formattedText = text
+                .split('\n')
+                .map(line => {
+                    if (line.startsWith('#')) {
+                        const level = line.match(/^#+/)[0].length;
+                        return `<h${level} style="margin-top: 10px; margin-bottom: 5px; font-size: ${1.5 - level * 0.1}rem;">${line.replace(/^#+\s*/, '')}</h${level}>`;
+                    }
+                    return line;
+                })
+                .join('<br>');
+
+            messageDiv.innerHTML = formattedText;
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            messageDiv.appendChild(timeDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorAlert.style.display = 'block';
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Focus sur l'input au chargement
+        questionInput.focus();
+    });
+</script>
+{% endblock %}
