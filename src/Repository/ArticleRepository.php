@@ -32,7 +32,7 @@ class ArticleRepository extends ServiceEntityRepository
                ->setParameter('search', $search);
         }
         
-        $qb->orderBy('a.created_at', 'DESC')
+        $qb->orderBy('a.date_creation', 'DESC')
            ->setFirstResult($offset);
         
         if ($limit !== null) {
@@ -67,7 +67,7 @@ class ArticleRepository extends ServiceEntityRepository
     public function findRecent(int $limit = 5): array
     {
         return $this->createQueryBuilder('a')
-            ->orderBy('a.created_at', 'DESC')
+            ->orderBy('a.date_creation', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
@@ -79,7 +79,7 @@ class ArticleRepository extends ServiceEntityRepository
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('a')
-            ->orderBy('a.created_at', 'DESC')
+            ->orderBy('a.date_creation', 'DESC')
             ->getQuery()
             ->getResult();
     }}
