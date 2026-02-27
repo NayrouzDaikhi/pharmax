@@ -27,7 +27,7 @@ class SendAdminDigestCommand extends Command
     {
         $this
             ->addOption('type', 't', InputOption::VALUE_OPTIONAL, 'Type of digest (daily/weekly)', 'daily')
-            ->addOption('email', 'e', InputOption::VALUE_OPTIONAL, 'Specific admin email to send to')
+            ->addOption('email', null, InputOption::VALUE_OPTIONAL, 'Specific admin email to send to')
             ->addOption('date', 'd', InputOption::VALUE_OPTIONAL, 'Date for the digest (Y-m-d format)');
     }
 
