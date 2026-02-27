@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Repository\UtilisateurRepository;
+use App\Repository\UserRepository;
 use App\Service\AdminEmailDigestService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,7 +18,7 @@ class SendAdminDigestCommand extends Command
 {
     public function __construct(
         private AdminEmailDigestService $digestService,
-        private UtilisateurRepository $utilisateurRepository,
+        private UserRepository $userRepository,
     ) {
         parent::__construct();
     }
@@ -46,8 +46,8 @@ class SendAdminDigestCommand extends Command
             }
         }
 
-        // Get admins
-        $admins = $this->utilisateurRepository->findByRole('ROLE_ADMIN');
+        // Get admins by searching for users with ROLE_ADMIN
+        $admins = $this->userRepository->searchUsers(['role' => 'ROLE_ADMIN']);
 
         if (empty($admins)) {
             $output->writeln('<warning>No admin users found</warning>');
