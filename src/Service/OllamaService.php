@@ -7,112 +7,203 @@ use Exception;
 
 class OllamaService
 {
-    private string $apiUrl;
-    private string $model;
+    private const OLLAMA_API = 'http://localhost:11434/api/generate';
+    private const MODEL = 'mistral'; // Default model - can be changed to neural-chat, orca-mini, etc.
     
+    // Alternative models available
+    private const AVAILABLE_MODELS = [
+        'mistral',
+        'neural-chat',
+        'orca-mini',
+        'llama2',
+        'dolphin-mixtral',
+    ];
+
     public function __construct(
-        private HttpClientInterface $httpClient
-    ) {
-        $this->apiUrl = $_ENV['OLLAMA_API_URL'] ?? 'http://localhost:11434';
-        $this->model = $_ENV['OLLAMA_MODEL'] ?? 'mistral';
-    }
+        private HttpClientInterface $httpClient,
+    ) {}
 
     /**
-     * Generate a chatbot answer using Ollama
+     * Generate text using Ollama - General purpose method
      */
-    public function generateChatbotAnswer(
-        string $question,
-        string $context = '',
-        ?int $articleId = null,
-        ?string $articleTitle = null
-    ): string {
-        try {
-            $prompt = $this->buildPrompt($question, $context, $articleId, $articleTitle);
-            
-            $response = $this->httpClient->request(
-                'POST',
-                $this->apiUrl . '/api/generate',
-                [
-                    'json' => [
-                        'model' => $this->model,
-                        'prompt' => $prompt,
-                        'stream' => false,
-                    ],
-                    'timeout' => 60,
-                ]
-            );
-
-            $data = $response->toArray();
-            return $data['response'] ?? '';
-        } catch (Exception $e) {
-            error_log('OllamaService error: ' . $e->getMessage());
-            
-            // Provide better error messages for common issues
-            $msg = $e->getMessage();
-            if (strpos($msg, 'Connection refused') !== false) {
-                throw new Exception('Connection refused to Ollama at ' . $this->apiUrl . ':11434. Make sure Ollama is running with: ollama serve');
-            } elseif (strpos($msg, 'timed out') !== false) {
-                throw new Exception('Ollama API request timed out. The server might be busy or the model is still loading.');
-            } else {
-                throw new Exception('Erreur Ollama: ' . $msg);
-            }
-        }
-    }
-
-    /**
-     * Generate an expiration notification message
-     */
-    public function generateExpirationMessage(string $productName, string $expirationDate): string
+    public function generate(string $prompt, array $options = []): string
     {
         try {
-            $prompt = "Génère un message court et amical pour informer un utilisateur que le produit '$productName' expire le $expirationDate. Le message doit être court (max 100 caractères).";
-            
-            $response = $this->httpClient->request(
-                'POST',
-                $this->apiUrl . '/api/generate',
-                [
-                    'json' => [
-                        'model' => $this->model,
-                        'prompt' => $prompt,
-                        'stream' => false,
-                    ],
-                    'timeout' => 30,
-                ]
-            );
-
-            $data = $response->toArray();
-            return $data['response'] ?? '';
+            return $this->callOllamaAPI($prompt, $options);
         } catch (Exception $e) {
-            error_log('OllamaService expiration message error: ' . $e->getMessage());
-            return "Le produit $productName expire le $expirationDate.";
+            error_log('[Ollama] Generation failed: ' . $e->getMessage());
+            throw $e;
         }
     }
 
     /**
-     * Get Ollama service status
+     * Generate expiration message (replaces Gemini's generateExpirationMessage)
      */
-    public function getStatus(): array
+    public function generateExpirationMessage(string $productName, int $days): string
     {
         try {
-            $response = $this->httpClient->request(
-                'GET',
-                $this->apiUrl . '/api/tags',
-                ['timeout' => 5]
-            );
+            $prompt = "Génère un message professionnel pour informer qu'un produit nommé '$productName' expire dans $days jours. Ajoute des recommandations d'action.";
+            
+            return $this->callOllamaAPI($prompt, [
+                'temperature' => 0.7,
+                'top_p' => 0.9,
+                'top_k' => 40,
+            ]);
+        } catch (Exception $e) {
+            error_log('[Ollama] Failed to generate expiration message: ' . $e->getMessage());
+            // Fallback message
+            return $this->generateFallbackMessage($productName, $days);
+        }
+    }
 
-            if ($response->getStatusCode() === 200) {
-                $data = $response->toArray();
-                return [
-                    'status' => 'running',
-                    'models' => $data['models'] ?? [],
-                    'message' => 'Ollama is running'
-                ];
+    /**
+     * Generate chatbot answer from question and context
+     */
+    public function generateChatbotAnswer(string $question, string $context, ?int $articleId = null, ?string $articleTitle = null): string
+    {
+        try {
+            // Build detailed prompt with article context
+            $prompt = $this->buildChatbotPrompt($question, $context, $articleId, $articleTitle);
+            
+            return $this->callOllamaAPI($prompt, [
+                'temperature' => 0.7,
+                'top_p' => 0.95,
+                'top_k' => 40,
+            ]);
+        } catch (Exception $e) {
+            error_log('[Ollama] Failed to generate chatbot answer: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Call the Ollama API
+     */
+    private function callOllamaAPI(string $prompt, array $options = []): string
+    {
+        try {
+            error_log('[Ollama] Calling API with model: ' . self::MODEL);
+
+            // Check if model is available before attempting to use it
+            $availableModels = $this->getAvailableModels();
+            error_log('[Ollama] Available models: ' . json_encode(array_column($availableModels, 'name')));
+            
+            // Check if requested model is available
+            $modelFound = false;
+            foreach ($availableModels as $model) {
+                if (isset($model['name']) && strpos($model['name'], self::MODEL) === 0) {
+                    $modelFound = true;
+                    break;
+                }
             }
             
-            return ['status' => 'error', 'message' => 'Cannot connect to Ollama'];
+            if (!$modelFound) {
+                $modelList = implode(', ', array_column($availableModels, 'name'));
+                $errorMsg = 'Model "' . self::MODEL . '" is not downloaded yet. ';
+                if (!empty($modelList)) {
+                    $errorMsg .= 'Available models: ' . $modelList . '. ';
+                }
+                $errorMsg .= 'Please wait for the model to download or run: ollama pull ' . self::MODEL;
+                throw new Exception($errorMsg);
+            }
+
+            // Default generation parameters
+            $params = array_merge([
+                'temperature' => 0.7,
+                'top_p' => 0.9,
+                'top_k' => 40,
+                'repeat_penalty' => 1.1,
+            ], $options);
+
+            // Call Ollama API with streaming disabled for simpler response handling
+            $response = $this->httpClient->request('POST', self::OLLAMA_API, [
+                'json' => [
+                    'model' => self::MODEL,
+                    'prompt' => $prompt,
+                    'stream' => false,
+                    'temperature' => $params['temperature'],
+                    'top_p' => $params['top_p'],
+                    'top_k' => $params['top_k'],
+                    'repeat_penalty' => $params['repeat_penalty'],
+                ],
+                'timeout' => 60, // Ollama can be slow on first response
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            error_log('[Ollama] Response status: ' . $statusCode);
+
+            if ($statusCode !== 200) {
+                throw new Exception('Ollama API returned status ' . $statusCode);
+            }
+
+            $data = $response->toArray();
+            
+            if (!isset($data['response'])) {
+                error_log('[Ollama] Invalid response format: ' . json_encode($data));
+                throw new Exception('Invalid response format from Ollama');
+            }
+
+            $response_text = trim($data['response']);
+            error_log('[Ollama] Successfully got response (length: ' . strlen($response_text) . ')');
+            
+            return $response_text;
+
         } catch (Exception $e) {
-            return ['status' => 'offline', 'message' => $e->getMessage()];
+            error_log('[Ollama] API Error: ' . $e->getMessage());
+            throw new Exception('Ollama API unavailable: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Build prompt for chatbot (matches Gemini format but optimized for Ollama)
+     */
+    private function buildChatbotPrompt(string $question, string $context, ?int $articleId = null, ?string $articleTitle = null): string
+    {
+        $articleContext = '';
+        if ($articleId && $articleTitle) {
+            $articleContext = "\n\n⭐ ARTICLE PRINCIPAL CONSULTÉ:\n"
+                . "ID: $articleId\n"
+                . "Titre: $articleTitle\n";
+        }
+
+        return <<<PROMPT
+Tu es un assistant IA pour le site Pharmax. Tu dois répondre aux questions des utilisateurs en utilisant UNIQUEMENT les informations fournies ci-dessous. Si une question n'est pas couverte par ces articles, dis-le clairement.
+
+📄 ARTICLES ET RESSOURCES DISPONIBLES:
+{$context}
+{$articleContext}
+
+INSTRUCTIONS DE RÉPONSE:
+✅ Sois professionnel et courtois
+✅ Fournir des réponses claires et concises (max 300 mots)
+✅ Cite l'article source si approprié
+✅ Si la réponse n'est pas trouvée, recommande de contacter support@pharmax.com
+❌ Ne pas inventer d'informations
+❌ Ne pas sortir du contexte
+
+QUESTION DU CLIENT:
+"{$question}"
+
+RÉPONSE PERSONNALISÉE:
+PROMPT;
+    }
+
+    /**
+     * Fallback message for expiration (same as Gemini)
+     */
+    private function generateFallbackMessage(string $productName, int $days): string
+    {
+        return sprintf(
+            "⚠️ Notification d'expiration\n\n"
+            . "Le produit '%s' expire dans %d jours.\n\n"
+            . "Actions recommandées:\n"
+            . "- Examiner le stock immédiatement\n"
+            . "- Établir un plan de liquidation\n"
+            . "- Informer les clients\n"
+            . "- Vérifier la conformité réglementaire",
+            $productName,
+            $days
+        );
     }
 
     /**
@@ -121,40 +212,59 @@ class OllamaService
     public function isConfigured(): bool
     {
         try {
-            $response = $this->httpClient->request(
-                'GET',
-                $this->apiUrl . '/api/tags',
-                ['timeout' => 2]
-            );
-            
+            $response = $this->httpClient->request('GET', 'http://localhost:11434/api/tags', [
+                'timeout' => 5,
+            ]);
             return $response->getStatusCode() === 200;
-        } catch (Exception) {
+        } catch (Exception $e) {
+            error_log('[Ollama] Configuration check failed: ' . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * Build the prompt for the chatbot
+     * Get available models from Ollama
      */
-    private function buildPrompt(
-        string $question,
-        string $context,
-        ?int $articleId,
-        ?string $articleTitle
-    ): string {
-        $prompt = "You are a helpful pharmacy assistant.";
-        
-        if ($articleId && $articleTitle) {
-            $prompt .= " You are answering questions about the article: '$articleTitle'.";
+    public function getAvailableModels(): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', 'http://localhost:11434/api/tags', [
+                'timeout' => 5,
+            ]);
+
+            $data = $response->toArray();
+            return $data['models'] ?? [];
+        } catch (Exception $e) {
+            error_log('[Ollama] Failed to get models: ' . $e->getMessage());
+            return [];
         }
-        
-        if (!empty($context)) {
-            $prompt .= "\n\nContext:\n" . $context;
+    }
+
+    /**
+     * Check connection status
+     */
+    public function getStatus(): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', 'http://localhost:11434/api/tags', [
+                'timeout' => 5,
+            ]);
+
+            $status = $response->getStatusCode() === 200;
+            $models = $response->toArray();
+
+            return [
+                'status' => $status ? 'online' : 'offline',
+                'models' => $models['models'] ?? [],
+                'configured' => true,
+            ];
+        } catch (Exception $e) {
+            return [
+                'status' => 'offline',
+                'models' => [],
+                'configured' => false,
+                'error' => $e->getMessage(),
+            ];
         }
-        
-        $prompt .= "\n\nQuestion: " . $question;
-        $prompt .= "\n\nAnswer (be concise and helpful):";
-        
-        return $prompt;
     }
 }

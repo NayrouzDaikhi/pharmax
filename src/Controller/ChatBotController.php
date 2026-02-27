@@ -24,3 +24,4 @@ class ChatBotController extends AbstractController
         return $this->render('chatbot/index.html.twig');
     }
 }
+

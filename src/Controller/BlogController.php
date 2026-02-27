@@ -29,16 +29,36 @@ class BlogController extends AbstractController
         $page = max(1, (int)$request->query->get('page', 1));
         $itemsPerPage = 3;
         
-        // Use optimized repository method for database-level filtering
-        $totalArticles = $articleRepository->countBySearch($searchQuery);
-        $totalPages = (int)ceil($totalArticles / $itemsPerPage);
-        $page = min($page, max(1, $totalPages));
+        $articles = $articleRepository->findAll();
         
-        $offset = ($page - 1) * $itemsPerPage;
-        $articles = $articleRepository->findBySearch($searchQuery, $itemsPerPage, $offset);
+        // Filter articles by search query
+        if (!empty($searchQuery)) {
+            $articles = array_filter($articles, function($article) use ($searchQuery) {
+                $search = strtolower($searchQuery);
+                return strpos(strtolower($article->getTitre()), $search) !== false ||
+                       strpos(strtolower($article->getContenu()), $search) !== false;
+            });
+        }
+        
+        // Sort articles by newest first
+        usort($articles, function($a, $b) {
+            $dateA = $a->getDateCreation() ? $a->getDateCreation()->getTimestamp() : 0;
+            $dateB = $b->getDateCreation() ? $b->getDateCreation()->getTimestamp() : 0;
+            return $dateB <=> $dateA;
+        });
+        
+        // Calculate pagination
+        $totalArticles = count($articles);
+        $totalPages = ceil($totalArticles / $itemsPerPage);
+        $page = min($page, $totalPages);
+        $page = max(1, $page);
+        
+        // Get articles for current page
+        $startIndex = ($page - 1) * $itemsPerPage;
+        $paginatedArticles = array_slice($articles, $startIndex, $itemsPerPage);
         
         return $this->render('blog/index.html.twig', [
-            'articles' => $articles,
+            'articles' => $paginatedArticles,
             'searchQuery' => $searchQuery,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -53,16 +73,36 @@ class BlogController extends AbstractController
         $page = max(1, (int)$request->query->get('page', 1));
         $itemsPerPage = 3;
         
-        // Use optimized repository method for database-level filtering
-        $totalArticles = $articleRepository->countBySearch($searchQuery);
-        $totalPages = (int)ceil($totalArticles / $itemsPerPage);
-        $page = min($page, max(1, $totalPages));
+        $articles = $articleRepository->findAll();
         
-        $offset = ($page - 1) * $itemsPerPage;
-        $articles = $articleRepository->findBySearch($searchQuery, $itemsPerPage, $offset);
+        // Filter articles by search query
+        if (!empty($searchQuery)) {
+            $articles = array_filter($articles, function($article) use ($searchQuery) {
+                $search = strtolower($searchQuery);
+                return strpos(strtolower($article->getTitre()), $search) !== false ||
+                       strpos(strtolower($article->getContenu()), $search) !== false;
+            });
+        }
+        
+        // Sort articles by newest first
+        usort($articles, function($a, $b) {
+            $dateA = $a->getDateCreation() ? $a->getDateCreation()->getTimestamp() : 0;
+            $dateB = $b->getDateCreation() ? $b->getDateCreation()->getTimestamp() : 0;
+            return $dateB <=> $dateA;
+        });
+        
+        // Calculate pagination
+        $totalArticles = count($articles);
+        $totalPages = ceil($totalArticles / $itemsPerPage);
+        $page = min($page, $totalPages);
+        $page = max(1, $page);
+        
+        // Get articles for current page
+        $startIndex = ($page - 1) * $itemsPerPage;
+        $paginatedArticles = array_slice($articles, $startIndex, $itemsPerPage);
         
         $html = $this->renderView('blog/_articles_list.html.twig', [
-            'articles' => $articles,
+            'articles' => $paginatedArticles,
         ]);
         
         return new JsonResponse([
@@ -82,8 +122,8 @@ class BlogController extends AbstractController
             throw $this->createNotFoundException('Article not found');
         }
 
-        // Use optimized method to get recent articles (excluding the current one)
-        $recentArticles = $articleRepository->findRecent(5);
+        // Get recommended/recent articles (excluding the current article)
+        $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 5);
         $recommendedArticles = array_filter($recentArticles, function($a) use ($article) {
             return $a->getId() !== $article->getId();
         });
@@ -198,40 +238,24 @@ class BlogController extends AbstractController
     // ========== FRONT PRODUITS ==========
 
     #[Route('/produits', name: 'app_front_produits', methods: ['GET'])]
-    public function listProduits(
-        Request $request,
-        ProduitRepository $produitRepository,
-        \App\Service\ProductRecommender $productRecommender,
-        \Knp\Component\Pager\PaginatorInterface $paginator,
-    ): Response {
+    public function listProduits(Request $request, ProduitRepository $produitRepository): Response
+    {
         $search = $request->query->get('search', '');
         
-        // Use optimized query builder with category eager loading
-        $query = $produitRepository->findSearchQueryBuilder($search)->getQuery();
-
-        // Paginate results (12 products per page)
-        $page = max(1, (int) $request->query->get('page', 1));
-        $produits = $paginator->paginate(
-            $query,
-            $page,
-            12,
-            [
-                \Knp\Component\Pager\PaginatorInterface::SORT_FIELD_ALLOW_LIST => 
-                    ['p.nom', 'p.prix', 'p.createdAt'],
-            ]
-        );
-
-        // Get recommendations for authenticated users
-        $recommendations = [];
-        $user = $this->getUser();
-        if ($user instanceof \App\Entity\User) {
-            $recommendations = $productRecommender->getRecommendationsForUser($user, 3);
+        if ($search) {
+            // Search for products matching the query in name or description
+            $produits = $produitRepository->createQueryBuilder('p')
+                ->where('p.nom LIKE :search OR p.description LIKE :search')
+                ->setParameter('search', '%' . $search . '%')
+                ->getQuery()
+                ->getResult();
+        } else {
+            $produits = $produitRepository->findAll();
         }
 
         return $this->render('blog/products.html.twig', [
             'produits' => $produits,
             'search' => $search,
-            'recommendations' => $recommendations,
         ]);
     }
 
@@ -277,20 +301,17 @@ class BlogController extends AbstractController
     #[Route('/produit/{id}', name: 'app_front_detail_produit', methods: ['GET'])]
     public function detailProduit(string $id, ProduitRepository $produitRepository, CommentaireRepository $commentaireRepository): Response
     {
-        // Use optimized query with eager loaded comments
-        $produit = $produitRepository->findWithRelations((int)$id);
+        $produit = $produitRepository->find((int)$id);
 
         if (!$produit) {
             throw $this->createNotFoundException('Produit not found');
         }
 
-        // Get validated comments for the product (already eager loaded in findWithRelations)
-        $avis = $produit->getCommentaires()->filter(function($com) {
-            return $com->getStatut() === 'valide';
-        })->toArray();
-
-        // Sort by date descending
-        usort($avis, fn($a, $b) => $b->getDatePublication() <=> $a->getDatePublication());
+        // Get validated comments for the product
+        $avis = $commentaireRepository->findBy(
+            ['produit' => $produit, 'statut' => 'valide'],
+            ['date_publication' => 'DESC']
+        );
 
         return $this->render('blog/product_detail.html.twig', [
             'produit' => $produit,

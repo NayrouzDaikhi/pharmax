@@ -9,7 +9,7 @@
             <div class="card shadow-lg">
                 <div class="card-header bg-primary text-white">
                     <h3 class="mb-0">
-                        <i class="fas fa-robot"></i> Assistant ChatBot Pharmax  
+                        <i class="fas fa-robot"></i> Assistant ChatBot Pharmax
                     </h3>
                     <small>Posez vos questions sur nos articles et conseils de santé</small>
                 </div>
@@ -23,10 +23,10 @@
 
                 <div class="card-footer">
                     <form id="chat-form" class="d-flex gap-2">
-                        <input
-                            type="text"
-                            id="question-input"
-                            class="form-control"
+                        <input 
+                            type="text" 
+                            id="question-input" 
+                            class="form-control" 
                             placeholder="Posez votre question..."
                             autocomplete="off"
                             minlength="3"
@@ -48,8 +48,8 @@
             <!-- Info sur les sources -->
             <div id="sources-info" class="mt-3" style="display: none;">
                 <small class="text-muted">
-                    <i class="fas fa-lightbulb"></i>
-                    <strong>Sources utilisées:</strong>
+                    <i class="fas fa-lightbulb"></i> 
+                    <strong>Sources utilisées:</strong> 
                     <span id="sources-list"></span>
                 </small>
             </div>
@@ -100,7 +100,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const chatForm = document.getElementById('chat-form');
-        const questionInput = document.getElementById('question-input');        
+        const questionInput = document.getElementById('question-input');
         const sendBtn = document.getElementById('send-btn');
         const chatMessages = document.getElementById('chat-messages');
         const errorAlert = document.getElementById('error-alert');
@@ -209,9 +209,9 @@
 
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';
-            timeDiv.textContent = new Date().toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit'
+            timeDiv.textContent = new Date().toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
             });
 
             messageDiv.appendChild(timeDiv);

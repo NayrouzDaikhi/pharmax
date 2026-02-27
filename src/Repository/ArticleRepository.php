@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Article;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\ORM\Query;
 
 /**
  * @extends ServiceEntityRepository<Article>
@@ -18,68 +17,35 @@ class ArticleRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find articles with search functionality
+     * Chercher les articles par mots-clés
      */
-    public function findBySearch(?string $search = null, int $limit = null, int $offset = 0): array
+    public function searchByKeywords(array $keywords, int $limit = 5): array
     {
+        if (empty($keywords)) {
+            return [];
+        }
+
         $qb = $this->createQueryBuilder('a');
         
-        if (!empty($search)) {
-            $search = '%' . addcslashes($search, '%_\\') . '%';
-            $qb->where('a.titre LIKE :search')
-               ->orWhere('a.contenu LIKE :search')
-               ->orWhere('a.contenu_en LIKE :search')
-               ->setParameter('search', $search);
+        // Créer les conditions OR pour chaque mot-clé
+        $orConditions = [];
+        foreach ($keywords as $index => $keyword) {
+            $param = 'keyword_' . $index;
+            $orConditions[] = $qb->expr()->orX(
+                $qb->expr()->like('a.titre', ':' . $param),
+                $qb->expr()->like('a.contenu', ':' . $param),
+                $qb->expr()->like('a.contenuEn', ':' . $param)
+            );
+            $qb->setParameter($param, '%' . $keyword . '%');
         }
-        
-        $qb->orderBy('a.date_creation', 'DESC')
-           ->setFirstResult($offset);
-        
-        if ($limit !== null) {
-            $qb->setMaxResults($limit);
-        }
-        
-        return $qb->getQuery()->getResult();
-    }
 
-    /**
-     * Count articles with search
-     */
-    public function countBySearch(?string $search = null): int
-    {
-        $qb = $this->createQueryBuilder('a')
-            ->select('COUNT(a.id)');
-        
-        if (!empty($search)) {
-            $search = '%' . addcslashes($search, '%_\\') . '%';
-            $qb->where('a.titre LIKE :search')
-               ->orWhere('a.contenu LIKE :search')
-               ->orWhere('a.contenu_en LIKE :search')
-               ->setParameter('search', $search);
+        if (!empty($orConditions)) {
+            $qb->where($qb->expr()->orX(...$orConditions));
         }
-        
-        return (int) $qb->getQuery()->getSingleScalarResult();
-    }
 
-    /**
-     * Find recent articles
-     */
-    public function findRecent(int $limit = 5): array
-    {
-        return $this->createQueryBuilder('a')
-            ->orderBy('a.date_creation', 'DESC')
+        return $qb->orderBy('a.date_creation', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
-
-    /**
-     * Find all articles ordered by creation date
-     */
-    public function findAllOrdered(): array
-    {
-        return $this->createQueryBuilder('a')
-            ->orderBy('a.date_creation', 'DESC')
-            ->getQuery()
-            ->getResult();
-    }}
+}
