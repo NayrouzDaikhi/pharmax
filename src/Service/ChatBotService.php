@@ -120,12 +120,17 @@ class ChatBotService
                 // Better error message for user-friendly display
                 if (strpos($errorMsg, 'is not downloaded yet') !== false) {
                     $displayError = '⏳ Le modèle IA est en cours de téléchargement...' . "\n"
-                                  . 'Veuillez patienter quelques minutes et réessayer. ' . "\n"
-                                  . 'Détail technique: ' . $errorMsg;
+                                  . 'Veuillez patienter quelques minutes et réessayer.';
+                } elseif (strpos($errorMsg, 'Connection refused') !== false || strpos($errorMsg, 'Connection timed out') !== false) {
+                    $displayError = '🤖 Ollama n\'est pas en cours d\'exécution.' . "\n"
+                                  . 'Pour utiliser le ChatBot, lancez Ollama:' . "\n"
+                                  . '1. Téléchargez Ollama depuis ollama.ai' . "\n"
+                                  . '2. Exécutez: ollama pull mistral' . "\n"
+                                  . '3. Lancez le serveur: ollama serve' . "\n"
+                                  . 'Le ChatBot fonctionnera automatiquement.';
                 } else {
-                    $displayError = '⚠️ Les services Ollama AI ne sont pas disponibles. ' .
-                                  'Assurez-vous qu\'Ollama est en cours d\'exécution sur localhost:11434. ' .
-                                  'Détail: ' . $errorMsg;
+                    $displayError = '⚠️ Service Ollama indisponible.' . "\n"
+                                  . 'Détail: ' . substr($errorMsg, 0, 100);
                 }
                 
                 // Return error message - NO FALLBACK

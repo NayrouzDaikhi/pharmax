@@ -46,7 +46,16 @@ class OllamaService
             return $data['response'] ?? '';
         } catch (Exception $e) {
             error_log('OllamaService error: ' . $e->getMessage());
-            throw new Exception('Erreur lors de la communication avec Ollama: ' . $e->getMessage());
+            
+            // Provide better error messages for common issues
+            $msg = $e->getMessage();
+            if (strpos($msg, 'Connection refused') !== false) {
+                throw new Exception('Connection refused to Ollama at ' . $this->apiUrl . ':11434. Make sure Ollama is running with: ollama serve');
+            } elseif (strpos($msg, 'timed out') !== false) {
+                throw new Exception('Ollama API request timed out. The server might be busy or the model is still loading.');
+            } else {
+                throw new Exception('Erreur Ollama: ' . $msg);
+            }
         }
     }
 

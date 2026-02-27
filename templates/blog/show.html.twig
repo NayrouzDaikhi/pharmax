@@ -535,6 +535,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Check health on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        checkChatbotHealth();
+    });
+
+    async function checkChatbotHealth() {
+        try {
+            const response = await fetch('/chatbot/health', {
+                method: 'GET',
+                timeout: 5000
+            });
+            const data = await response.json();
+            
+            if (!data.api_configured) {
+                addChatbotMessage('⚠️ Le modèle IA Ollama n\'est pas configuré ou en cours d\'exécution.', 'warning');
+            }
+        } catch (error) {
+            // Silently fail on health check
+            console.log('Health check failed:', error);
+        }
+    }
+
     // Send message function
     async function sendChatbotMessage() {
         const question = chatbotInput.value.trim();
@@ -543,9 +565,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add user message
         addChatbotMessage(question, 'user');
         chatbotInput.value = '';
+        chatbotInput.disabled = true;
 
         // Show loading
         const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'chatbot-loading';
         loadingDiv.style.cssText = 'text-align: center; color: #999; padding: 10px; margin: 10px 0;';
         loadingDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recherche en cours...';
         chatbotMessages.appendChild(loadingDiv);
@@ -558,23 +582,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ 
                     question: question,
                     articleId: {{ article.id }}
-                })
+                }),
+                timeout: 30000
             });
 
-            chatbotMessages.removeChild(loadingDiv);
+            const loadingElement = document.getElementById('chatbot-loading');
+            if (loadingElement && loadingElement.parentNode) {
+                chatbotMessages.removeChild(loadingElement);
+            }
 
             const data = await response.json();
-            if (data.success) {
+            
+            if (response.ok && data.success) {
                 addChatbotMessage(data.answer, 'bot');
+                if (data.sources && data.sources.length > 0) {
+                    const sourceNames = data.sources.map(s => s.title).join(', ');
+                    addChatbotMessage('📚 Sources: ' + sourceNames, 'sources');
+                }
             } else {
-                addChatbotMessage('Erreur: ' + (data.error || 'Impossible de répondre'), 'error');
+                const errorMsg = data.error || 'Erreur inconnue';
+                console.error('API Error:', errorMsg);
+                addChatbotMessage(errorMsg, 'error');
             }
         } catch (error) {
-            chatbotMessages.removeChild(loadingDiv);
-            addChatbotMessage('Erreur de connexion', 'error');
+            console.error('Network Error:', error);
+            const loadingElement = document.getElementById('chatbot-loading');
+            if (loadingElement && loadingElement.parentNode) {
+                chatbotMessages.removeChild(loadingElement);
+            }
+            
+            let errorMessage = '❌ Erreur de connexion au serveur';
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                errorMessage = '❌ Impossible de se connecter au serveur. Assurez-vous que le serveur Symfony est en cours d\'exécution.';
+            }
+            addChatbotMessage(errorMessage, 'error');
+        } finally {
+            chatbotInput.disabled = false;
+            chatbotInput.focus();
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
         }
-
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
     }
 
     function addChatbotMessage(text, type) {
@@ -584,17 +630,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (type === 'user') {
             div.style.cssText = 'text-align: right; margin-bottom: 12px;';
-            div.innerHTML = `<span style="background: #5ea96b; color: white; padding: 10px 14px; border-radius: 18px 4px 18px 18px; display: inline-block; max-width: 85%; word-wrap: break-word; font-size: 13px;">${text}</span>`;
+            div.innerHTML = `<span style="background: #5ea96b; color: white; padding: 10px 14px; border-radius: 18px 4px 18px 18px; display: inline-block; max-width: 85%; word-wrap: break-word; font-size: 13px;">${escapeHtml(text)}</span>`;
         } else if (type === 'bot') {
             div.style.cssText = 'text-align: left; margin-bottom: 12px;';
-            div.innerHTML = `<span style="background: #e9ecef; color: #333; padding: 10px 14px; border-radius: 4px 18px 18px 4px; display: inline-block; max-width: 85%; word-wrap: break-word; font-size: 13px;">${text.replace(/\n/g, '<br>')}</span>`;
+            div.innerHTML = `<span style="background: #e9ecef; color: #333; padding: 10px 14px; border-radius: 4px 18px 18px 4px; display: inline-block; max-width: 85%; word-wrap: break-word; font-size: 13px;">${escapeHtml(text).replace(/\n/g, '<br>')}</span>`;
+        } else if (type === 'sources') {
+            div.style.cssText = 'text-align: left; margin-bottom: 12px;';
+            div.innerHTML = `<span style="background: #e3f2fd; color: #1565c0; padding: 10px 14px; border-radius: 4px 18px 18px 4px; display: inline-block; max-width: 85%; word-wrap: break-word; font-size: 12px;">${escapeHtml(text)}</span>`;
+        } else if (type === 'warning') {
+            div.style.cssText = 'text-align: left; margin-bottom: 12px;';
+            div.innerHTML = `<span style="background: #fff3cd; color: #856404; padding: 10px 14px; border-radius: 4px 18px 18px 4px; display: inline-block; max-width: 90%; word-wrap: break-word; font-size: 13px; border-left: 4px solid #ffc107;">${escapeHtml(text).replace(/\n/g, '<br>')}</span>`;
         } else {
             div.style.cssText = 'text-align: left; margin-bottom: 12px;';
-            div.innerHTML = `<span style="background: #ffebee; color: #c62828; padding: 10px 14px; border-radius: 4px 18px 18px 4px; display: inline-block; max-width: 85%; word-wrap: break-word; font-size: 13px;"><i class="fas fa-exclamation-circle"></i> ${text}</span>`;
+            div.innerHTML = `<span style="background: #ffebee; color: #c62828; padding: 10px 14px; border-radius: 4px 18px 18px 4px; display: inline-block; max-width: 85%; word-wrap: break-word; font-size: 13px; border-left: 4px solid #f44336;"><i class="fas fa-exclamation-circle"></i> ${escapeHtml(text).replace(/\n/g, '<br>')}</span>`;
         }
 
         chatbotMessages.appendChild(div);
         chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // Add CSS animation
