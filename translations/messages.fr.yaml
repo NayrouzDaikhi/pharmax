@@ -53,6 +53,8 @@ Status: Statut
 Approved: Approuvé
 Pending: En attente
 Blocked: Bloqué
+"En Stock": "En Stock"
+"Hors Stock": "Hors Stock"
 "All Comments": "Tous les commentaires"
 "No comments found.": "Aucun commentaire trouvé."
 
@@ -106,6 +108,23 @@ Modify: Modifier
 
 # Article Actions
 "Read Later": "Lire plus tard"
+"Saved": "Sauvegardé"
+"My Saved Articles": "Mes articles sauvegardés"
+"Articles saved for reading later": "Articles sauvegardés pour lecture ultérieure"
+"You have no saved articles yet.": "Vous n'avez pas encore d'articles sauvegardés."
+"Browse Articles": "Parcourir les articles"
+"Check": "Cocher"
+"Draft": "Brouillon"
+"Publish": "Publier"
+"Unpublish": "Dépublier"
+"Translate to English": "Traduire en anglais"
+"French": "Français"
+"English": "Anglais"
+"Delete Article": "Supprimer l'article"
+"Once you delete an article, there is no going back. Please be certain.": "Une fois que vous supprimez un article, il n'y a pas de retour en arrière. Veuillez être certain."
+"Delete Permanently": "Supprimer définitivement"
+"Remove from saved": "Retirer de la sauvegarde"
+"Pharmax Content Management System for managing articles and comments with a beautiful blog interface.": "Système de gestion de contenu Pharmax pour gérer les articles et commentaires avec une belle interface de blog."
 "articles selected": "articles sélectionnés"
 "No articles selected": "Aucun article sélectionné"
 "articles will be deleted. Continue?": "articles seront supprimés. Continuer ?"
@@ -121,3 +140,5 @@ Modify: Modifier
 "No archived comments found.": "Aucun commentaire archivé trouvé."
 "No archived comments selected": "Aucun commentaire archivé sélectionné"
 "archived comments will be deleted. Continue?": "commentaires archivés seront supprimés. Continuer ?"
+article_published: "a été publié"
+article_saved_draft: "a été enregistré comme brouillon"

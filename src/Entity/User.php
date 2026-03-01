@@ -64,9 +64,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Commande::class, cascade: ['persist', 'remove'])]
     private Collection $commandes;
 
+    /**
+     * @var Collection<int, Article>
+     */
+    #[ORM\ManyToMany(targetEntity: Article::class)]
+    #[ORM\JoinTable(name: 'user_saved_articles')]
+    private Collection $savedArticles;
+
     public function __construct()
     {
         $this->commandes = new ArrayCollection();
+        $this->savedArticles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -258,6 +266,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Article>
+     */
+    public function getSavedArticles(): Collection
+    {
+        return $this->savedArticles;
+    }
+
+    public function addSavedArticle(Article $article): static
+    {
+        if (!$this->savedArticles->contains($article)) {
+            $this->savedArticles->add($article);
+        }
+
+        return $this;
+    }
+
+    public function removeSavedArticle(Article $article): static
+    {
+        $this->savedArticles->removeElement($article);
+
+        return $this;
+    }
+
+    public function hasSavedArticle(Article $article): bool
+    {
+        return $this->savedArticles->contains($article);
     }
 
         /**

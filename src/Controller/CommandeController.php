@@ -95,8 +95,11 @@ class CommandeController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_commande_show', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function show(?Commande $commande, CommandeQrCodeService $qrCodeService): Response
+    public function show(int $id, CommandeRepository $commandeRepository, CommandeQrCodeService $qrCodeService): Response
     {
+        // Explicitly read the ID from the URL and fetch the command
+        $commande = $commandeRepository->find($id);
+        
         if (!$commande) {
             throw $this->createNotFoundException('La commande n\'existe pas.');
         }
@@ -133,8 +136,11 @@ class CommandeController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_commande_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function edit(Request $request, ?Commande $commande, EntityManagerInterface $entityManager): Response
+    public function edit(int $id, Request $request, CommandeRepository $commandeRepository, EntityManagerInterface $entityManager): Response
     {
+        // Explicitly read the ID from the URL and fetch the command
+        $commande = $commandeRepository->find($id);
+        
         if (!$commande) {
             throw $this->createNotFoundException('La commande n\'existe pas.');
         }
@@ -157,8 +163,11 @@ class CommandeController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_commande_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function delete(Request $request, ?Commande $commande, EntityManagerInterface $entityManager): Response
+    public function delete(int $id, Request $request, CommandeRepository $commandeRepository, EntityManagerInterface $entityManager): Response
     {
+        // Explicitly read the ID from the URL and fetch the command
+        $commande = $commandeRepository->find($id);
+        
         if (!$commande) {
             throw $this->createNotFoundException('La commande n\'existe pas.');
         }
@@ -250,8 +259,11 @@ class CommandeController extends AbstractController
     }
 
     #[Route('/{id}/pdf', name: 'app_commande_pdf', methods: ['GET'], requirements: ['id' => '\d+'])]
-    public function pdf(?Commande $commande, CommandeQrCodeService $qrCodeService): Response
+    public function pdf(int $id, CommandeRepository $commandeRepository, CommandeQrCodeService $qrCodeService): Response
     {
+        // Explicitly read the ID from the URL and fetch the command
+        $commande = $commandeRepository->find($id);
+        
         if (!$commande) {
             throw $this->createNotFoundException('La commande n\'existe pas.');
         }
@@ -342,7 +354,7 @@ class CommandeController extends AbstractController
                 number_format($commande->getTotales(), 2, ',', ' '),
                 ucfirst(str_replace('_', ' ', $commande->getStatut())),
                 $commande->getCreatedAt()->format('d/m/Y H:i'),
-                count($commande->getLigneCommandes()),
+                count($commande->getLignes()),
             ], ',');
         }
 
@@ -364,8 +376,11 @@ class CommandeController extends AbstractController
     }
 
     #[Route('/frontend/{id}', name: 'app_frontend_commande_show', requirements: ['id' => '\d+'])]
-    public function showFrontend(?Commande $commande, CommandeQrCodeService $qrCodeService): Response
+    public function showFrontend(int $id, CommandeRepository $commandeRepository, CommandeQrCodeService $qrCodeService): Response
     {
+        // Explicitly read the ID from the URL and fetch the command
+        $commande = $commandeRepository->find($id);
+        
         if (!$commande) {
             throw $this->createNotFoundException('La commande demandée n\'existe pas.');
         }

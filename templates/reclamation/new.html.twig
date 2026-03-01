@@ -14,6 +14,10 @@
                                 <i class="bx bx-message-square-add"></i> Nouvelle Réclamation
                             </h1>
 
+                          {% if errors.duplicate is defined %}
+                            <div class="alert alert-danger">{{ errors.duplicate }}</div>
+                          {% endif %}
+
                             <form method="POST" action="{{ path('frontend_reclamation_new') }}" id="reclamationForm" novalidate>
                                 <div class="mb-3">
                                     <label for="titre" class="form-label fw-bold">Titre <span class="text-danger">*</span></label>

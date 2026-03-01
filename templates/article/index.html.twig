@@ -28,6 +28,17 @@
                 <input type="text" name="search" class="form-control" placeholder="{{'Search articles...'|trans}}" value="{{ searchQuery }}">
             </div>
             <div>
+                <select name="status" class="form-select" onchange="this.form.submit();">
+                    <option value="">{{'All Articles'|trans}}</option>
+                    <option value="draft" {% if statusFilter == 'draft' %}selected{% endif %}>
+                        {{'Drafts'|trans}}
+                    </option>
+                    <option value="published" {% if statusFilter == 'published' %}selected{% endif %}>
+                        {{'Published'|trans}}
+                    </option>
+                </select>
+            </div>
+            <div>
                 <select name="sort_order" class="form-select" onchange="document.getElementById('sortBy').value='date'; this.form.submit();">
                     <option value="" disabled selected>{{'Sort by Date'|trans}}</option>
                     <option value="desc" {% if sortOrder == 'desc' and sortBy == 'date' %}selected{% endif %}>
@@ -134,6 +145,7 @@
                         </a>
                     </th>
                     <th>{{'Image'|trans}}</th>
+                    <th>{{'Status'|trans}}</th>
                     <th style="cursor: pointer;">
                         <a href="#" class="sortable-header" data-sort="comments" style="text-decoration: none; color: inherit;">
                             {{'Comments count'|trans}}
@@ -174,6 +186,17 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if article.isDraft %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bx bx-draft"></i> {{'Draft'|trans}}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success">
+                                    <i class="bx bx-check-circle"></i> {{'Published'|trans}}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
                             <span class="badge badge-info">{{ article.commentaires|length }}</span>
                         </td>
                         <td>
@@ -187,6 +210,18 @@
                                 <a href="{{ path('app_article_edit', {'id': article.id}) }}" class="btn btn-sm btn-warning" title="{{'Edit'|trans}}">
                                     <i class="bx bx-edit"></i>
                                 </a>
+                                <form method="post" action="{{ path('app_article_toggle_publish', {'id': article.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle_publish' ~ article.id) }}">
+                                    {% if article.isDraft %}
+                                        <button type="submit" class="btn btn-sm btn-success" title="{{'Publish'|trans}}">
+                                            <i class="bx bx-cloud-upload"></i>
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-info" title="{{'Unpublish'|trans}}">
+                                            <i class="bx bx-arrow-back"></i>
+                                        </button>
+                                    {% endif %}
+                                </form>
                                 <a href="{{ path('app_article_delete', {'id': article.id}) }}" class="btn btn-sm btn-danger" title="{{'Delete'|trans}}" onclick="return confirm('{{'Delete this article?'|trans}}');">
                                     <i class="bx bx-trash"></i>
                                 </a>

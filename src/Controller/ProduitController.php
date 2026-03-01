@@ -184,6 +184,11 @@ final class ProduitController extends AbstractController
                 }
             }
 
+            // Ensure the product is managed by Doctrine before flushing
+            if (!$entityManager->contains($produit)) {
+                $produit = $entityManager->merge($produit);
+            }
+            
             $entityManager->flush();
             $this->addFlash('success', 'Produit modifié avec succès!');
             return $this->redirectToRoute('app_produit_show', ['id' => $produit->getId()], Response::HTTP_SEE_OTHER);
@@ -257,12 +262,6 @@ final class ProduitController extends AbstractController
 
         if ($imageFile->getSize() > $maxFileSize) {
             $errors[] = 'La taille du fichier image ne doit pas dépasser 5 MB.';
-        }
-
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-        $extension = strtolower($imageFile->guessExtension());
-        if (!in_array($extension, $allowedExtensions)) {
-            $errors[] = 'Le format d\'image n\'est pas autorisé. Formats acceptés: JPG, PNG, GIF.';
         }
 
         return $errors;

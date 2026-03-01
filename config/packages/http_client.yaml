@@ -1,0 +1,6 @@
+framework:
+    http_client:
+        default_options:
+            timeout: 120
+            headers:
+                User-Agent: 'Pharmax Chatbot/1.0'

@@ -28,7 +28,7 @@ class CommandeType extends AbstractType
             
             // Montant total
             ->add('totales', NumberType::class, [
-                'label' => 'Montant total (TND)',
+                'label' => 'Montant total (EUR)',
                 'scale' => 2,
                 'data_class' => null,
             ])

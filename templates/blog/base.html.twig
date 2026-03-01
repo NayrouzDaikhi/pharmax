@@ -624,18 +624,84 @@
     }
 
     function toggleReadLater(articleId, button) {
-        const readLater = getReadLater();
-        const index = readLater.indexOf(parseInt(articleId));
+        // Check if user is authenticated by looking for a user indicator
+        const isAuthenticated = document.body.getAttribute('data-user-authenticated') === 'true' || !!document.querySelector('[data-user-authenticated="true"]');
         
-        if (index > -1) {
-            readLater.splice(index, 1);
-            button.classList.remove('active');
+        if (isAuthenticated) {
+            // Use server-side API for authenticated users
+            const isSaved = button.classList.contains('active');
+            const endpoint = isSaved ? `/blog/unsave-article/${articleId}` : `/blog/save-article/${articleId}`;
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.saved) {
+                        button.classList.add('active');
+                        button.querySelector('.read-later-text').textContent = "{{ 'Saved'|trans }}";
+                    } else {
+                        button.classList.remove('active');
+                        button.querySelector('.read-later-text').textContent = "{{ 'Read Later'|trans }}";
+                    }
+                    updateSavedCount();
+                }
+            })
+            .catch(error => console.error('Error:', error));
         } else {
-            readLater.push(parseInt(articleId));
-            button.classList.add('active');
+            // Use localStorage for anonymous users
+            const readLater = getReadLater();
+            const index = readLater.indexOf(parseInt(articleId));
+            
+            if (index > -1) {
+                readLater.splice(index, 1);
+                button.classList.remove('active');
+                button.querySelector('.read-later-text').textContent = "{{ 'Read Later'|trans }}";
+            } else {
+                readLater.push(parseInt(articleId));
+                button.classList.add('active');
+                button.querySelector('.read-later-text').textContent = "{{ 'Saved'|trans }}";
+            }
+            
+            saveReadLater(readLater);
         }
+    }
+
+    function updateSavedCount() {
+        const isAuthenticated = document.body.getAttribute('data-user-authenticated') === 'true';
+        const countEl = document.getElementById('saved-count');
         
-        saveReadLater(readLater);
+        if (!countEl) return;
+        
+        if (isAuthenticated) {
+            fetch('/blog/saved-articles', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.count && data.count > 0) {
+                    countEl.textContent = data.count;
+                    countEl.style.display = 'inline';
+                } else {
+                    countEl.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            const readLater = getReadLater();
+            if (readLater.length > 0) {
+                countEl.textContent = readLater.length;
+                countEl.style.display = 'inline';
+            } else {
+                countEl.style.display = 'none';
+            }
+        }
     }
 
     function updateLikesDisplay() {
@@ -660,8 +726,10 @@
             const articleId = btn.dataset.articleId;
             if (readLater.includes(parseInt(articleId))) {
                 btn.classList.add('active');
+                btn.querySelector('.read-later-text').textContent = "{{ 'Saved'|trans }}";
             } else {
                 btn.classList.remove('active');
+                btn.querySelector('.read-later-text').textContent = "{{ 'Read Later'|trans }}";
             }
         });
     }
@@ -669,6 +737,7 @@
     // Initialize likes on page load
     document.addEventListener('DOMContentLoaded', function() {
         updateLikesDisplay();
+        updateSavedCount();
     });
 </script>
 {% endblock %}

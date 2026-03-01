@@ -344,7 +344,7 @@
         }
     </style>
 </head>
-<body>
+<body data-user-authenticated="{{ is_granted('ROLE_USER') ? 'true' : 'false' }}">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-xxl">
@@ -372,6 +372,13 @@
                             <i class="bx bx-news"></i> Blog
                         </a>
                     </li>
+                    {% if is_granted('ROLE_USER') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_blog_saved_articles') }}" title="{{'My Saved Articles'|trans}}">
+                            <i class="bx bx-bookmark"></i> <span id="saved-count" style="display: none;"></span>
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('frontend_reclamation_index') }}">
                             <i class="bx bx-message-square"></i> Réclamations

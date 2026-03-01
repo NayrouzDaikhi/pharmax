@@ -41,7 +41,7 @@ class StripeService
                         'name' => $item['name'],
                         'description' => $item['description'] ?? null,
                     ],
-                    'unit_amount' => (int) ($item['price'] * 100), // Amount in cents
+                    'unit_amount' => (int) ($item['price'] * 100), // Amount in cents (EUR has 2 decimals)
                 ],
                 'quantity' => $item['quantity'],
             ];

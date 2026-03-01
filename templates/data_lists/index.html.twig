@@ -124,7 +124,6 @@
                                                 <th>{{ 'Prix'|trans }}</th>
                                                 <th>{{ 'Stock'|trans }}</th>
                                                 <th>{{ 'Catégorie'|trans }}</th>
-                                                <th>{{ 'Statut'|trans }}</th>
                                                 <th>{{ 'Actions'|trans }}</th>
                                             </tr>
                                         </thead>
@@ -147,13 +146,6 @@
                                                             <span class="badge bg-secondary">{{ produit.categorie.nom }}</span>
                                                         {% else %}
                                                             <span class="text-muted">-</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        {% if produit.statut %}
-                                                            <span class="badge bg-success">{{ 'Actif'|trans }}</span>
-                                                        {% else %}
-                                                            <span class="badge bg-secondary">{{ 'Inactif'|trans }}</span>
                                                         {% endif %}
                                                     </td>
                                                     <td>

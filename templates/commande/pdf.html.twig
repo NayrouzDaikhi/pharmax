@@ -35,9 +35,9 @@
         <thead>
             <tr>
                 <th>Produit</th>
-                <th class="right">Prix (TND)</th>
+                <th class="right">Prix (EUR)</th>
                 <th class="right">Quantité</th>
-                <th class="right">Sous-total (TND)</th>
+                <th class="right">Sous-total (EUR)</th>
             </tr>
         </thead>
         <tbody>
@@ -66,7 +66,7 @@
         <tfoot>
             <tr>
                 <td colspan="3" class="right total">Total</td>
-                <td class="right total">{{ commande.totales|number_format(2, ',', ' ') }} TND</td>
+                <td class="right total">{{ commande.totales|number_format(2, ',', ' ') }} EUR</td>
             </tr>
         </tfoot>
     </table>

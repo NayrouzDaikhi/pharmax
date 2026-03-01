@@ -126,7 +126,7 @@ class OllamaService
                     'top_k' => $params['top_k'],
                     'repeat_penalty' => $params['repeat_penalty'],
                 ],
-                'timeout' => 60, // Ollama can be slow on first response
+                'timeout' => 120, // Ollama can be slow on first response, increased from 60 to 120
             ]);
 
             $statusCode = $response->getStatusCode();

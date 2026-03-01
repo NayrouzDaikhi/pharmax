@@ -26,7 +26,7 @@ final class HomeController extends AbstractController
         $recentProduits = $produitRepository->findBy([], ['id' => 'DESC'], 10);
         
         // Get recent articles sorted by date creation descending
-        $recentArticles = $articleRepository->findBy([], ['created_at' => 'DESC'], 6);
+        $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 6);
         
         // Get top 6 popular products (just use recent for now - no N+1 queries)
         $populaireProduits = $produitRepository->findBy(['statut' => true], ['id' => 'DESC'], 6);

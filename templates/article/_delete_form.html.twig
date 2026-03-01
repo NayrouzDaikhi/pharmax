@@ -1,15 +1,15 @@
 <div class="card border-danger border-2">
     <div class="card-header bg-danger bg-opacity-10">
         <h5 class="mb-0 text-danger">
-            <i class="bx bx-trash"></i> Delete Article
+            <i class="bx bx-trash"></i> {{'Delete Article'|trans}}
         </h5>
     </div>
     <div class="card-body">
-        <p class="text-muted mb-3">Once you delete an article, there is no going back. Please be certain.</p>
+        <p class="text-muted mb-3">{{'Once you delete an article, there is no going back. Please be certain.'|trans}}</p>
         <form method="post" action="{{ path('app_article_delete', {'id': article.id}) }}" style="display: inline;">
             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
             <button type="submit" class="btn btn-danger" data-confirm-delete>
-                <i class="bx bx-trash me-2"></i> Delete Permanently
+                <i class="bx bx-trash me-2"></i> {{'Delete Permanently'|trans}}
             </button>
         </form>
     </div>

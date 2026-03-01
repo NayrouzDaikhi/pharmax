@@ -31,6 +31,11 @@ class BlogController extends AbstractController
         
         $articles = $articleRepository->findAll();
         
+        // Filter out draft articles - only show published articles
+        $articles = array_filter($articles, function($article) {
+            return !$article->isDraft();
+        });
+        
         // Filter articles by search query
         if (!empty($searchQuery)) {
             $articles = array_filter($articles, function($article) use ($searchQuery) {
@@ -75,6 +80,11 @@ class BlogController extends AbstractController
         
         $articles = $articleRepository->findAll();
         
+        // Filter out draft articles - only show published articles
+        $articles = array_filter($articles, function($article) {
+            return !$article->isDraft();
+        });
+        
         // Filter articles by search query
         if (!empty($searchQuery)) {
             $articles = array_filter($articles, function($article) use ($searchQuery) {
@@ -113,19 +123,19 @@ class BlogController extends AbstractController
         ]);
     }
 
-    #[Route('/blog/{id}', name: 'app_blog_show', methods: ['GET'])]
+    #[Route('/blog/{id<\d+>}', name: 'app_blog_show', methods: ['GET'])]
     public function show(int $id, ArticleRepository $articleRepository): Response
     {
         $article = $articleRepository->find($id);
 
-        if (!$article) {
+        if (!$article || $article->isDraft()) {
             throw $this->createNotFoundException('Article not found');
         }
 
         // Get recommended/recent articles (excluding the current article)
         $recentArticles = $articleRepository->findBy([], ['date_creation' => 'DESC'], 5);
         $recommendedArticles = array_filter($recentArticles, function($a) use ($article) {
-            return $a->getId() !== $article->getId();
+            return $a->getId() !== $article->getId() && !$a->isDraft();
         });
         // Limit to 4 articles for sidebar
         $recommendedArticles = array_slice($recommendedArticles, 0, 4);
@@ -136,7 +146,7 @@ class BlogController extends AbstractController
         ]);
     }
 
-    #[Route('/blog/{id}/translate', name: 'app_blog_translate', methods: ['POST'])]
+    #[Route('/blog/{id<\d+>}/translate', name: 'app_blog_translate', methods: ['POST'])]
     public function translate(
         int $id,
         ArticleRepository $articleRepository,
@@ -146,7 +156,7 @@ class BlogController extends AbstractController
     {
         $article = $articleRepository->find($id);
 
-        if (!$article) {
+        if (!$article || $article->isDraft()) {
             throw $this->createNotFoundException('Article not found');
         }
 
@@ -165,12 +175,12 @@ class BlogController extends AbstractController
         ]);
     }
 
-    #[Route('/blog/{id}/like', name: 'app_blog_like', methods: ['POST'])]
+    #[Route('/blog/{id<\d+>}/like', name: 'app_blog_like', methods: ['POST'])]
     public function likeArticle(int $id, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): JsonResponse
     {
         $article = $articleRepository->find($id);
 
-        if (!$article) {
+        if (!$article || $article->isDraft()) {
             return new JsonResponse(['error' => 'Article not found'], 404);
         }
 
@@ -183,12 +193,12 @@ class BlogController extends AbstractController
         ]);
     }
 
-    #[Route('/blog/{id}/unlike', name: 'app_blog_unlike', methods: ['POST'])]
+    #[Route('/blog/{id<\d+>}/unlike', name: 'app_blog_unlike', methods: ['POST'])]
     public function unlikeArticle(int $id, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): JsonResponse
     {
         $article = $articleRepository->find($id);
 
-        if (!$article) {
+        if (!$article || $article->isDraft()) {
             return new JsonResponse(['error' => 'Article not found'], 404);
         }
 
@@ -209,7 +219,7 @@ class BlogController extends AbstractController
         
         $article = $articleRepository->find($id);
 
-        if (!$article) {
+        if (!$article || $article->isDraft()) {
             throw $this->createNotFoundException('Article not found');
         }
 
@@ -387,5 +397,67 @@ class BlogController extends AbstractController
                 'statut' => $commentaire->getStatut(),
             ]
         ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/blog/save-article/{id<\d+>}', name: 'app_blog_save_article', methods: ['POST'])]
+    public function saveArticle(int $id, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
+
+        $article = $articleRepository->find($id);
+        if (!$article || $article->isDraft()) {
+            return new JsonResponse(['error' => 'Article not found'], 404);
+        }
+
+        if (!$user->hasSavedArticle($article)) {
+            $user->addSavedArticle($article);
+            $entityManager->flush();
+        }
+
+        return new JsonResponse(['success' => true, 'saved' => true]);
+    }
+
+    #[Route('/blog/unsave-article/{id<\d+>}', name: 'app_blog_unsave_article', methods: ['POST'])]
+    public function unsaveArticle(int $id, ArticleRepository $articleRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'Unauthorized'], 401);
+        }
+
+        $article = $articleRepository->find($id);
+        if (!$article) {
+            return new JsonResponse(['error' => 'Article not found'], 404);
+        }
+
+        if ($user->hasSavedArticle($article)) {
+            $user->removeSavedArticle($article);
+            $entityManager->flush();
+        }
+
+        return new JsonResponse(['success' => true, 'saved' => false]);
+    }
+
+    #[Route('/blog/saved-articles', name: 'app_blog_saved_articles', methods: ['GET'])]
+    public function savedArticles(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        
+        $user = $this->getUser();
+        $savedArticles = $user->getSavedArticles()->toArray();
+
+        // Sort articles by newest first
+        usort($savedArticles, function($a, $b) {
+            $dateA = $a->getDateCreation() ? $a->getDateCreation()->getTimestamp() : 0;
+            $dateB = $b->getDateCreation() ? $b->getDateCreation()->getTimestamp() : 0;
+            return $dateB <=> $dateA;
+        });
+
+        return $this->render('blog/saved_articles.html.twig', [
+            'articles' => $savedArticles,
+        ]);
     }
 }

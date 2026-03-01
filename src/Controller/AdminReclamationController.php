@@ -256,9 +256,8 @@ Please generate a professional, empathetic, and helpful response to resolve this
 Write the response in French, professionally formatted with proper greeting and closing.
 PROMPT;
 
-            $aiResponse = $this->geminiService->generateText($prompt, [
+            $aiResponse = $this->geminiService->generate($prompt, [
                 'temperature' => 0.7,
-                'maxOutputTokens' => 500,
             ]);
 
             // Log the generated response

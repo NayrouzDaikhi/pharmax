@@ -39,13 +39,6 @@ class ProduitType extends AbstractType
                 'constraints' => [
                     new File([
                         'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                            'image/gif',
-                            'image/webp',
-                        ],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG, PNG, GIF, WebP)',
                     ])
                 ],
             ])
@@ -58,8 +51,10 @@ class ProduitType extends AbstractType
             ->add('statut', ChoiceType::class, [
                 'label' => 'État du Stock',
                 'choices' => [
+                    'En Stock' => true,
                     'Hors Stock' => false,
                 ],
+                'choice_translation_domain' => 'messages',
                 'attr' => ['class' => 'form-select'],
             ])
             ->add('categorie', EntityType::class, [

@@ -32,7 +32,7 @@ class ArticleSearchService
             // Si pas de termes, retourner les articles récents
             return $this->articleRepository->findBy(
                 [],
-                ['created_at' => 'DESC'],
+                ['date_creation' => 'DESC'],
                 $limit
             );
         }

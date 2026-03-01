@@ -25,6 +25,35 @@ class GeminiService
         }
     }
 
+    /**
+     * Generate text using Gemini API with custom prompt
+     */
+    public function generate(string $prompt, array $options = []): string
+    {
+        try {
+            $response = $this->client->request(
+                'POST',
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='.$this->apiKey,
+                [
+                    'json' => [
+                        'contents' => [
+                            [
+                                'parts' => [
+                                    ['text' => $prompt]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            );
+
+            $data = $response->toArray();
+            return $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        } catch (\Exception $e) {
+            throw new \Exception('Gemini API error: ' . $e->getMessage());
+        }
+    }
+
     private function callGeminiApi($productName, $days): string
     {
         $prompt = "Génère un message professionnel pour informer qu'un produit nommé $productName expire dans $days jours. Ajoute recommandation.";

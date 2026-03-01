@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Validator\Constraints\File;
 
 class ArticleType extends AbstractType
@@ -27,6 +28,20 @@ class ArticleType extends AbstractType
                     ])
                 ],
                 ])
+            ->add('saveDraft', SubmitType::class, [
+                'label' => 'Enregistrer le brouillon',
+                'attr' => [
+                    'class' => 'btn btn-secondary',
+                    'icon' => 'bx bx-save',
+                ]
+            ])
+            ->add('publish', SubmitType::class, [
+                'label' => 'Publier maintenant',
+                'attr' => [
+                    'class' => 'btn btn-primary',
+                    'icon' => 'bx bx-upload',
+                ]
+            ])
         ;
     }
 

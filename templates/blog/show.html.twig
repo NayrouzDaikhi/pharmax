@@ -33,16 +33,16 @@
             {% if not article.contenuEn %}
                 <form method="post" action="{{ path('app_blog_translate', {id: article.id}) }}" style="display: inline;">
                     <button type="submit" class="translate-btn" style="display: inline-flex; align-items: center; gap: 8px; background-color: #5ea96b; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;">
-                        <i class="fas fa-globe"></i> Translate to English
+                        <i class="fas fa-globe"></i> {{'Translate to English'|trans}}
                     </button>
                 </form>
             {% else %}
                 <div style="display: flex; gap: 8px;">
                     <button id="lang-fr-btn" class="lang-btn" style="display: inline-flex; align-items: center; gap: 8px; background-color: #5ea96b; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onclick="switchLanguage('fr')">
-                        <i class="fas fa-flag"></i> Français
+                        <i class="fas fa-flag"></i> {{'French'|trans}}
                     </button>
                     <button id="lang-en-btn" class="lang-btn" style="display: inline-flex; align-items: center; gap: 8px; background-color: #d3d3d3; color: #333; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; transition: all 0.3s ease;" onclick="switchLanguage('en')">
-                        <i class="fas fa-globe"></i> English
+                        <i class="fas fa-globe"></i> {{'English'|trans}}
                     </button>
                 </div>
             {% endif %}
@@ -61,9 +61,9 @@
         
         <!-- Article Categories -->
         <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0f0f0;">
-            <span style="color: #5ea96b; font-weight: 700;">Categories:</span>
+            <span style="color: #5ea96b; font-weight: 700;">{{'Categories'|trans}}:</span>
             <span style="display: inline-block; background-color: #5ea96b; color: white; padding: 5px 12px; margin-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;">
-                Blog
+                {{'Blog'|trans}}
             </span>
         </div>
     </article>
@@ -76,7 +76,7 @@
                 {{'About Author'|trans}}
             </h4>
             <p style="color: #656565; font-size: 13px; line-height: 1.6; margin: 0;">
-                Pharmax Content Management System for managing articles and comments with a beautiful blog interface.
+                {{'Pharmax Content Management System for managing articles and comments with a beautiful blog interface.'|trans}}
             </p>
         </div>
         

@@ -24,7 +24,9 @@ class PanierController extends AbstractController
     public function index(Request $request): Response
     {
         // Require user to be authenticated
-        $this->denyAccessUnlessGranted('ROLE_USER');
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_login');
+        }
         
         $session = $request->getSession();
         if (!$session->isStarted()) {
@@ -68,7 +70,9 @@ class PanierController extends AbstractController
     public function ajouter(int $id, Request $request, ProduitRepository $produitRepository): Response
     {
         // Require user to be authenticated
-        $this->denyAccessUnlessGranted('ROLE_USER');
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_login');
+        }
         
         $produit = $produitRepository->find($id);
 
@@ -210,10 +214,14 @@ class PanierController extends AbstractController
         ProduitRepository $produitRepository,
         MailerInterface $mailer,
         FraudDetectionService $fraudDetectionService,
+        \Psr\Log\LoggerInterface $logger,
     ): Response
     {
+        $logger->info('=== START COMMAND CREATION ===');
         // Require user to be authenticated
-        $this->denyAccessUnlessGranted('ROLE_USER');
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_login');
+        }
         
         $user = $this->getUser();
         
@@ -246,8 +254,23 @@ class PanierController extends AbstractController
 
         $form = $this->createForm(LivraisonType::class, $livraison);
         $form->handleRequest($request);
+        
+        $logger->info('Form submission status', [
+            'is_submitted' => $form->isSubmitted(),
+            'is_valid' => $form->isValid(),
+        ]);
 
         if (!$form->isSubmitted() || !$form->isValid()) {
+            if ($form->isSubmitted() && !$form->isValid()) {
+                $errors = [];
+                foreach ($form->getErrors(true) as $error) {
+                    $errors[] = $error->getMessage();
+                }
+                $logger->warning('Form validation failed', [
+                    'errors' => $errors,
+                ]);
+            }
+            
             foreach ($panier as $item) {
                 $total += $item['prix'] * $item['quantite'];
             }
@@ -263,6 +286,11 @@ class PanierController extends AbstractController
         $commande = new Commande();
         // Associate the order with the authenticated user
         $commande->setUtilisateur($user);
+        
+        $logger->info('Commande entity created', [
+            'utilisateur_id' => $user->getId(),
+            'commande_id_before_persist' => $commande->getId(),
+        ]);
 
         foreach ($panier as $item) {
             $sous = $item['prix'] * $item['quantite'];
@@ -286,6 +314,9 @@ class PanierController extends AbstractController
         if ($risk >= 70) {
             // commande bloquée pour vérification par un administrateur
             $commande->setStatut('bloquee');
+        } else {
+            // Normal order - set status to pending
+            $commande->setStatut('en_attente');
         }
 
         $em->persist($commande);
@@ -293,8 +324,87 @@ class PanierController extends AbstractController
         // Associer et enregistrer la livraison
         $livraison->setCommande($commande);
         $em->persist($livraison);
+        
+        $logger->info('Entities marked for persist before flush', [
+            'commande_id' => $commande->getId(),
+            'livraison_id' => $livraison->getId(),
+        ]);
 
-        $em->flush();
+        // COMMIT THE COMMAND TO THE DATABASE - CRITICAL!
+        try {
+            // Begin transaction explicitly
+            if (!$em->getConnection()->isConnected()) {
+                $logger->warning('Database connection not ready, re-establishing...');
+                $em->getConnection()->connect();
+            }
+            
+            $logger->info('BEFORE flush() call', [
+                'commande_id' => $commande->getId(),
+            ]);
+            $em->flush();
+            $logger->info('AFTER flush() call - SUCCESS', [
+                'commande_id' => $commande->getId(),
+            ]);
+            
+            // Explicitly commit to ensure persistence
+            if ($em->getConnection()->isTransactionActive()) {
+                $logger->info('Committing active transaction');
+                // flush() already commits, but double-check
+            }
+            
+        } catch (\Exception $e) {
+            $logger->error('FLUSH FAILED', [
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+                'code' => $e->getCode(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->addFlash('error', 'Erreur lors de la création de la commande: ' . $e->getMessage());
+            return $this->redirectToRoute('app_panier_index');
+        }
+
+        // VERIFY THE COMMAND WAS SAVED AND HAS AN ID
+        $commandeId = $commande->getId();
+        if (!$commandeId) {
+            $logger->error('CRITICAL: Command has no ID after flush', [
+                'commande_id' => $commandeId,
+            ]);
+            $this->addFlash('error', 'Erreur: La commande n\'a pas pu être créée correctement.');
+            return $this->redirectToRoute('app_panier_index');
+        }
+        
+        $logger->info('Command ID verified after flush', [
+            'commande_id' => $commandeId,
+        ]);
+        
+        // ABSOLUTELY VERIFY IN DATABASE - No trust to Doctrine
+        try {
+            $connection = $em->getConnection();
+            $stmt = $connection->prepare('SELECT id FROM commandes WHERE id = ?');
+            $result = $stmt->executeQuery([(int)$commandeId]);
+            $row = $result->fetchAssociative();
+            
+            if (!$row) {
+                $logger->error('CRITICAL: Database verification FAILED - command not found in database!', [
+                    'commande_id' => $commandeId,
+                    'query' => 'SELECT id FROM commandes WHERE id = ?',
+                ]);
+                $this->addFlash('error', 'Erreur: La commande n\'a pas pu être sauvegardée en base de données.');
+                return $this->redirectToRoute('app_panier_index');
+            }
+            
+            $logger->info('Database verification SUCCESS', [
+                'commande_id' => $commandeId,
+                'row' => $row,
+            ]);
+        } catch (\Exception $e) {
+            $logger->error('Database verification exception', [
+                'error' => $e->getMessage(),
+                'commande_id' => $commandeId,
+            ]);
+            $this->addFlash('error', 'Erreur lors de la vérification en base de données: ' . $e->getMessage());
+            return $this->redirectToRoute('app_panier_index');
+        }
 
         if ($risk >= 70) {
             // Alerte visible côté client
@@ -304,12 +414,12 @@ class PanierController extends AbstractController
             ));
 
             // Optionnel : envoyer un email à l’admin pour l’alerter
-            $adminEmail = (new \Symfony\Component\Mailer\Mime\Email())
+            $adminEmail = (new \Symfony\Component\Mime\Email())
                 ->from('no-reply@pharmax.com')
                 ->to('admin@pharmax.com')
                 ->subject('Alerte fraude – commande bloquée')
                 ->text(sprintf(
-                    "Une commande à risque élevé a été détectée.\nUtilisateur : %s\nID commande : %d\nMontant total : %.2f TND\nScore de risque : %d%%",
+                    "Une commande à risque élevé a été détectée.\nUtilisateur : %s\nID commande : %d\nMontant total : %.2f EUR\nScore de risque : %d%%",
                     $user?->getEmail() ?? 'inconnu',
                     $commande->getId(),
                     $commande->getTotales() ?? 0,
@@ -321,7 +431,7 @@ class PanierController extends AbstractController
             // Ne pas lancer le paiement, laisser la commande bloquée pour admin
             $session->set('panier', []);
 
-            return $this->redirectToRoute('app_commande_show', ['id' => $commande->getId()]);
+            return $this->redirectToRoute('app_commande_show', ['id' => $commandeId]);
         }
 
         // Cas normal : confirmation + paiement Stripe
@@ -340,6 +450,12 @@ class PanierController extends AbstractController
         // Vider le panier
         $session->set('panier', []);
 
-        return $this->redirectToRoute('stripe_create_session', ['id' => $commande->getId()]);
+        // Redirect to checkout page to show order summary and process payment
+        // USE THE VERIFIED COMMAND ID FROM THE DATABASE
+        $logger->info('REDIRECTING TO CHECKOUT', [
+            'commande_id' => $commandeId,
+            'route' => 'app_commande_checkout',
+        ]);
+        return $this->redirectToRoute('app_commande_checkout', ['id' => $commandeId]);
     }
 }

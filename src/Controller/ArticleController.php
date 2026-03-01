@@ -34,6 +34,7 @@ final class ArticleController extends AbstractController
     ): Response
     {
         $searchQuery = $request->query->get('search', '');
+        $statusFilter = $request->query->get('status', '');
         $sortBy = $request->query->get('sort_by', 'date');
         $sortOrder = $request->query->get('sort_order', 'desc');
         $commentFilter = $request->query->get('comment_filter', '');
@@ -46,6 +47,11 @@ final class ArticleController extends AbstractController
         }
         if (!in_array($sortOrder, ['asc', 'desc'])) {
             $sortOrder = 'desc';
+        }
+        
+        // Validate status filter
+        if (!in_array($statusFilter, ['', 'draft', 'published'])) {
+            $statusFilter = '';
         }
         
         // Validate comment filter
@@ -61,6 +67,18 @@ final class ArticleController extends AbstractController
                 $search = strtolower($searchQuery);
                 return strpos(strtolower($article->getTitre()), $search) !== false ||
                        strpos(strtolower($article->getContenu()), $search) !== false;
+            });
+        }
+
+        // Filter articles by status (draft/published)
+        if (!empty($statusFilter)) {
+            $articles = array_filter($articles, function($article) use ($statusFilter) {
+                if ($statusFilter === 'draft') {
+                    return $article->isDraft();
+                } elseif ($statusFilter === 'published') {
+                    return !$article->isDraft();
+                }
+                return true;
             });
         }
         
@@ -209,6 +227,7 @@ final class ArticleController extends AbstractController
             'mostCommentedArticleId' => $mostCommentedArticleId,
             'mostLikedArticleId' => $mostLikedArticleId,
             'searchQuery' => $searchQuery,
+            'statusFilter' => $statusFilter,
             'sortBy' => $sortBy,
             'stats' => $stats,
             'comments_status_chart' => $commentsStatusChart,
@@ -246,6 +265,17 @@ final class ArticleController extends AbstractController
             // Set dates automatically
             $article->setDateCreation(new \DateTime('now'));
             $article->setDateModification(new \DateTime('now'));
+
+            // Check which button was clicked
+            if ($form->get('saveDraft')->isClicked()) {
+                // Save as draft
+                $article->saveDraft();
+                $this->addFlash('success', 'Article sauvegardé comme brouillon!');
+            } else {
+                // Publish the article
+                $article->publish();
+                $this->addFlash('success', 'Article publié avec succès!');
+            }
 
             $entityManager->persist($article);
             $entityManager->flush();
@@ -332,6 +362,23 @@ final class ArticleController extends AbstractController
         return $this->redirectToRoute('app_article_show', [
             'id' => $article->getId()
         ]);
+    }
+
+    #[Route('/{id}/toggle-publish', name: 'app_article_toggle_publish', methods: ['POST'])]
+    public function togglePublish(Request $request, Article $article, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('toggle_publish' . $article->getId(), $request->getPayload()->getString('_token'))) {
+            if ($article->isDraft()) {
+                $article->publish();
+                $this->addFlash('success', "L'article « " . $article->getTitre() . " » a été publié");
+            } else {
+                $article->saveDraft();
+                $this->addFlash('info', "L'article « " . $article->getTitre() . " » a été enregistré comme brouillon");
+            }
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('app_article_index');
     }
 
     #[Route('/{id}', name: 'app_article_delete', methods: ['POST'])]

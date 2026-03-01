@@ -9,9 +9,9 @@
         <thead>
             <tr>
                 <th style="border:1px solid #ddd; padding:6px; text-align:left">Produit</th>
-                <th style="border:1px solid #ddd; padding:6px; text-align:right">Prix (TND)</th>
+                <th style="border:1px solid #ddd; padding:6px; text-align:right">Prix (EUR)</th>
                 <th style="border:1px solid #ddd; padding:6px; text-align:right">Quantité</th>
-                <th style="border:1px solid #ddd; padding:6px; text-align:right">Sous-total (TND)</th>
+                <th style="border:1px solid #ddd; padding:6px; text-align:right">Sous-total (EUR)</th>
             </tr>
         </thead>
         <tbody>
@@ -40,7 +40,7 @@
         <tfoot>
             <tr>
                 <td colspan="3" style="text-align:right; padding:6px; font-weight:bold">Total</td>
-                <td style="text-align:right; padding:6px; font-weight:bold">{{ commande.totales|number_format(2, ',', ' ') }} TND</td>
+                <td style="text-align:right; padding:6px; font-weight:bold">{{ commande.totales|number_format(2, ',', ' ') }} EUR</td>
             </tr>
         </tfoot>
     </table>

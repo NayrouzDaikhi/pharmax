@@ -76,6 +76,8 @@ class LivraisonType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Livraison::class,
+            'csrf_protection' => true,
+            'csrf_field_name' => '_token',
         ]);
     }
 }

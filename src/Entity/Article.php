@@ -47,6 +47,9 @@ class Article
     #[ORM\Column(type: Types::INTEGER)]
     private int $likes = 0;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $isDraft = true;
+
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Commentaire::class, orphanRemoval: true)]
     private Collection $commentaires;
 
@@ -182,5 +185,25 @@ class Article
         return $this;
     }
 
+    public function isDraft(): bool
+    {
+        return $this->isDraft;
+    }
 
-}
+    public function setIsDraft(bool $isDraft): static
+    {
+        $this->isDraft = $isDraft;
+        return $this;
+    }
+
+    public function publish(): static
+    {
+        $this->isDraft = false;
+        return $this;
+    }
+
+    public function saveDraft(): static
+    {
+        $this->isDraft = true;
+        return $this;
+    }}

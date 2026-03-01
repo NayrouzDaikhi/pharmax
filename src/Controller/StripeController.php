@@ -29,8 +29,8 @@ class StripeController extends AbstractController
         foreach ($commande->getLignes() as $ligne) {
             $line_items[] = [
                 'price_data' => [
-                    'currency' => 'eur',
-                    'unit_amount' => $ligne->getPrix() * 100,
+                    'currency' => 'tnd',
+                    'unit_amount' => (int)($ligne->getPrix() * 1000),
                     'product_data' => [
                         'name' => $ligne->getNom(),
                     ],
@@ -61,7 +61,7 @@ class StripeController extends AbstractController
         }
 
         $this->addFlash('success', 'Paiement effectué avec succès!');
-        return $this->redirectToRoute('app_commande_index');
+        return $this->redirectToRoute('app_frontend_commande_show', ['id' => $id]);
     }
 
     #[Route('/commande/cancel/{id}', name: 'stripe_cancel')]

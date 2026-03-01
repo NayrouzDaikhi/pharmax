@@ -39,3 +39,14 @@ services:
             $stripeSecretKey: '%stripe_secret_key%'
             $stripePublishableKey: '%stripe_public_key%'
             $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+
+    # Explicit ChatBotService configuration - OLLAMA ONLY
+    App\Service\ChatBotService:
+        arguments:
+            $ollamaService: '@App\Service\OllamaService'
+            $articleSearchService: '@App\Service\ArticleSearchService'
+            $translationService: '@App\Service\GoogleTranslationService'
+
+    App\Service\OllamaService: ~
+    
+    App\Service\ArticleSearchService: ~

@@ -9,8 +9,12 @@ class ChatBotService
     public function __construct(
         private OllamaService $ollamaService,
         private ArticleSearchService $articleSearchService,
-        private GoogleTranslationService $translationService,
-    ) {}
+        private ?GoogleTranslationService $translationService = null,
+    ) {
+        error_log('[ChatBotService] Constructor: OllamaService=' . ($ollamaService ? 'OK' : 'NULL') . 
+                  ', ArticleSearchService=' . ($articleSearchService ? 'OK' : 'NULL') .
+                  ', GoogleTranslationService=' . ($this->translationService ? 'OK' : 'NULL'));
+    }
 
     /**
      * Répondre à une question en utilisant les articles de la base de données
@@ -27,8 +31,8 @@ class ChatBotService
                 throw new Exception('La question est trop longue (maximum 1000 caractères).');
             }
 
-            // Détecter si l'utilisateur demande une traduction
-            $requestedLanguage = $this->translationService->detectLanguageRequest($question);
+            // Détection de langue désactivée pour l'instant
+            $requestedLanguage = null;
             
             // Initialiser le tableau des articles
             $articles = [];
@@ -39,16 +43,6 @@ class ChatBotService
                 try {
                     $mainArticle = $this->articleSearchService->getArticleById($articleId);
                     if ($mainArticle) {
-                        // Si une traduction est demandée, traduire l'article
-                        if ($requestedLanguage) {
-                            $translatedTitle = $this->translationService->translateText($mainArticle->getTitre(), $requestedLanguage);
-                            $translatedContent = $this->translationService->translateText($mainArticle->getContenu(), $requestedLanguage);
-                            
-                            error_log('ChatBot: Article traduit en ' . $requestedLanguage);
-                            error_log('Original Title: ' . $mainArticle->getTitre());
-                            error_log('Translated Title: ' . $translatedTitle);
-                        }
-                        
                         $articles[] = $mainArticle;
                         error_log('ChatBotService: Article ID ' . $articleId . ' récupéré directement');
                     } else {
