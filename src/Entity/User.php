@@ -5,14 +5,16 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -59,22 +61,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $avatar = null;
 
     /**
+     * Google Authenticator secret for two-factor authentication.
+     * Null means 2FA is not enabled.
+     */
+    #[ORM\Column(length: 255, nullable: true, name: 'google_authenticator_secret')]
+    private ?string $googleAuthenticatorSecret = null;
+
+    /**
+     * Temporary secret during 2FA setup process.
+     * Stored on user to survive session regeneration.
+     * Cleared after verification or setup cancellation.
+     */
+    #[ORM\Column(length: 255, nullable: true, name: 'google_authenticator_secret_pending')]
+    private ?string $googleAuthenticatorSecretPending = null;
+
+    /**
+     * Flag to track if 2FA setup is in progress.
+     */
+    #[ORM\Column(type: 'boolean', name: 'is_2fa_setup_in_progress', options: ['default' => false])]
+    private bool $is2faSetupInProgress = false;
+
+    /**
      * @var Collection<int, Commande>
      */
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Commande::class, cascade: ['persist', 'remove'])]
     private Collection $commandes;
 
-    /**
-     * @var Collection<int, Article>
-     */
-    #[ORM\ManyToMany(targetEntity: Article::class)]
-    #[ORM\JoinTable(name: 'user_saved_articles')]
-    private Collection $savedArticles;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $dataFaceApi = null;
+
+    public function getDataFaceApi(): ?string
+    {
+        return $this->dataFaceApi;
+    }
+
+    public function setDataFaceApi(?string $dataFaceApi): static
+    {
+        $this->dataFaceApi = $dataFaceApi;
+        return $this;
+    }
 
     public function __construct()
     {
         $this->commandes = new ArrayCollection();
-        $this->savedArticles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -240,6 +269,89 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * Get the Google Authenticator secret.
+     * Required by TwoFactorInterface from scheb/2fa-bundle.
+     */
+    public function getGoogleAuthenticatorSecret(): ?string
+    {
+        return $this->googleAuthenticatorSecret;
+    }
+
+    /**
+     * Set the Google Authenticator secret.
+     */
+    public function setGoogleAuthenticatorSecret(?string $secret): static
+    {
+        $this->googleAuthenticatorSecret = $secret;
+
+        return $this;
+    }
+
+    /**
+     * Check if two-factor authentication is enabled for this user.
+     * Required by TwoFactorInterface from scheb/2fa-bundle.
+     */
+    public function isTwoFactorAuthenticationEnabled(): bool
+    {
+        // 2FA is enabled if the secret is not null and not empty
+        return !empty($this->googleAuthenticatorSecret);
+    }
+
+    /**
+     * Check if Google Authenticator authentication is enabled.
+     * Required by TwoFactorInterface.
+     */
+    public function isGoogleAuthenticatorEnabled(): bool
+    {
+        return $this->isTwoFactorAuthenticationEnabled();
+    }
+
+    /**
+     * Get the username to display in Google Authenticator.
+     * Required by TwoFactorInterface.
+     */
+    public function getGoogleAuthenticatorUsername(): string
+    {
+        return $this->email ?? 'User';
+    }
+
+    /**
+     * Get the pending 2FA secret (during setup process).
+     */
+    public function getGoogleAuthenticatorSecretPending(): ?string
+    {
+        return $this->googleAuthenticatorSecretPending;
+    }
+
+    /**
+     * Set the pending 2FA secret (during setup process).
+     */
+    public function setGoogleAuthenticatorSecretPending(?string $secret): static
+    {
+        $this->googleAuthenticatorSecretPending = $secret;
+
+        return $this;
+    }
+
+    /**
+     * Check if 2FA setup is in progress.
+     */
+    public function is2faSetupInProgress(): bool
+    {
+        return $this->is2faSetupInProgress;
+    }
+
+    /**
+     * Set 2FA setup in progress flag.
+     */
+    public function set2faSetupInProgress(bool $inProgress): static
+    {
+        $this->is2faSetupInProgress = $inProgress;
+
+        return $this;
+    }
+
+    /**
      * @return Collection<int, Commande>
      */
     public function getCommandes(): Collection
@@ -266,35 +378,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
-    }
-
-    /**
-     * @return Collection<int, Article>
-     */
-    public function getSavedArticles(): Collection
-    {
-        return $this->savedArticles;
-    }
-
-    public function addSavedArticle(Article $article): static
-    {
-        if (!$this->savedArticles->contains($article)) {
-            $this->savedArticles->add($article);
-        }
-
-        return $this;
-    }
-
-    public function removeSavedArticle(Article $article): static
-    {
-        $this->savedArticles->removeElement($article);
-
-        return $this;
-    }
-
-    public function hasSavedArticle(Article $article): bool
-    {
-        return $this->savedArticles->contains($article);
     }
 
         /**
