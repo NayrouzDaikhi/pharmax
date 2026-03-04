@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -85,6 +86,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
      */
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: Commande::class, cascade: ['persist', 'remove'])]
     private Collection $commandes;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $dataFaceApi = null;
+
+    public function getDataFaceApi(): ?string
+    {
+        return $this->dataFaceApi;
+    }
+
+    public function setDataFaceApi(?string $dataFaceApi): static
+    {
+        $this->dataFaceApi = $dataFaceApi;
+        return $this;
+    }
 
     public function __construct()
     {
