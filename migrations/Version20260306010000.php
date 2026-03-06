@@ -20,10 +20,8 @@ final class Version20260306010000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // Add data_face_api column if it doesn't exist
-        // Safe to run multiple times - if column exists, this is a no-op
-        if (!$schema->getTable('`user`')->hasColumn('data_face_api')) {
-            $this->addSql('ALTER TABLE `user` ADD data_face_api LONGTEXT DEFAULT NULL');
-        }
+        // This migration is idempotent and safe to run multiple times
+        $this->addSql('ALTER TABLE `user` ADD COLUMN IF NOT EXISTS data_face_api LONGTEXT DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
