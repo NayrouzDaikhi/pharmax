@@ -97,6 +97,9 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $displayName = method_exists($user, 'getFullName') ? $user->getFullName() : $user->getUserIdentifier();
         $request->getSession()->getFlashBag()->add('login_success', sprintf('Welcome back, %s!', $displayName));
 
+        // JWT is automatically generated and stored in session by JwtGenerationSubscriber
+        // Frontend can retrieve it via GET /api/auth/token endpoint
+
         // Redirect based on roles (admin or super admin)
         if (in_array('ROLE_ADMIN', $user->getRoles(), true) || in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true)) {
             return new RedirectResponse($this->urlGenerator->generate('admin_user_index'));

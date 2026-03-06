@@ -17,7 +17,12 @@
 
   {% if error is defined and error %}
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <strong>Login Failed!</strong> {{ error.messageKey|trans(error.messageData, 'security') }}
+      <strong>Login Failed!</strong> 
+      {% if error.messageKey %}
+        {{ error.messageKey|trans(error.messageData, 'security') }}
+      {% else %}
+        {{ error.message }}
+      {% endif %}
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   {% endif %}
@@ -53,6 +58,18 @@
       {{ form_widget(form.captcha) }}
       {{ form_errors(form.captcha) }}
     </div>
+
+    <!-- Face API Login -->
+    <div class="mb-3">
+        <label class="form-label">Face Recognition Verification (Optional / If registered)</label>
+        <div class="video-container" style="position: relative; max-width: 100%; overflow: hidden; border-radius: 8px; margin-bottom: 10px;">
+            <video id="webcam" autoplay muted playsinline style="width: 100%; display: block; object-fit: cover;"></video>
+        </div>
+        <button id="startIdentification" class="btn btn-outline-primary d-grid w-100" type="button">Identify Face</button>
+    </div>
+    <script defer src="{{ asset('js/face-api.min.js') }}"></script>
+    <script defer src="{{ asset('js/login-face.js') }}"></script>
+    <!-- End Face API Login -->
 
     <div class="mb-3">
       <button class="btn btn-primary d-grid w-100" type="submit">Sign in</button>
