@@ -1,0 +1,135 @@
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        .invoice-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .invoice-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+        .total {
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #2c3e50;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Invoice Receipt</h1>
+            <p>Invoice #{{ invoiceNumber }}</p>
+        </div>
+
+        <div class="content">
+            <div class="invoice-section">
+                <div class="invoice-header">Invoice Details</div>
+                <p><strong>Invoice Date:</strong> {{ invoiceDate|date('d/m/Y') }}</p>
+                <p><strong>Due Date:</strong> {{ dueDate|date('d/m/Y') }}</p>
+                <p><strong>Order ID:</strong> {{ commande.id }}</p>
+            </div>
+
+            <div class="invoice-section">
+                <div class="invoice-header">Bill To</div>
+                <p>{{ commande.utilisateur.firstName }} {{ commande.utilisateur.lastName }}</p>
+                <p>{{ commande.utilisateur.email }}</p>
+            </div>
+
+            <div class="invoice-section">
+                <div class="invoice-header">Company Information</div>
+                <p><strong>{{ companyInfo.name }}</strong></p>
+                <p>{{ companyInfo.address }}</p>
+                <p>Phone: {{ companyInfo.phone }}</p>
+                <p>Email: {{ companyInfo.email }}</p>
+                <p>Tax ID: {{ companyInfo.taxId }}</p>
+            </div>
+
+            <table>
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+                {% for ligne in commande.ligneCommandes %}
+                <tr>
+                    <td>{{ ligne.nomProduit }}</td>
+                    <td>{{ ligne.skuProduit }}</td>
+                    <td>{{ ligne.quantite }}</td>
+                    <td>{{ ligne.prix|number_format(2, ',', '.') }} DT</td>
+                    <td>{{ (ligne.prix * ligne.quantite)|number_format(2, ',', '.') }} DT</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <div class="total">
+                Total: {{ commande.totales|number_format(2, ',', '.') }} DT
+            </div>
+
+            <div class="invoice-section">
+                <p><strong>Order Status:</strong> {{ commande.statut|upper }}</p>
+                {% if stripePaymentId %}
+                <p><strong>Payment ID:</strong> {{ stripePaymentId }}</p>
+                {% endif %}
+            </div>
+
+            <div class="footer">
+                <p>Thank you for your business!</p>
+                <p>For any inquiries, please contact us at {{ companyInfo.email }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

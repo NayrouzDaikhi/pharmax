@@ -1,0 +1,403 @@
+{% extends 'front_base.html.twig' %}
+
+{% block title %}Accueil - Pharmax{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container-xxl">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                <h1 class="hero-title animate-slide-left">Votre Pharmacie en Ligne</h1>
+                <p class="fs-5 mb-4 animate-slide-left" style="animation-delay: 0.2s; opacity: 0; animation-fill-mode: both;">
+                    Découvrez notre large gamme de produits de santé et bien-être. Livraison rapide et sécurisée dans toute la Tunisie.
+                </p>
+                
+                <!-- Search Bar -->
+                <div class="mb-4 animate-slide-left" style="animation-delay: 0.3s; opacity: 0; animation-fill-mode: both; position: relative; max-width: 400px;">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" id="searchProduits" placeholder="Rechercher un produit..." style="border-radius: 8px 0 0 8px; border: 2px solid #27ae60;" autocomplete="off">
+                        <button class="btn btn-success" type="button" id="searchBtn" style="border-radius: 0 8px 8px 0; background-color: #27ae60; border-color: #27ae60;">
+                            <i class="bx bx-search"></i> Rechercher
+                        </button>
+                    </div>
+                    <!-- Résultats de recherche en temps réel -->
+                    <div id="searchResults" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; max-height: 400px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+                
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="bx bx-health animate-fade" style="font-size: 200px; opacity: 0.15; animation-delay: 0.3s;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section style="padding: 80px 0; background: white;">
+    <div class="container-xxl">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale">
+                    <div class="stat-number">{{ total_produits }}+</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">Produits Disponibles</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale" style="animation-delay: 0.1s;">
+                    <div class="stat-number">{{ total_categories }}</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">Catégories</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale" style="animation-delay: 0.2s;">
+                    <div class="stat-number">{{ produits_valables }}+</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">En Stock</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="stat-card animate-scale" style="animation-delay: 0.3s;">
+                    <div class="stat-number">100%</div>
+                    <p class="text-muted mb-0 mt-2" style="font-weight: 600;">Satisfaction</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section intelligente -->
+{% if top_categories is not empty %}
+<section style="padding: 80px 0; background: #f8f9fa;">
+    <div class="container-xxl">
+        <div>
+            <h2 class="section-title animate-slide-up">Catégories Populaires</h2>
+            <p class="section-subtitle animate-slide-up" style="animation-delay: 0.1s;">Explorez nos catégories les plus demandées</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for item in top_categories %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ path('app_front_produits') }}?categorie={{ item.categorie.id }}" style="text-decoration: none; color: inherit;">
+                    <div class="category-card animate-scale" style="animation-delay: {{ loop.index0 * 0.1 }}s; border-radius: 12px; padding: 30px; background: white; border: 1px solid #e0e0e0; text-align: center; transition: all 0.3s ease; cursor: pointer; height: 100%;">
+                        <div style="font-size: 50px; margin-bottom: 15px; color: #27ae60;">
+                            <i class="bx bx-package"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">{{ item.categorie.nom }}</h5>
+                        <p class="text-muted" style="font-size: 0.9rem;">{{ item.count }} produits</p>
+                        <span class="badge bg-light text-primary" style="margin-top: 10px;">Découvrir →</span>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Products Section -->
+<section style="padding: 80px 0;">
+    <div class="container-xxl">
+        <div>
+            <h2 class="section-title animate-slide-up">10 Produits Récemment Ajoutés</h2>
+            <p class="section-subtitle animate-slide-up" style="animation-delay: 0.1s;">Découvrez nos nouveaux produits disponibles</p>
+        </div>
+        
+        <div class="row g-4">
+            {% if recent_products is not empty %}
+                {% for produit in recent_products %}
+                <div class="col-md-6 col-lg-4 col-xl-{% if recent_products|length <= 5 %}{{ recent_products|length == 1 ? 12 : (recent_products|length == 2 ? 6 : (recent_products|length == 3 ? 4 : (recent_products|length == 4 ? 3 : 2))) }}{% else %}auto{% endif %}">
+                    <div class="product-card animate-slide-up">
+                        {% if produit.image %}
+                            <img src="{{ asset('uploads/images/' ~ produit.image) }}" class="card-img-top" alt="{{ produit.nom }}" onerror="this.src='{{ asset('images/placeholder.png') }}'">
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center" style="background-color: #f0f0f0;">
+                                <i class="bx bx-image" style="font-size: 50px; color: #ccc;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <span class="badge {% if produit.statut %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ produit.statut ? 'En Stock' : 'Indisponible' }}
+                        </span>
+
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold" style="font-size: 1rem;">{{ produit.nom|slice(0, 40) }}</h5>
+                            <p class="card-text text-muted small" style="height: 50px; overflow: hidden;">
+                                {{ produit.description|striptags|slice(0, 70) }}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+                                {% if produit.isEnPromotion %}
+                                    <div>
+                                        <h5 class="text-primary fw-bold mb-0" style="font-size: 1.2rem;">{{ produit.prixPromo|number_format(2, ',', ' ') }} <span style="font-size: 0.8rem;">DTN</span></h5>
+                                        <small class="text-muted text-decoration-line-through">{{ produit.prix|number_format(2, ',', ' ') }} DTN</small>
+                                    </div>
+                                {% else %}
+                                    <h5 class="text-primary fw-bold mb-0" style="font-size: 1.2rem;">{{ produit.prix|number_format(2, ',', ' ') }} <span style="font-size: 0.8rem;">DTN</span></h5>
+                                {% endif %}
+                                {% if produit.categorie %}
+                                    <small class="badge bg-light text-dark">{{ produit.categorie.nom|slice(0, 15) }}</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" class="btn btn-primary btn-sm flex-fill" style="border-radius: 8px;" data-add-to-cart>
+                                    <i class="bx bx-cart-add"></i> Ajouter
+                                </a>
+                                <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" class="btn btn-outline-primary btn-sm flex-fill" style="border-radius: 8px;">
+                                    <i class="bx bx-show"></i> Détails
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Aucun produit disponible pour le moment.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if recent_products is not empty %}
+        <div class="text-center mt-5">
+            <a href="{{ path('app_front_produits') }}" class="btn btn-outline-primary btn-custom animate-scale" style="animation-delay: 0.5s;">
+                <i class="bx bx-chevron-right"></i> Voir Tous les Produits
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Popular Products Section (Most Commented) -->
+{% if popular_products is not empty and popular_products|length > 0 %}
+<section style="padding: 80px 0; background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(52, 152, 219, 0.1) 100%);">
+    <div class="container-xxl">
+        <div>
+            <h2 class="section-title animate-slide-up"><i class="bx bx-star" style="color: #f39c12;"></i> Produits les Plus Commentés</h2>
+            <p class="section-subtitle animate-slide-up" style="animation-delay: 0.1s;">Les produits favoris de nos clients</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for produit in popular_products %}
+            <div class="col-md-6 col-lg-4">
+                <div class="product-card animate-slide-up" style="animation-delay: {{ loop.index0 * 0.1 }}s; border: 2px solid #ffa500;">
+                    {% if produit.image %}
+                        <img src="{{ asset('uploads/images/' ~ produit.image) }}" class="card-img-top" alt="{{ produit.nom }}" onerror="this.src='{{ asset('images/placeholder.png') }}'">
+                    {% else %}
+                        <div class="card-img-top d-flex align-items-center justify-content-center" style="background-color: #fff3e0;">
+                            <i class="bx bx-image" style="font-size: 50px; color: #ffb74d;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <span class="badge bg-warning text-dark" style="position: absolute; top: 12px; right: 12px;"><i class="bx bx-star"></i> Populaire</span>
+
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold" style="font-size: 1rem;">{{ produit.nom|slice(0, 40) }}</h5>
+                        <p class="card-text text-muted small" style="height: 50px; overflow: hidden;">
+                            {{ produit.description|striptags|slice(0, 70) }}
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+                            {% if produit.isEnPromotion %}
+                                <div>
+                                    <h5 class="text-primary fw-bold mb-0" style="font-size: 1.2rem;">{{ produit.prixPromo|number_format(2, ',', ' ') }} <span style="font-size: 0.8rem;">DTN</span></h5>
+                                    <small class="text-muted text-decoration-line-through">{{ produit.prix|number_format(2, ',', ' ') }} DTN</small>
+                                </div>
+                            {% else %}
+                                <h5 class="text-primary fw-bold mb-0" style="font-size: 1.2rem;">{{ produit.prix|number_format(2, ',', ' ') }} <span style="font-size: 0.8rem;">DTN</span></h5>
+                            {% endif %}
+                            {% if produit.categorie %}
+                                <small class="badge bg-light text-dark">{{ produit.categorie.nom|slice(0, 15) }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_panier_ajouter', {'id': produit.id}) }}" class="btn btn-warning btn-sm flex-fill" style="border-radius: 8px; color: #fff;" data-add-to-cart>
+                                <i class="bx bx-cart-add"></i> Ajouter
+                            </a>
+                            <a href="{{ path('app_front_detail_produit', {'id': produit.id}) }}" class="btn btn-warning btn-sm flex-fill" style="border-radius: 8px; color: #fff;">
+                                <i class="bx bx-show"></i> Détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Articles Section -->
+{% if recent_articles is not empty %}
+<section style="padding: 80px 0; background: #f8f9fa;">
+    <div class="container-xxl">
+        <div>
+            <h2 class="section-title animate-slide-up">Articles Récents</h2>
+            <p class="section-subtitle animate-slide-up" style="animation-delay: 0.1s;">Lisez nos derniers conseils et actualités de santé</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for article in recent_articles|slice(0, 6) %}
+            <div class="col-md-6 col-lg-4">
+                <div class="article-card animate-slide-up">
+                    {% if article.image %}
+                        <img src="{{ asset('uploads/images/' ~ article.image) }}" class="card-img-top" alt="{{ article.titre }}" style="height: 200px; object-fit: cover;" onerror="this.src='{{ asset('images/placeholder.png') }}'">
+                    {% else %}
+                        <div class="article-image">
+                            <i class="bx bx-news"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body">
+                        <div class="article-date">
+                            <i class="bx bx-calendar"></i> {{ article.dateCreation ? article.dateCreation|date('d M Y') : 'Date non disponible' }}
+                        </div>
+                        
+                        <h5 class="card-title fw-bold mt-3" style="font-size: 1.1rem;">{{ article.titre|slice(0, 50) }}</h5>
+                        
+                        <p class="card-text text-muted small mt-2" style="height: 60px; overflow: hidden;">
+                            {{ article.contenu|striptags|slice(0, 100) }}
+                        </p>
+
+                        <a href="{{ path('app_blog_show', {'id': article.id}) }}" class="btn btn-primary btn-sm mt-3" style="border-radius: 8px;">
+                            <i class="bx bx-right-arrow-alt"></i> Lire l'Article
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="{{ path('app_blog_index') }}" class="btn btn-outline-primary btn-custom animate-scale" style="animation-delay: 0.5s;">
+                <i class="bx bx-chevron-right"></i> Tous les Articles
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Why Choose Us Section -->
+<section style="padding: 80px 0;">
+    <div class="container-xxl">
+        <h2 class="section-title text-center animate-slide-up">Pourquoi Nous Choisir?</h2>
+        <p class="section-subtitle text-center animate-slide-up" style="animation-delay: 0.1s;">Nos avantages pour votre santé</p>
+        
+        <div class="row g-4 mt-5">
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center h-100 p-4 animate-scale" style="border-radius: 12px; background: #f8f9fa; transition: all 0.3s;">
+                    <i class="bx bx-certified" style="font-size: 60px; color: #27ae60;"></i>
+                    <h5 class="fw-bold mt-3">Certifié & Contrôlé</h5>
+                    <p class="text-muted small">Tous nos produits sont certifiés et vérifiés</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center h-100 p-4 animate-scale" style="border-radius: 12px; background: #f8f9fa; animation-delay: 0.1s; transition: all 0.3s;">
+                    <i class="bx bx-fast-forward" style="font-size: 60px; color: #3498db;"></i>
+                    <h5 class="fw-bold mt-3">Livraison Rapide</h5>
+                    <p class="text-muted small">Livraison en 24-48h partout en Tunisie</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center h-100 p-4 animate-scale" style="border-radius: 12px; background: #f8f9fa; animation-delay: 0.2s; transition: all 0.3s;">
+                    <i class="bx bx-shield-plus" style="font-size: 60px; color: #27ae60;"></i>
+                    <h5 class="fw-bold mt-3">Équipe Support</h5>
+                    <p class="text-muted small">À votre service pour toutes vos questions</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center h-100 p-4 animate-scale" style="border-radius: 12px; background: #f8f9fa; animation-delay: 0.3s; transition: all 0.3s;">
+                    <i class="bx bx-lock" style="font-size: 60px; color: #3498db;"></i>
+                    <h5 class="fw-bold mt-3">Sécurisé</h5>
+                    <p class="text-muted small">Paiement et données protégés</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchProduits');
+    const searchResults = document.getElementById('searchResults');
+    const searchBtn = document.getElementById('searchBtn');
+    let searchTimeout;
+
+    // Recherche en temps réel lors de la saisie
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        // Délai de 300ms avant de faire la requête
+        searchTimeout = setTimeout(() => {
+            fetch(`{{ path('app_api_search_produits') }}?q=${encodeURIComponent(query)}&limit=6`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results.length > 0) {
+                        displaySearchResults(data.results);
+                    } else {
+                        searchResults.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Aucun produit trouvé</div>';
+                        searchResults.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la recherche:', error);
+                    searchResults.style.display = 'none';
+                });
+        }, 300);
+    });
+
+    // Bouton de recherche
+    searchBtn.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query.length > 0) {
+            window.location.href = `{{ path('app_front_produits') }}?search=${encodeURIComponent(query)}`;
+        }
+    });
+
+    // Permettre la soumission avec Entrée
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchBtn.click();
+        }
+    });
+
+    // Fermer les résultats quand on clique ailleurs
+    document.addEventListener('click', function(e) {
+        if (e.target !== searchInput && e.target !== searchResults && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    function displaySearchResults(results) {
+        let html = '';
+        results.forEach(produit => {
+            html += `
+                <a href="${produit.url}" style="display: flex; padding: 12px 15px; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='transparent'">
+                    <div style="width: 50px; height: 50px; margin-right: 15px; background: #f0f0f0; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                        <img src="${produit.image}" alt="${produit.nom}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${produit.nom}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${produit.description}</div>
+                        <div style="color: #27ae60; font-weight: 700;">${produit.prix} DTN</div>
+                    </div>
+                </a>
+            `;
+        });
+        searchResults.innerHTML = html;
+        searchResults.style.display = 'block';
+    }
+});
+</script>
+
+{% endblock %}

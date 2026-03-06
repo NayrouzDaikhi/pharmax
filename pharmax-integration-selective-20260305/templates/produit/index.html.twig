@@ -1,0 +1,101 @@
+{% extends 'produit/base.html.twig' %}
+
+{% block title %}Produits - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">Nos Produits</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item active">Produits</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{{ path('app_produit_new') }}" class="btn btn-success">
+        <i class="bx bx-plus"></i> Ajouter Produit
+    </a>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">liste des Produits</h5>
+    </div>
+    <div class="card-body">
+        {% if produits|length > 0 %}
+            <div class="row g-4">
+                {% for produit in produits %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100" style="transition: all 0.3s ease;">
+                        {% if produit.image %}
+                            <img src="{{ asset('uploads/images/' ~ produit.image) }}" class="card-img-top" alt="{{ produit.nom }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div style="height: 250px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                <i class="bx bx-image" style="font-size: 3rem; color: #ccc;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ produit.nom }}</h5>
+                            <p class="card-text text-muted" style="height: 50px; overflow: hidden;">{{ produit.description|slice(0, 80) }}...</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="text-primary fw-bold mb-0">{{ produit.prix }} DTN</h4>
+                                {% if produit.isStatut() %}
+                                    <span class="badge bg-success">En Stock</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Hors Stock</span>
+                                {% endif %}
+                            </div>
+
+                            <a href="{{ path('app_produit_show', {'id': produit.id}) }}" class="btn btn-primary btn-sm w-100">
+                                <i class="bx bx-detail"></i> Voir Détails
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bx bx-package" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">Aucun produit disponible</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<!-- About Card -->
+<div style="background-color: #ffffff; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+        À Propos
+    </h4>
+    <p style="color: #656565; font-size: 13px; line-height: 1.6; margin: 0;">
+        Pharmax - Gestion complète des produits pharmaceutiques avec suivi du stock et des expéditions.
+    </p>
+</div>
+
+<!-- Stats Card -->
+<div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+        Statistiques
+    </h4>
+    <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between;">
+            <span style="color: #656565; font-size: 13px;">Total Produits</span>
+            <strong style="color: #5ea96b;">{{ produits|length }}</strong>
+        </div>
+    </div>
+    <div>
+        <div style="display: flex; justify-content: space-between;">
+            <span style="color: #656565; font-size: 13px;">En Stock</span>
+            <strong style="color: #5ea96b;">{{ produits|filter(p => p.isStatut())|length }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}

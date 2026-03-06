@@ -1,0 +1,18 @@
+<h1>Confirmation de votre commande</h1>
+
+<p>Bonjour {{ user.firstName }},</p>
+
+<p>Merci pour votre commande !</p>
+
+<p>Voici un résumé de votre commande :</p>
+
+<ul>
+    {% for ligne in commande.lignes %}
+        <li>{{ ligne.quantite }} x {{ ligne.nom }} - {{ ligne.sousTotal|number_format(2, ',', ' ') }} DT</li>
+    {% endfor %}
+</ul>
+
+<p>Total : {{ commande.totales|number_format(2, ',', ' ') }} DT</p>
+
+<p>Merci de votre confiance !</p>
+<p>L'équipe Pharmax</p>

@@ -1,0 +1,14 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 280px; gap: 30px;">
+    <main>
+        {% block main %}{% endblock %}
+    </main>
+    
+    <!-- Sidebar -->
+    <aside>
+        {% block sidebar %}{% endblock %}
+    </aside>
+</div>
+{% endblock %}

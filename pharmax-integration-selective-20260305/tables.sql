@@ -1,0 +1,61 @@
+﻿CREATE TABLE IF NOT EXISTS archive_de_commentaire (
+    id INT AUTO_INCREMENT NOT NULL,
+    contenu LONGTEXT NOT NULL,
+    date_publication DATETIME NOT NULL,
+    user_name VARCHAR(255),
+    user_email VARCHAR(255),
+    reason VARCHAR(50) NOT NULL,
+    archived_at DATETIME NOT NULL,
+    article_id INT NOT NULL,
+    PRIMARY KEY(id),
+    INDEX IDX_522D8E587294869C (article_id),
+    CONSTRAINT FK_522D8E587294869C FOREIGN KEY (article_id) REFERENCES article (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notification (
+    id INT AUTO_INCREMENT NOT NULL,
+    message LONGTEXT NOT NULL,
+    created_at DATETIME NOT NULL,
+    is_read TINYINT(1) NOT NULL,
+    user_id INT NOT NULL,
+    PRIMARY KEY(id),
+    INDEX IDX_BF5476CAA76ED395 (user_id),
+    CONSTRAINT FK_BF5476CAA76ED395 FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS reclamation (
+    id INT AUTO_INCREMENT NOT NULL,
+    titre VARCHAR(255) NOT NULL,
+    description LONGTEXT NOT NULL,
+    date_creation DATETIME NOT NULL,
+    statut VARCHAR(50) NOT NULL,
+    user_id INT,
+    PRIMARY KEY(id),
+    INDEX IDX_CE606404A76ED395 (user_id),
+    CONSTRAINT FK_CE606404A76ED395 FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS reponse (
+    id INT AUTO_INCREMENT NOT NULL,
+    contenu LONGTEXT NOT NULL,
+    date_reponse DATETIME NOT NULL,
+    reclamation_id INT NOT NULL,
+    user_id INT,
+    PRIMARY KEY(id),
+    INDEX IDX_5FB6DEC72D6BA2D9 (reclamation_id),
+    INDEX IDX_5FB6DEC7A76ED395 (user_id),
+    CONSTRAINT FK_5FB6DEC72D6BA2D9 FOREIGN KEY (reclamation_id) REFERENCES reclamation (id),
+    CONSTRAINT FK_5FB6DEC7A76ED395 FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS reset_password_request (
+    id INT AUTO_INCREMENT NOT NULL,
+    selector VARCHAR(20) NOT NULL,
+    hashed_token VARCHAR(100) NOT NULL,
+    requested_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    user_id INT NOT NULL,
+    PRIMARY KEY(id),
+    INDEX IDX_7CE748AA76ED395 (user_id),
+    CONSTRAINT FK_7CE748AA76ED395 FOREIGN KEY (user_id) REFERENCES user (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

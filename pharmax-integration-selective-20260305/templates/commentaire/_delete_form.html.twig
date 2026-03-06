@@ -1,0 +1,16 @@
+<div class="card border-danger border-2">
+    <div class="card-header bg-danger bg-opacity-10">
+        <h5 class="mb-0 text-danger">
+            <i class="bx bx-trash"></i> Delete Comment
+        </h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-3">Once you delete a comment, there is no going back. Please be certain.</p>
+        <form method="post" action="{{ path('app_commentaire_delete', {'id': commentaire.id}) }}" style="display: inline;">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ commentaire.id) }}">
+            <button type="submit" class="btn btn-danger" data-confirm-delete>
+                <i class="bx bx-trash me-2"></i> Delete Permanently
+            </button>
+        </form>
+    </div>
+</div>

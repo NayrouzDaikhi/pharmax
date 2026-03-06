@@ -1,0 +1,70 @@
+{% extends 'base_simple.html.twig' %}
+
+{% block title %}{{ categorie.name }}{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">{{ categorie.name }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_categorie_index') }}">Catégories</a></li>
+                <li class="breadcrumb-item active">Détail</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">{{ categorie.name }}</h5>
+          <div>
+            <a href="{{ path('app_categorie_edit', {'id': categorie.id}) }}" class="btn btn-sm btn-warning">
+              <i class="bx bx-edit"></i> Modifier
+            </a>
+            <a href="{{ path('app_categorie_index') }}" class="btn btn-sm btn-secondary">
+              <i class="bx bx-arrow-back"></i> Retour
+            </a>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <dl class="row">
+            <dt class="col-sm-4">Créé le:</dt>
+            <dd class="col-sm-8">
+              {{ categorie.createdAt|date('d/m/Y H:i') }}
+            </dd>
+          </dl>
+
+          {% if categorie.description %}
+            <div class="row mt-4">
+              <div class="col-12">
+                <h6 class="text-muted text-uppercase">Description</h6>
+                <p class="text-justify">{{ categorie.description }}</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      
+
+      <!-- Delete button -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <form method="POST" action="{{ path('app_categorie_delete', {'id': categorie.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.id) }}">
+            <button type="submit" class="btn btn-danger">
+              <i class="bx bx-trash"></i> Supprimer cette catégorie
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

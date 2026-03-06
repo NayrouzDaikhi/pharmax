@@ -1,0 +1,161 @@
+{% extends 'produit/base.html.twig' %}
+
+{% block title %}{{ produit.nom }} - Pharmax{% endblock %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-2">{{ produit.nom }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_produit_index') }}">Produits</a></li>
+                <li class="breadcrumb-item active">{{ produit.nom }}</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="btn-group">
+        <a href="{{ path('app_produit_edit', {'id': produit.id}) }}" class="btn btn-success">
+            <i class="bx bx-edit"></i> Modifier
+        </a>
+        <form method="post" action="{{ path('app_produit_delete', {'id': produit.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ produit.id) }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="bx bx-trash"></i> Supprimer
+            </button>
+        </form>
+        <a href="{{ path('app_produit_index') }}" class="btn btn-secondary">
+            <i class="bx bx-arrow-back"></i> Retour
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Informations du produit</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-5">
+                {% if produit.image %}
+                    <img src="{{ asset('uploads/images/' ~ produit.image) }}" class="img-fluid rounded" alt="{{ produit.nom }}" style="max-height: 400px; width: 100%; object-fit: cover;">
+                {% else %}
+                    <div style="height: 400px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <i class="bx bx-image" style="font-size: 5rem; color: #ccc;"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-7">
+                <!-- Détails du produit -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Prix</label>
+                    <p style="font-size: 2rem; color: #5ea96b; font-weight: bold;">{{ produit.prix }} DTN</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Quantité disponible</label>
+                            <p class="border-bottom pb-2">{{ produit.quantite }} unités</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Statut</label>
+                            <p class="border-bottom pb-2">
+                                {% if produit.isStatut() %}
+                                    <span class="badge bg-success">En Stock</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Hors Stock</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Date d'expiration</label>
+                            <p class="border-bottom pb-2">{{ produit.dateExpiration|date('d M Y') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Date de création</label>
+                            <p class="border-bottom pb-2">{{ produit.createdAt|date('d M Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if produit.categorie %}
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Catégorie</label>
+                    <p class="border-bottom pb-2">
+                        <span class="badge bg-light text-dark">{{ produit.categorie.nom }}</span>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Description -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">Description</label>
+            <div class="border p-3 rounded bg-light" style="max-height: 300px; overflow-y: auto;">
+                {{ produit.description|nl2br }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<!-- Détails Card -->
+<div style="background-color: #ffffff; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+        Résumé
+    </h4>
+    <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <small class="text-muted">Prix</small>
+            <strong style="color: #5ea96b;">{{ produit.prix }} DTN</strong>
+        </div>
+    </div>
+    <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <small class="text-muted">Quantité</small>
+            <strong>{{ produit.quantite }}</strong>
+        </div>
+    </div>
+    <div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <small class="text-muted">Statut</small>
+            <strong>
+                {% if produit.isStatut() %}
+                    <span class="badge bg-success" style="font-size: 0.8rem;">En Stock</span>
+                {% else %}
+                    <span class="badge bg-danger" style="font-size: 0.8rem;">Hors Stock</span>
+                {% endif %}
+            </strong>
+        </div>
+    </div>
+</div>
+
+<!-- Autres produits Card -->
+<div style="background-color: #ffffff; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+    <h4 style="color: #2c3e50; font-weight: 700; margin-bottom: 15px; border-bottom: 3px solid #5ea96b; padding-bottom: 10px; font-size: 14px;">
+        Autres Produits
+    </h4>
+    <div style="padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+        <a href="{{ path('app_produit_index') }}" style="color: #5ea96b; text-decoration: none; font-weight: 700; font-size: 13px;">
+            Voir tous les produits →
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'front/authentication_base.html.twig' %}
+
+{% block title %}Check Your Email | Pharmax{% endblock %}
+
+{% block auth_inner_class %} py-4{% endblock %}
+
+{% block auth_content %}
+  <h4 class="mb-3">Check Your Email 📧</h4>
+  
+  <div class="alert alert-info" role="alert">
+    <p class="mb-2">
+      If an account matching your email exists, then an email was just sent that contains a link that you can use to reset your password.
+    </p>
+    <p class="mb-0">
+      This link will expire in {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+    </p>
+  </div>
+
+  <p class="mb-4">If you don't receive an email please check your spam folder or <a href="{{ path('app_forgot_password_request') }}">try again</a>.</p>
+
+  <div class="text-center">
+    <a href="{{ path('app_login') }}" class="d-flex align-items-center justify-content-center">
+      <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm"></i>
+      Back to login
+    </a>
+  </div>
+{% endblock %}
